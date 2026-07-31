@@ -1,37 +1,31 @@
-# manhwav7
+# 📚 Yumezone (en desarrollo)
 
-Base limpia y ordenada para crecer desde cero.
+Plataforma de lectura digital inspirada en servicios como MangaToon y Webtoon, enfocada en **mangas, manhuas y manhwas**.  
+Actualmente en construcción, con el objetivo de ofrecer una experiencia de lectura fluida y una comunidad activa.
 
-## Objetivo
+## ✨ Funcionalidades previstas
+- Gestión de obras: portada, sinopsis, géneros, etiquetas, autores e ilustradores.
+- Gestión de capítulos: creación, subida de imágenes, publicación y programación.
+- Biblioteca personal: favoritos, historial y continuar leyendo.
+- Descubrimiento: tendencias, populares, mejor valorados y recomendaciones.
+- Comunidad: comentarios, reacciones y chat en vivo.
+- Grupos Scan: equipos responsables de publicar obras, con roles y tablones internos.
 
-Separar claramente el frontend y el backend desde el principio para evitar mezclar responsabilidades.
+## 🚀 Estado del proyecto
+Este repositorio está en fase inicial de desarrollo.  
+Las funcionalidades se irán liberando progresivamente.
 
-## Estructura base
+## 🛠️ Tecnologías
+- **Frontend:** por definir subido en  (Cloudflare Pages)
+- **Backend:** FastAPI
+- **Base de datos:** MySQL por definir el server
+- **Arquitectura:** en construction 
 
-- `frontend/` para la interfaz, componentes visuales, estilos, páginas y recursos estáticos.
-- `backend/` para la API, modelos, repositorios, servicios, configuración y tests.
-- `docs/` para documentación de arquitectura, decisiones y notas de aprendizaje.
-- `scripts/` para utilidades de mantenimiento o automatización.
+## 🤝 Contribuciones
+El proyecto está abierto a sugerencias y colaboración.  
+Si quieres aportar, abre un *issue* o envía un *pull request*.
 
-## Subestructura recomendada
+---
 
-- En `frontend/`, separar `components`, `pages`, `services`, `styles`, `assets` y `tests`.
-- En `backend/`, separar `api`, `core`, `database`, `models`, `repository`, `schemas`, `services` y `tests`.
-- En `docs/`, separar arquitectura y ruta de aprendizaje.
-
-## Regla simple
-
-- El frontend no debe contener lógica de servidor.
-- El backend no debe contener código de presentación.
-- La documentación debe explicar el porqué de cada carpeta, no solo listar archivos.
-
-## Inicio recomendado
-
-1. Empieza por una sola funcionalidad pequeña.
-2. Define la ruta en backend.
-3. Conecta el frontend solo a esa ruta.
-4. Documenta la decisión en `docs/`.
-
-## Aprendizaje
-
-La ruta recomendada está en [docs/roadmap/learning-path.md](docs/roadmap/learning-path.md).
+> ⚠️ Nota: Este proyecto aún no está listo para producción.  
+> Se encuentra en fase experimental y puede cambiar rápidamente.
