@@ -50,7 +50,7 @@ Dentro de cada carpeta de módulo, siempre encontrarás los mismos 4 pilares:
 
 ---
 
-## 🚀 Análisis Experto: Prevención de Cuellos de Botella
+## 🚀 reglas que debo tener en cuenta para: Prevención de Cuellos de Botella
 
 Para asegurar que Yumezone soporte miles de usuarios simultáneos sin caerse, el código debe seguir estas normas estrictas:
 
