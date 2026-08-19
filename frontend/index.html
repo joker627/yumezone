@@ -1,40 +1,137 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yumezone - Top 20 Series</title>
-    <meta name="description" content="Las 20 series de manga y manhwa más reconocidas y populares.">
-    <!-- Google Fonts: Outfit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+    <title>YumeZone - Descubre los mejores Manhuas y Webtoons</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Únete a YumeZone, la mejor comunidad de Scans. Descubre, lee y comparte tus Manhuas y Webtoons favoritos con la mejor calidad y sin límites.">
+    <meta name="keywords" content="manhua, webtoon, manga, scan, leer manga, comics">
+    <meta name="author" content="YumeZone">
+    <meta name="theme-color" content="#7c3aed">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+
+    <!-- Open Graph / Facebook / Discord -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yumezone.pages.dev/">
+    <meta property="og:title" content="YumeZone - Mundos Sin Límites">
+    <meta property="og:description"
+        content="Descubre y comparte los mejores Manhuas y Webtoons. Únete a la comunidad definitiva.">
+    <meta property="og:image" content="https://yumezone.pages.dev/img/preview.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yumezone.pages.dev/">
+    <meta property="twitter:title" content="YumeZone - Mundos Sin Límites">
+    <meta property="twitter:description"    
+        content="Descubre y comparte los mejores Manhuas y Webtoons. Únete a la comunidad definitiva.">
+    <meta property="twitter:image" content="https://yumezone.pages.dev/img/preview.png">
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages/home.css">
 </head>
+
 <body>
-    <div id="app">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="header-container">
-                <h1 class="logo">Yume<span>Zone</span></h1>
-                <nav class="nav-links">
-                    <a href="#/" class="nav-link active">Explorar Top 20</a>
-                </nav>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <div id="sidebar-root"></div>
+
+        <!-- Main Workspace -->
+        <div class="main-workspace">
+            <!-- Topbar -->
+            <div id="topbar-root"></div>
+
+            <!-- Contenido Principal -->
+            <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero animate-fade-in section-padding">
+            <div class="container" id="hero-carousel-root">
+                <!-- Carousel will be injected here -->
+                <div class="hero-carousel-container skeleton hero-skeleton"></div>
             </div>
-        </header>
+        </section>
 
-        <!-- Main Content (Router View) -->
-        <main id="router-view" class="main-content">
-            <!-- Content will be injected by app.js -->
-        </main>
-        
-        <!-- Footer -->
-        <footer class="app-footer">
-            <p>&copy; 2026 Yumezone. Todos los derechos reservados.</p>
-        </footer>
+        <!-- Works Grid Section: Más Vistas Hoy -->
+        <section class="container section-padding" style="padding-top: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+                <div style="width: 4px; height: 24px; background-color: var(--primary);"></div>
+                <h2 style="font-size: 1.5rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    Más Vistas Hoy
+                </h2>
+                <div style="background-color: rgba(234, 88, 12, 0.1); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.2); padding: 4px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                    Top del día
+                </div>
+            </div>
+
+            <!-- Grid Loader / Container -->
+            <div id="works-grid" class="works-grid">
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+                <div class="work-card skeleton"></div>
+            </div>
+
+
+
+            <!-- Works Grid Section: Recientes -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <h2 style="font-size: 1.5rem; margin: 0;">Recientes</h2>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div style="display: flex; background: #1f2937; border-radius: var(--radius-sm); overflow: hidden;">
+                        <button style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; font-weight: 600; cursor: pointer;">Principal</button>
+                        <button style="background: transparent; color: var(--text-muted); border: none; padding: 0.5rem 1rem; font-weight: 600; cursor: pointer;">Adulto +18</button>
+                    </div>
+                    <button class="icon-btn" style="background: #1f2937; padding: 0.5rem; border-radius: var(--radius-sm);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                    <button class="icon-btn" style="background: #1f2937; padding: 0.5rem; border-radius: var(--radius-sm);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+                </div>
+            </div>
+            
+            <div id="recent-works-grid" class="works-grid">
+                <!-- Se poblará en el futuro -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-root"></div>
+
+            </div>
+        </div>
     </div>
+    
+    <!-- Scripts Globales -->
+    <script src="js/utils/config.js"></script>
+    <script src="js/api/works.js"></script>
 
-    <!-- SPA Logic -->
-    <script src="js/app.js" type="module"></script>
+    <!-- Componentes UI -->
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/footer.js"></script>
+
+    <!-- Lógica de Página -->
+    <script src="js/pages/index.js"></script>
+
+    <script>
+        // Cargar Obras
+        document.addEventListener('DOMContentLoaded', () => {
+            initHome(1);
+        });
+    </script>
 </body>
+
 </html>

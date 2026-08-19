@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YumeZone - Detalles de la Obra</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages/detail.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <div id="sidebar-root"></div>
+
+        <!-- Main Workspace -->
+        <div class="main-workspace">
+            <!-- Topbar -->
+            <div id="topbar-root"></div>
+
+            <main>
+        <div id="detail-container" class="animate-fade-in detail-layout">
+            
+            <!-- Banner Background -->
+            <div id="detail-banner" class="detail-banner"></div>
+            
+            <!-- Contenido Principal -->
+            <div class="container detail-content">
+                
+                <div class="detail-header">
+                    <div class="detail-cover-wrapper">
+                        <img id="detail-cover" src="https://via.placeholder.com/300x420/0f111a/7c3aed?text=YumeZone" alt="Cover" class="detail-cover">
+                    </div>
+                    
+                    <div class="detail-info-box">
+                        <div id="detail-status" class="detail-status status-active">
+                            En Emisión
+                        </div>
+                        <h1 id="detail-title" class="detail-title">Cargando...</h1>
+                        <h3 id="detail-alt-title" class="detail-alt-title"></h3>
+                        <p class="detail-author">Por <strong id="detail-author">Desconocido</strong></p>
+                        
+                        <div id="detail-synopsis" class="detail-synopsis">
+                            <div class="skeleton skeleton-text" style="width: 100%;"></div>
+                            <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                        </div>
+
+                        <div id="detail-actions" class="mt-2">
+                            <!-- Botón de lectura -->
+                            <button class="btn btn-primary skeleton read-btn-skeleton"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Capítulos -->
+                <div class="detail-chapters-section">
+                    <h2 class="section-title">Capítulos</h2>
+                    
+                    <div id="chapters-list" class="chapters-list">
+                        <!-- Skeleton caps -->
+                        <div class="skeleton chapter-skeleton"></div>
+                        <div class="skeleton chapter-skeleton"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+                <!-- Footer -->
+                <div id="footer-root"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils/config.js"></script>
+    <script src="js/api/works.js"></script>
+    <script src="js/api/chapters.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/footer.js"></script>
+    <script src="js/pages/work.js"></script>
+
+    <script>
+        // Cargar Layout
+        injectLayout();
+        
+        // Ejecutar Lógica de la página
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+        if(slug) {
+            initDetail(slug);
+        } else {
+            document.getElementById('detail-container').innerHTML = '<div class="error-container"><h2 class="error-title">Error 404</h2><p>No se especificó la obra.</p><a href="/" class="btn btn-primary mt-2">Volver al Inicio</a></div>';
+        }
+    </script>
+</body>
+</html>

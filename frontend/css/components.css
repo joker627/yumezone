@@ -1,0 +1,46 @@
+/* components.css - Reusable UI components */
+
+.section-title {
+    margin-bottom: 2rem; 
+    border-left: 4px solid var(--primary); 
+    padding-left: 10px;
+}
+
+.pagination-wrapper {
+    display: flex; 
+    justify-content: center; 
+    gap: 1rem; 
+    margin-top: 3rem; 
+    align-items: center;
+}
+
+.error-container {
+    padding: 5rem 0; 
+    text-align: center;
+}
+
+.error-title {
+    color: var(--secondary);
+}
+
+.mt-2 {
+    margin-top: 2rem;
+}
+
+.carousel-badge { display:inline-block; margin-bottom: 10px; background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; width: fit-content; }
+.skeleton-text-half { width: 50%; }
+.grid-error-msg { text-align:center; grid-column: 1 / -1; color: var(--secondary); }
+.pagination-info { color: var(--text-muted); }
+
+/* Premium Work Cards */
+.work-card { position: relative; border-radius: 12px; overflow: hidden; display: block; aspect-ratio: 2 / 3; transition: box-shadow 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); background-color: #000; }
+.work-card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25); }
+.work-card-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; transform: translateZ(0); }
+.work-card:hover .work-card-img { transform: scale(1.05) translateZ(0); }
+.work-card::after { content: ''; position: absolute; inset: -5px; background: linear-gradient(to top, #000 0%, #000 10%, rgba(0,0,0,0.8) 35%, transparent 100%); pointer-events: none; z-index: 1; }
+.work-card-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 1rem; z-index: 2; pointer-events: none; }
+.work-card-rank { position: absolute; top: 8px; left: 8px; background: #ea580c; color: white; font-weight: bold; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; z-index: 10; }
+.work-card-title { font-size: 1rem; font-weight: 700; color: white; margin-bottom: 4px; line-height: 1.2; }
+.work-card-tags { font-size: 0.75rem; color: #d1d5db; display: flex; gap: 6px; align-items: center; }
+.tag-type { color: #ea580c; font-weight: 600; text-transform: uppercase; }
+.tag-dot { font-size: 0.5rem; color: #9ca3af; }

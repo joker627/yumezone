@@ -1,0 +1,55 @@
+/* ==========================================================================
+   Reader Page Styles
+   ========================================================================== */
+
+.reader-container {
+    background-color: #050505; /* Fondo ultra oscuro para lectura */
+    min-height: 100vh;
+    padding-top: 60px; /* Espacio para la navbar global si aplica, o podemos ocultarla */
+}
+
+.reader-toolbar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(15, 17, 26, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    z-index: 50;
+}
+
+.reader-title {
+    color: var(--text-main);
+    font-size: 1rem;
+    text-align: center;
+}
+
+.reader-pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.reader-page-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: -1px; /* Para evitar líneas blancas entre imágenes en algunos navegadores */
+}
+
+.reader-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    background: #050505;
+}
