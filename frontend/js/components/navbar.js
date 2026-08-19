@@ -28,23 +28,23 @@ const getTopbarHTML = (theme) => `
     <header class="topbar">
         <div style="display: flex; align-items: center; gap: 1.5rem;">
             <button class="icon-btn mobile-menu-btn" onclick="toggleSidebar()">
-                <img src="/assets/icons/${theme}/menu.svg" alt="Menú" width="24" height="24">
+                <img src="/assets/icons/${theme}/menu.svg" alt="Menú" width="32" height="32">
             </button>
             <a href="/" class="topbar-logo" style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--text-main); text-decoration: none; display: flex; align-items: center; letter-spacing: -0.5px;">
                 Yume<span style="color: var(--primary);">Zone</span>
             </a>
             <div class="topbar-search">
-                <img src="/assets/icons/${theme}/search.svg" alt="Buscar" width="20" height="20" class="search-icon">
+                <img src="/assets/icons/${theme}/search.svg" alt="Buscar" width="24" height="24" class="search-icon">
                 <input type="text" placeholder="Buscar..." class="search-input">
             </div>
         </div>
         
         <div class="topbar-actions">
             <button class="icon-btn" title="Alternar Tema" onclick="toggleTheme()">
-                <img src="/assets/icons/${theme}/${theme === 'light' ? 'moon.svg' : 'sun.svg'}" alt="Tema" width="20" height="20" id="theme-icon">
+                <img src="/assets/icons/${theme}/${theme === 'light' ? 'moon.svg' : 'sun.svg'}" alt="Tema" width="28" height="28" id="theme-icon">
             </button>
             <button class="icon-btn" title="Notificaciones" id="notification-btn" style="display: none;">
-                <img src="/assets/icons/${theme}/bell.svg" alt="Notificaciones" width="20" height="20">
+                <img src="/assets/icons/${theme}/bell.svg" alt="Notificaciones" width="28" height="28">
             </button>
             <div id="auth-section" class="user-profile">
                 <!-- User Profile or Login btn will be injected here -->
@@ -59,33 +59,33 @@ function injectLayout() {
 
     const sidebarRoot = document.getElementById('sidebar-root');
     const topbarRoot = document.getElementById('topbar-root');
-    
+
     if (sidebarRoot) {
         sidebarRoot.innerHTML = getSidebarHTML(theme) + '<div class="sidebar-overlay" onclick="toggleSidebar()"></div>';
     }
     if (topbarRoot) {
         topbarRoot.style.position = 'sticky';
-        topbarRoot.style.top = '0'; 
+        topbarRoot.style.top = '0';
         topbarRoot.style.zIndex = '90';
-        
+
         topbarRoot.innerHTML = getTopbarHTML(theme) + `
         <div style="background-color: rgba(170, 131, 14, 0.1); border-bottom: 1px solid #e39f08ff; color: #ffd208ff; text-align: center; padding: 8px; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; gap: 8px; backdrop-filter: blur(10px);">
             <img src="/assets/icons/${theme}/warning.svg" alt="Aviso" width="16" height="16">
             <strong>Aviso:</strong> Estamos realizando cambios en la plataforma. Es posible que experimentes algunos problemas temporales.
         </div>`;
     }
-    
+
     checkAuthStatus();
 }
 
-window.toggleTheme = function() {
+window.toggleTheme = function () {
     const currentTheme = localStorage.getItem('yumezone_theme') || 'dark';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('yumezone_theme', newTheme);
     window.location.reload();
 }
 
-window.toggleSidebar = function() {
+window.toggleSidebar = function () {
     const sidebar = document.querySelector('.sidebar');
     const workspace = document.querySelector('.main-workspace');
     if (sidebar) {
@@ -98,10 +98,10 @@ window.toggleSidebar = function() {
 
 async function checkAuthStatus() {
     const authSection = document.getElementById('auth-section');
-    if(!authSection) return;
-    
+    if (!authSection) return;
+
     const token = localStorage.getItem('yumezone_token');
-    
+
     if (token) {
         authSection.innerHTML = `
             <div class="user-avatar" onclick="document.getElementById('user-dropdown').classList.toggle('show')">
@@ -141,20 +141,20 @@ async function checkAuthStatus() {
             } else if (res.status === 401) {
                 logout();
             }
-        } catch(e) {
+        } catch (e) {
             console.error("Error cargando perfil", e);
         }
     } else {
         const theme = localStorage.getItem('yumezone_theme') || 'dark';
         authSection.innerHTML = `
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <a href="/login.html" class="btn btn-sm" style="display: flex; align-items: center; gap: 6px; background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1);">
-                    <img src="/assets/icons/${theme}/login.svg" alt="Login" width="16" height="16" style="filter: brightness(0) invert(1);">
-                    Entrar
+            <div class="auth-buttons">
+                <a href="/login.html" class="btn btn-sm auth-btn-login">
+                    <img src="/assets/icons/${theme}/login.svg" alt="Login" width="24" height="24" class="auth-icon">
+                    <span class="auth-btn-text">Entrar</span>
                 </a>
-                <a href="/register.html" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px;">
-                    <img src="/assets/icons/${theme}/user-plus.svg" alt="Registrarse" width="16" height="16" style="filter: brightness(0) invert(1);">
-                    Registro
+                <a href="/register.html" class="btn btn-primary btn-sm auth-btn-register">
+                    <img src="/assets/icons/${theme}/user-plus.svg" alt="Registrarse" width="24" height="24" class="auth-icon">
+                    <span class="auth-btn-text">Registro</span>
                 </a>
             </div>
         `;
