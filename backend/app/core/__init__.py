@@ -1,1 +1,1 @@
-"""Core settings and security."""
+# App core modules

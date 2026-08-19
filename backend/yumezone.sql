@@ -5,9 +5,10 @@
 -- ==========================================
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+    user_code VARCHAR(16) UNIQUE NOT NULL,
+    username VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     avatar_url VARCHAR(255),
     bio TEXT,
     is_private BOOLEAN DEFAULT FALSE,
@@ -55,7 +56,7 @@ CREATE TABLE scan_groups (
 CREATE TABLE scan_group_members (
     group_id INT,
     user_id INT,
-    role ENUM('LEADER', 'ADMIN', 'MEMBER') DEFAULT 'MEMBER',
+    role ENUM('ADMIN', 'MODERATOR', 'MEMBER') DEFAULT 'MEMBER',
     permissions JSON, -- Detalles específicos de permisos para el nivel 'MEMBER'
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (group_id, user_id),
@@ -69,6 +70,7 @@ CREATE TABLE scan_group_invitations (
     user_id INT,
     status ENUM('PENDING', 'ACCEPTED', 'REJECTED') DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NULL, 
     FOREIGN KEY (group_id) REFERENCES scan_groups(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -152,6 +154,7 @@ CREATE TABLE chapters (
     scan_group_id INT, -- Puede ser distinto al de la obra si hay un scan colaborador
     chapter_number DECIMAL(6,2) NOT NULL, -- DECIMAL para capítulos como 10.5
     title VARCHAR(255),
+    slug VARCHAR(255) UNIQUE,
     status ENUM('DRAFT', 'PUBLISHED', 'SCHEDULED', 'HIDDEN') DEFAULT 'PUBLISHED',
     published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

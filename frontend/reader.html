@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector - YumeZone</title>
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+    <div id="navbar-root"></div>
+
+    <main id="reader-root" style="min-height: 100vh;">
+        <!-- Loading initial -->
+        <div style="text-align: center; padding: 10rem 0;">
+            <div class="skeleton" style="width: 200px; height: 30px; margin: 0 auto 2rem auto;"></div>
+            <div class="skeleton skeleton-text" style="width: 300px; margin: 0 auto 1rem auto;"></div>
+        </div>
+    </main>
+
+    <div id="footer-root"></div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/components/navbar.js"></script>
+    <script src="/components/footer.js"></script>
+    <script src="/components/reader.js"></script>
+    
+    <script>
+        document.getElementById('navbar-root').innerHTML = Navbar();
+        document.getElementById('footer-root').innerHTML = Footer();
+
+        // Obtener slug y chapter de la URL (?slug=titulo&chapter=1)
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get('slug');
+        const chapter = params.get('chapter');
+
+        if (slug && chapter) {
+            document.getElementById('reader-root').innerHTML = Reader(slug, chapter);
+            if (typeof initReader === 'function') initReader(slug, chapter);
+        } else {
+            document.getElementById('reader-root').innerHTML = '<div style="padding: 100px; text-align:center;"><h2>No se especificó la obra o el capítulo.</h2></div>';
+        }
+    </script>
+</body>
+</html>
