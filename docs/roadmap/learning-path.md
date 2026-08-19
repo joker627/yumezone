@@ -1,55 +1,24 @@
-# Ruta de aprendizaje
+# 🗺️ Ruta de Aprendizaje (Learning Path)
 
-Plan base para empezar desde cero sin mezclar frontend y backend demasiado pronto.
+En este documento guardo mi progreso, recursos y notas sobre las tecnologías clave que estoy utilizando para construir **Yumezone**. El objetivo es tener una guía clara de los conceptos que he dominado y los que aún necesito profundizar.
 
-## Fase 1. HTML y estructura
+## 🐍 Backend (Python + FastAPI)
+- **FastAPI Basics**: Creación de rutas, Pydantic schemas, Dependency Injection.
+- **Asincronismo**: Uso de `async`/`await` en Python, event loops.
+- **Base de Datos**: 
+  - Conexión cruda usando `aiomysql` (Raw SQL).
+  - Buenas prácticas de consultas asíncronas para no bloquear la app.
+- **Arquitectura DDD**: Separación por módulos lógicos (auth, works, chapters).
+- **Seguridad**: Autenticación JWT, hasheo de contraseñas con `pwdlib`, CORS.
 
-- Aprende etiquetas básicas, semántica y formularios.
-- Construye una página simple con encabezado, contenido y pie.
-- Practica buenas rutas de archivos y nombres claros.
+## 🎨 Frontend (Vainilla + CSS)
+- **Arquitectura CSS**: Variables nativas, flexbox, grid, diseño responsivo y mobile-first.
+- **Componentes UI**: Reutilización de fragmentos HTML mediante Javascript asíncrono (`fetch`).
+- **Navegación SPA (Single Page Application)**: Manejo de historial y enrutamiento en el cliente sin frameworks.
+- **Consumo de API**: Peticiones `fetch`, manejo de errores, estado de carga (skeletons).
 
-## Fase 2. CSS y composición visual
-
-- Estudia box model, flexbox, grid y responsive design.
-- Repite la misma página anterior con mejor jerarquía visual.
-- Separa estilos globales, por componente y por página.
-
-## Fase 3. JavaScript en el navegador
-
-- Aprende variables, funciones, objetos, arrays y eventos.
-- Conecta botones, formularios y navegación sin recargar.
-- Usa módulos pequeños para no mezclar todo en un solo archivo.
-
-## Fase 4. Frontend organizado
-
-- Divide el proyecto en componentes, páginas, servicios y estilos.
-- Aprende a reutilizar piezas como navbar, footer y formularios.
-- Practica consumo de datos desde una API falsa o simple.
-
-## Fase 5. Python
-
-- Aprende sintaxis, funciones, listas, diccionarios y clases.
-- Entiende paquetes, módulos y entorno virtual.
-- Crea scripts pequeños antes de construir una API completa.
-
-## Fase 6. FastAPI
-
-- Crea rutas, modelos Pydantic y respuestas JSON.
-- Aprende dependencias, validación y manejo de errores.
-- Divide el backend en api, core, database, repository y schemas.
-
-## Fase 7. Base de datos
-
-- Aprende SQL básico: select, insert, update, delete y joins.
-- Relaciona FastAPI con una base real usando consultas claras.
-- Separa acceso a datos en repositorios.
-
-## Fase 8. Proyecto completo
-
-- Construye login, registro, lectura de contenido y admin básico.
-- Integra frontend y backend con contratos simples.
-- Documenta todo lo que decidas para no perderte al crecer.
-
-## Regla práctica
-
-No pases a la siguiente fase hasta que puedas explicar la anterior con tus propias palabras y construir un ejemplo pequeño sin copiarlo línea por línea.
+## 🚀 Pendientes y Próximos Retos
+1. Implementar la carga y optimización de imágenes (WebP/AVIF).
+2. Manejo avanzado de sesiones y refresco de tokens (Refresh Tokens).
+3. Websockets para el chat global y notificaciones en tiempo real.
+4. Despliegue automatizado (CI/CD) usando GitHub Actions.

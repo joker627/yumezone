@@ -1,37 +1,58 @@
-# manhwav7
+# 📚 Yumezone (en desarrollo)
 
-Base limpia y ordenada para crecer desde cero.
+Plataforma de lectura digital inspirada en servicios como MangaToon y Webtoon, enfocada en **mangas, manhuas y manhwas**.  
+Actualmente se encuentra en construcción, con el objetivo de ofrecer una experiencia de lectura fluida y una comunidad activa.
 
-## Objetivo
+---
 
-Separar claramente el frontend y el backend desde el principio para evitar mezclar responsabilidades.
+## ✨ Funcionalidades previstas
+- **Gestión de obras:** Portada, sinopsis, géneros, etiquetas, autores e ilustradores.
+- **Gestión de capítulos:** Creación, subida de imágenes, publicación y programación.
+- **Biblioteca personal:** Favoritos, historial y continuar leyendo.
+- **Descubrimiento:** Tendencias, populares, mejor valorados y recomendaciones.
+- **Comunidad:** Comentarios, reacciones y chat en vivo.
+- **Grupos Scan:** Equipos responsables de publicar obras, con roles y tablones internos.
 
-## Estructura base
+## 🛠️ Tecnologías y Arquitectura
 
-- `frontend/` para la interfaz, componentes visuales, estilos, páginas y recursos estáticos.
-- `backend/` para la API, modelos, repositorios, servicios, configuración y tests.
-- `docs/` para documentación de arquitectura, decisiones y notas de aprendizaje.
-- `scripts/` para utilidades de mantenimiento o automatización.
+- **Frontend:** HTML/CSS/JS Vainilla - (Cloudflare Pages)
+- **Backend:** FastAPI
+- **Base de datos:** MySQL (aiomysql asíncrono)
+- **Arquitectura:** Domain-Driven Design (DDD)
 
-## Subestructura recomendada
+---
 
-- En `frontend/`, separar `components`, `pages`, `services`, `styles`, `assets` y `tests`.
-- En `backend/`, separar `api`, `core`, `database`, `models`, `repository`, `schemas`, `services` y `tests`.
-- En `docs/`, separar arquitectura y ruta de aprendizaje.
+## 🏗️ Cómo he estructurado el desarrollo
 
-## Regla simple
+He diseñado la arquitectura del proyecto para que sea una base limpia y ordenada, separando estrictamente las responsabilidades entre el cliente y el servidor para evitar que el código se vuelva un caos a medida que crece.
 
-- El frontend no debe contener lógica de servidor.
-- El backend no debe contener código de presentación.
-- La documentación debe explicar el porqué de cada carpeta, no solo listar archivos.
+### Estructura Principal
+- `frontend/`: Aquí manejo toda la interfaz de usuario, componentes visuales, estilos, páginas y recursos estáticos.
+- `backend/`: Aquí vive la API, los modelos, repositorios de base de datos, servicios, configuración y pruebas.
+- `docs/`: Guardo aquí la documentación de arquitectura, mis decisiones técnicas y notas de aprendizaje.
+- `scripts/`: Herramientas y utilidades que he creado para el mantenimiento o automatización.
 
-## Inicio recomendado
+### Subestructura
+- En `frontend/`, he organizado todo en `components`, `pages`, `services`, `styles`, `assets` y `tests`.
+- En `backend/`, utilizo una arquitectura modular por dominios (`app/modules/`). Cada módulo es independiente y tiene su propio `router`, `schemas`, `services` y `repository`.
 
-1. Empieza por una sola funcionalidad pequeña.
-2. Define la ruta en backend.
-3. Conecta el frontend solo a esa ruta.
-4. Documenta la decisión en `docs/`.
+### Mis Principios de Diseño
+Para prevenir código espagueti y acoplamiento, he establecido tres reglas fundamentales con las que trabajo:
+1. En el **frontend** nunca incluyo ni simulo lógica de servidor o de base de datos.
+2. En el **backend** jamás genero ni incluyo código de presentación.
+3. Al documentar, siempre explico el *porqué* de cada estructura técnica, no me limito a listar los archivos.
 
-## Aprendizaje
+### Mi Flujo de Trabajo
+Cuando desarrollo una nueva integración, sigo este ciclo iterativo:
+1. Diseño una funcionalidad delimitada y muy pequeña.
+2. Implemento la ruta, la lógica y la base de datos correspondientes en el backend.
+3. Consumo la API desde el frontend de manera aislada para probar esa funcionalidad.
+4. Documento mis decisiones arquitectónicas en el directorio `docs/`.
 
-La ruta recomendada está en [docs/roadmap/learning-path.md](docs/roadmap/learning-path.md).
+---
+
+## 🚀 Estado del proyecto
+
+Este repositorio está en **fase inicial de desarrollo**. Voy integrando y liberando las funcionalidades progresivamente. 
+
+Aunque el proyecto avanza, es de código abierto y siempre estoy dispuesto a recibir sugerencias y colaboración. Quien quiera aportar, puede abrir un *issue* detallando su idea o enviar un *pull request* respetando esta misma estructura.
