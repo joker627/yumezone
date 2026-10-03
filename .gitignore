@@ -1,0 +1,28 @@
+# Python
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend
+/web
+
+# Backend
+backend/.env
+backend/.venv/
+backend/venv/
+backend/node_modules/
+backend/dist/
+backend/build/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+
+# Other
+.data_inserts_

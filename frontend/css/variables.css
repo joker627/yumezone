@@ -1,0 +1,39 @@
+/* Variables compartidas */
+:root {
+  /* Escala neutral */
+  --neutral-50: #ffffff;
+  --neutral-100: #f8fafc;
+  --neutral-200: #f1f5f9;
+  --neutral-300: #e6eaf2;
+  --neutral-400: #cbd5e1;
+  --neutral-500: #9ba6b2;
+  --neutral-600: #64748b;
+  --neutral-700: #525d6b;
+  --neutral-800: #282e3b;
+  --neutral-900: #0f1218;
+  --neutral-950: #0b0d12;
+
+  /* Escala turquesa*/
+  --teal-50: #e8fff8;
+  --teal-100: #c8ffed;
+  --teal-200: #a0f9dc;
+  --teal-300: #75f9d5;
+  --teal-400: #55dfbb;
+  --teal-500: #39c6a5;
+  --teal-600: #27a98c;
+  --teal-700: #1e846f;
+  --teal-800: #176756;
+  --teal-900: #10483d;
+  --teal-950: #06231c;
+
+  /* Tipografía, bordes y sombras. */
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 35%);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 35%);
+  --shadow-lg: 0 4px 20px rgb(0 0 0 / 50%);
+  --shadow-xl: 0 10px 40px rgb(0 0 0 / 65%);
+}

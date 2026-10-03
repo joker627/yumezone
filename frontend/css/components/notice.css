@@ -1,0 +1,70 @@
+/* Aviso: comunica de forma discreta que el sitio está en beta. */
+.notice {
+  margin-top: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0.35rem 1rem;
+  color: var(--neutral-200);
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #24172f;
+  border-bottom: 1px solid #a238bf;
+}
+
+.notice-icon {
+  width: 0.45rem;
+  height: 0.45rem;
+  background: #d35ef0;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 0 rgb(211 94 240 / 60%);
+  animation: notice-pulse 1.8s ease-out infinite;
+}
+
+.notice-label {
+  padding: 0.15rem 0.5rem;
+  color: var(--neutral-50);
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: #a51bb5;
+  border-radius: var(--radius-full);
+}
+
+.notice-message {
+  color: var(--neutral-200);
+}
+
+@keyframes notice-pulse {
+  0%,
+  65%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(211 94 240 / 60%);
+  }
+
+  35% {
+    box-shadow: 0 0 0 0.3rem rgb(211 94 240 / 0%);
+  }
+}
+
+@media (max-width: 600px) {
+  .notice {
+    justify-content: flex-start;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.65rem;
+  }
+
+  .notice-message {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-icon {
+    animation: none;
+  }
+}

@@ -1,0 +1,4 @@
+/* Layout general: define los contenedores principales de la aplicación. */
+#app {
+  min-height: calc(100vh - 4rem);
+}
