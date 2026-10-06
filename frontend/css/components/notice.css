@@ -1,6 +1,6 @@
 /* Aviso: comunica de forma discreta que el sitio está en beta. */
 .notice {
-  margin-top: 4rem;
+  margin-top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,6 +54,7 @@
     gap: 0.4rem;
     padding: 0.4rem 0.75rem;
     font-size: 0.65rem;
+    overflow: hidden;
   }
 
   .notice-message {

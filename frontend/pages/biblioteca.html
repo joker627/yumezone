@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Organiza tus mangas, manhwas y manhuas guardados en YumeZone.">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Mi biblioteca | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/library.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main id="library-page" class="library-page" aria-labelledby="library-title" aria-busy="true">
+    <section class="library-heading">
+      <p class="library-eyebrow">Tu espacio de lectura</p>
+      <div class="library-heading-row">
+        <div>
+          <h1 id="library-title">Mi biblioteca</h1>
+          <p id="library-summary" class="library-summary" aria-live="polite">Cargando tus obras…</p>
+        </div>
+          <a class="library-explore-link" href="/pages/obras.html">Ver obras</a>
+      </div>
+    </section>
+
+    <section id="library-auth-prompt" class="library-message library-auth-prompt" hidden>
+      <p class="library-message-eyebrow">Tu lectura te espera</p>
+      <h2>Inicia sesión para ver tu biblioteca</h2>
+      <p>Guarda tus obras favoritas, organiza lo que estás leyendo y vuelve a ellas cuando quieras.</p>
+      <div class="library-message-actions">
+        <a class="library-primary-link" href="/pages/login.html?next=%2Fpages%2Fbiblioteca.html">Iniciar sesión</a>
+        <a class="library-secondary-link" href="/pages/registro.html?next=%2Fpages%2Fbiblioteca.html">Crear cuenta</a>
+      </div>
+    </section>
+
+    <section id="library-error" class="library-message library-error" role="alert" hidden>
+      <h2>No pudimos cargar tu biblioteca</h2>
+      <p id="library-error-message">Comprueba tu conexión e inténtalo de nuevo.</p>
+      <button id="library-retry" class="library-secondary-link" type="button">Reintentar</button>
+    </section>
+
+    <section id="library-content" hidden>
+      <div class="library-toolbar">
+        <div id="library-filters" class="library-filters" role="group" aria-label="Filtrar biblioteca">
+          <button class="library-filter is-active" type="button" data-library-filter="ALL" aria-pressed="true">Todas <span data-library-count="ALL">0</span></button>
+          <button class="library-filter" type="button" data-library-filter="FOLLOWING" aria-pressed="false">Siguiendo <span data-library-count="FOLLOWING">0</span></button>
+          <button class="library-filter" type="button" data-library-filter="READ_LATER" aria-pressed="false">Leer después <span data-library-count="READ_LATER">0</span></button>
+          <button class="library-filter" type="button" data-library-filter="FAVORITE" aria-pressed="false">Favoritos <span data-library-count="FAVORITE">0</span></button>
+          <button class="library-filter" type="button" data-library-filter="COMPLETED" aria-pressed="false">Completados <span data-library-count="COMPLETED">0</span></button>
+          <button class="library-filter" type="button" data-library-filter="DROPPED" aria-pressed="false">Pausados <span data-library-count="DROPPED">0</span></button>
+        </div>
+        <div class="library-tools">
+          <label class="library-search" for="library-search-input">
+            <img src="/assets/icons/svg/search.svg" alt="" aria-hidden="true">
+            <input id="library-search-input" type="search" placeholder="Buscar en mi biblioteca" autocomplete="off">
+          </label>
+          <label class="library-sort-label" for="library-sort">Ordenar</label>
+          <select id="library-sort" class="library-sort">
+            <option value="recent">Añadidas recientemente</option>
+            <option value="title">Título, A–Z</option>
+          </select>
+        </div>
+      </div>
+
+      <p id="library-feedback" class="library-feedback" role="status" aria-live="polite"></p>
+      <div id="library-grid" class="library-grid" aria-live="polite"></div>
+      <section id="library-empty" class="library-message library-empty" hidden>
+        <p class="library-message-eyebrow">Tu próxima lectura</p>
+        <h2 id="library-empty-title">Tu biblioteca empieza aquí</h2>
+        <p id="library-empty-copy">Explora el catálogo y guarda las obras que quieras seguir.</p>
+        <a class="library-primary-link" href="/pages/obras.html">Ver obras</a>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/js/pages/library.js"></script>
+</body>
+</html>

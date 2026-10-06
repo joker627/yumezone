@@ -14,11 +14,8 @@ htmlcov/
 
 # Backend
 backend/.env
-backend/.venv/
-backend/venv/
-backend/node_modules/
-backend/dist/
-backend/build/
+backend/scripts
+backend/.env.example
 
 # Editor / OS
 .DS_Store

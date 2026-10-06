@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Comunidad YumeZone: conecta con otros lectores, comparte reseñas y participa en eventos. Próximamente disponible.">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Comunidad | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/coming-soon.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main id="app" class="coming-soon-page" aria-labelledby="coming-soon-title">
+    <div class="coming-soon-inner">
+      <div class="coming-soon-icon-wrap coming-soon-icon-wrap--rose">
+        <img src="/assets/icons/svg/heart.svg" alt="" aria-hidden="true" width="40" height="40">
+      </div>
+      <p class="coming-soon-eyebrow">Próximamente</p>
+      <h1 id="coming-soon-title" class="coming-soon-title">Comunidad</h1>
+      <p class="coming-soon-desc">
+        Conecta con otros lectores, comparte reseñas, debate capítulos
+        y participa en eventos y torneos de lectura exclusivos.
+      </p>
+      <span class="coming-soon-badge">
+        <img src="/assets/icons/svg/filter.svg" alt="" aria-hidden="true" width="12" height="12">
+        En construcción
+      </span>
+      <ul class="coming-soon-features" aria-label="Funciones que llegarán">
+        <li class="coming-soon-feature">
+          <img src="/assets/icons/svg/bell.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span>Chat en vivo y foros por serie</span>
+        </li>
+        <li class="coming-soon-feature">
+          <img src="/assets/icons/svg/star.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span>Reseñas y valoraciones de usuarios</span>
+        </li>
+        <li class="coming-soon-feature">
+          <img src="/assets/icons/svg/play.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span>Eventos y torneos de lectura</span>
+        </li>
+      </ul>
+      <a href="/pages/obras.html" class="coming-soon-cta">Explorar obras disponibles</a>
+    </div>
+  </main>
+  <script type="module">
+    import { renderSiteHeader } from '/js/components/header.js';
+    renderSiteHeader(document.getElementById('header'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Obra | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/work-detail.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main id="work-detail" class="work-detail" aria-busy="true">
+    <a class="work-detail-back" href="/pages/obras.html">Volver a obras</a>
+    <section id="work-error" class="work-detail-message" role="alert" hidden>
+      <h1 id="work-error-title">No pudimos cargar la obra</h1>
+      <p id="work-error-copy"></p>
+      <button id="work-retry" type="button">Reintentar</button>
+    </section>
+    <div id="work-content" hidden>
+      <section class="work-detail-hero" aria-labelledby="work-title">
+        <img id="work-banner" class="work-detail-banner" alt="" hidden>
+        <div class="work-detail-hero-shade" aria-hidden="true"></div>
+        <div class="work-detail-main">
+          <div class="work-detail-cover-wrap">
+            <span id="work-cover-fallback" class="work-detail-cover-fallback" aria-hidden="true">Y</span>
+            <img id="work-cover" class="work-detail-cover" alt="" hidden>
+          </div>
+          <div class="work-detail-copy">
+            <p class="work-detail-eyebrow">Detalle de obra</p>
+            <h1 id="work-title"></h1>
+            <p id="work-alternative-title" class="work-detail-alternative" hidden></p>
+            <p id="work-author" class="work-detail-author"></p>
+            <div id="work-genres" class="work-detail-genres" aria-label="Géneros"></div>
+            <div id="work-taxonomy" class="work-detail-taxonomy"></div>
+            <div id="work-stats" class="work-detail-stats"></div>
+            <a id="work-start-reading" class="work-detail-read" href="#chapters" hidden>
+              Ver capítulos
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div class="work-detail-columns">
+        <section class="work-detail-panel work-detail-synopsis" aria-labelledby="work-synopsis-title">
+          <p class="work-detail-eyebrow">Sinopsis</p>
+          <h2 id="work-synopsis-title">Sobre esta obra</h2>
+          <p id="work-synopsis"></p>
+        </section>
+        <section id="chapters" class="work-detail-panel work-detail-chapters" aria-labelledby="work-chapters-title">
+          <div class="work-detail-chapters-heading">
+            <div>
+              <p class="work-detail-eyebrow">Lectura</p>
+              <h2 id="work-chapters-title">Capítulos</h2>
+            </div>
+            <span id="work-chapter-count" class="work-chapter-count"></span>
+          </div>
+          <p id="work-no-chapters" class="work-detail-empty" hidden>Todavía no hay capítulos publicados.</p>
+          <ol id="work-chapter-list" class="work-chapter-list"></ol>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/js/pages/work-detail.js"></script>
+</body>
+</html>

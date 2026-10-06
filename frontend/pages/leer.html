@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Lector | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/reader.css">
+</head>
+<body class="reader-body">
+  <header id="header"></header>
+
+  <main id="reader-container" class="reader-container">
+    <!-- Barra superior de navegación del lector -->
+    <nav class="reader-toolbar" aria-label="Controles del lector">
+      <div class="reader-toolbar-left">
+        <a id="reader-back" class="reader-btn reader-btn--ghost" href="/pages/obras.html">
+          <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span id="reader-work-title">Volver a la obra</span>
+        </a>
+      </div>
+
+      <div class="reader-toolbar-center">
+        <h1 id="reader-chapter-title" class="reader-chapter-title">Cargando capítulo...</h1>
+      </div>
+
+      <div class="reader-toolbar-right">
+        <select id="reader-chapter-select" class="reader-chapter-select" aria-label="Seleccionar capítulo"></select>
+      </div>
+    </nav>
+
+    <!-- Contenedor de páginas -->
+    <div id="reader-viewport" class="reader-viewport">
+      <div id="reader-loading" class="reader-status">
+        <div class="reader-spinner"></div>
+        <p>Cargando páginas del capítulo...</p>
+      </div>
+      <div id="reader-error" class="reader-status" hidden>
+        <p id="reader-error-msg">No se pudieron cargar las páginas.</p>
+        <button id="reader-retry-btn" class="reader-btn reader-btn--primary" type="button">Reintentar</button>
+      </div>
+      <div id="reader-pages" class="reader-pages"></div>
+    </div>
+
+    <!-- Barra inferior de navegación -->
+    <footer class="reader-footer">
+      <button id="reader-prev-btn" class="reader-nav-btn" type="button" disabled>
+        ← Anterior
+      </button>
+      <span id="reader-page-counter" class="reader-counter">Páginas</span>
+      <button id="reader-next-btn" class="reader-nav-btn" type="button" disabled>
+        Siguiente →
+      </button>
+    </footer>
+  </main>
+
+  <script type="module" src="/js/pages/reader.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -34,17 +34,112 @@
   <link rel="stylesheet" href="css/components/header.css">
   <link rel="stylesheet" href="css/components/notice.css">
   <link rel="stylesheet" href="css/components/hero.css">
+  <link rel="stylesheet" href="css/components/home-sections.css">
 </head>
 
 <body>
   <header id="header"></header>
   <div id="notice"></div>
   <main id="app">
-    <div id="hero"></div>
+    <section id="hero" class="hero" aria-label="Obras destacadas">
+      <div class="hero-stage" data-home-hero-stage>
+        <!-- Slides se insertan aquí dinámicamente -->
+      </div>
+
+      <div class="hero-skeleton" data-home-hero-skeleton aria-hidden="true">
+        <div class="hero-skeleton-bg"></div>
+        <div class="hero-skeleton-content">
+          <div class="hero-skeleton-line hero-skeleton-line-sm"></div>
+          <div class="hero-skeleton-line hero-skeleton-line-lg"></div>
+          <div class="hero-skeleton-line hero-skeleton-line-md"></div>
+          <div class="hero-skeleton-line hero-skeleton-line-sm"></div>
+        </div>
+      </div>
+
+      <div class="hero-error" data-home-hero-error hidden>
+        <p>No se pudieron cargar las obras destacadas.</p>
+        <button type="button" class="hero-retry" data-home-hero-retry>Reintentar</button>
+      </div>
+
+      <div class="hero-footer" data-home-hero-footer hidden>
+        <div class="hero-dots" data-home-hero-dots aria-label="Seleccionar obra destacada"></div>
+      </div>
+    </section>
     <noscript>
       <p>YumeZone necesita JavaScript para mostrar las obras destacadas y sus capítulos.</p>
     </noscript>
   </main>
+  <div id="home-sections"></div>
+  <template id="hero-slide-template">
+    <article class="hero-slide">
+      <div class="hero-bg">
+        <img class="hero-bg-image" alt="" decoding="async" data-home-hero-bg-image>
+        <div class="hero-bg-gradient"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-main">
+          <div class="hero-badges">
+            <span class="hero-badge">
+              <img class="hero-icon" width="12" height="12" alt="" aria-hidden="true" data-home-hero-badge-icon>
+              <span data-home-hero-badge-text></span>
+            </span>
+            <span class="hero-rating" title="Puntuación">
+              <img class="hero-icon" width="12" height="12" src="assets/icons/svg/star.svg" alt="" aria-hidden="true">
+              <span data-home-hero-rating></span>
+              <span class="hero-rating-count">(<span data-home-hero-rating-count></span>)</span>
+            </span>
+            <span class="hero-scan" data-home-hero-scan>
+              <img src="" alt="" class="hero-scan-logo" loading="lazy" decoding="async" data-home-hero-scan-logo>
+              <span data-home-hero-scan-name></span>
+            </span>
+          </div>
+          <div class="hero-eyebrow">
+            <img class="hero-icon" width="14" height="14" src="assets/icons/svg/info.svg" alt="" aria-hidden="true">
+            <span data-home-hero-alternative-title></span>
+          </div>
+          <h1 class="hero-title"><span data-home-hero-title-top></span><br data-home-hero-title-break><span data-home-hero-title-accent></span></h1>
+          <p class="hero-synopsis" data-home-hero-synopsis></p>
+          <div class="hero-genres" data-home-hero-genres>
+            <span class="hero-update">
+              <img class="hero-icon" width="14" height="14" src="assets/icons/svg/history.svg" alt="" aria-hidden="true">
+              <span data-home-hero-published-text></span>
+            </span>
+          </div>
+          <div class="hero-actions">
+            <a href="#" class="hero-cta hero-cta-primary" data-home-hero-read-link>
+              <img class="hero-icon" width="18" height="18" src="assets/icons/svg/play.svg" alt="" aria-hidden="true">
+              <span data-home-hero-read-text>Leer</span>
+            </a>
+            <button type="button" class="hero-cta hero-cta-secondary" data-home-hero-library-btn>
+              <img class="hero-icon" width="16" height="16" src="assets/icons/svg/heart.svg" alt="" aria-hidden="true">
+              <span data-home-hero-library-text></span>
+            </button>
+            <a href="#" class="hero-cta hero-cta-view" data-home-hero-detail-link
+              aria-label="Ver detalles de la obra">
+              <img class="hero-icon" width="18" height="18" src="assets/icons/svg/eye.svg" alt="" aria-hidden="true">
+              <span>Detalles</span>
+            </a>
+          </div>
+        </div>
+        <aside class="hero-next" aria-label="Próximo capítulo">
+          <header class="hero-next-header">
+            <img class="hero-icon" width="14" height="14" src="assets/icons/svg/history.svg" alt="" aria-hidden="true">
+            <span>Próximo Capítulo</span>
+            <span class="hero-next-status" data-home-hero-next-status></span>
+          </header>
+          <h3 class="hero-next-title" data-home-hero-next-title></h3>
+          <p class="hero-next-meta" data-home-hero-next-release></p>
+          <footer class="hero-next-footer">
+            <span class="hero-next-scan">Subido por <span data-home-hero-next-scan></span></span>
+            <button type="button" class="hero-next-cta" data-home-hero-subscribe-btn>
+              <img class="hero-icon" width="14" height="14" src="assets/icons/svg/bell.svg" alt="" aria-hidden="true">
+              <span>Recordar</span>
+            </button>
+          </footer>
+        </aside>
+      </div>
+    </article>
+  </template>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -55,7 +150,13 @@
       "inLanguage": "es"
     }
   </script>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/pages/home.js"></script>
+  <script type="module">
+    import { renderHomeSections } from '/js/pages/home-sections.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHomeSections(document.getElementById('home-sections'));
+    });
+  </script>
 </body>
 
 </html>

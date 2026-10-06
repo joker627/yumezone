@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Iniciar sesión | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/account.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main class="account-page">
+    <section class="account-card" aria-labelledby="auth-title">
+      <p class="account-eyebrow">Qué bueno verte</p>
+      <h1 id="auth-title">Iniciar sesión</h1>
+      <p class="account-intro">Entra para continuar con tu biblioteca y tus lecturas.</p>
+      <form id="auth-form" data-auth-mode="login" class="account-form">
+        <label for="auth-email">Correo electrónico</label>
+        <input id="auth-email" name="email" type="email" autocomplete="email"
+          maxlength="100" required>
+        <label for="auth-password">Contraseña</label>
+        <div class="account-password-field">
+          <input id="auth-password" name="password" type="password"
+            autocomplete="current-password" required>
+          <button class="account-password-toggle" type="button" data-password-toggle
+            aria-label="Mostrar contraseña" aria-pressed="false">
+            <img src="/assets/icons/svg/eye.svg" alt="" aria-hidden="true">
+          </button>
+        </div>
+        <p id="auth-message" class="account-message" role="status" aria-live="polite"></p>
+        <button id="auth-submit" class="account-submit" type="submit">Iniciar sesión</button>
+      </form>
+      <p class="account-switch">¿Aún no tienes cuenta? <a href="/pages/registro.html">Regístrate</a></p>
+    </section>
+  </main>
+  <script type="module" src="/js/pages/auth-pages.js"></script>
+</body>
+</html>

@@ -23,7 +23,7 @@ def get_chapter_service():
     return ChapterService()
 
 
-router = APIRouter(prefix="/chapters", tags=["chapters"])
+router = APIRouter(tags=["chapters"])
 
 
 # Obtener capitulos por ID de obra
@@ -36,6 +36,21 @@ async def get_chapters(
     service: ChapterService = Depends(get_chapter_service),
 ):
     return await service.get_chapters(work_id)
+
+
+# Obtener capítulo por ID
+@router.get("/{chapter_id}", response_model=ChapterResponse)
+async def get_chapter_by_id(
+    chapter_id: int,
+    service: ChapterService = Depends(get_chapter_service),
+):
+    chapter = await service.get_chapter_by_id(chapter_id)
+    if not chapter:
+        raise HTTPException(
+            status_code=404,
+            detail="Capítulo no encontrado",
+        )
+    return chapter
 
 
 # Crear capitulo

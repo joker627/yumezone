@@ -13,20 +13,45 @@ class WorkService:
         self.repository = repository
 
     # get all works with pagination
-    async def get_all_works(self, page: int = 1, per_page: int = 25) -> dict:
-        works, total = await self.repository.get_all_works(page, per_page)
+    async def get_all_works(
+        self,
+        page: int = 1,
+        per_page: int = 25,
+        query: str | None = None,
+        *,
+        format_id: list[int] | None = None,
+        status_id: list[int] | None = None,
+        demographic_id: list[int] | None = None,
+        genre_id: list[int] | None = None,
+        sort: str = "relevance",
+    ) -> dict:
+        (
+            works,
+            total,
+            current_page,
+            last_visible_page,
+        ) = await self.repository.get_all_works(
+            page,
+            per_page,
+            query,
+            format_id=format_id,
+            status_id=status_id,
+            demographic_id=demographic_id,
+            genre_id=genre_id,
+            sort=sort,
+        )
 
-        last_visible_page = (total + per_page - 1) // per_page
-        if last_visible_page == 0:
-            last_visible_page = 1
-
-        has_next_page = page < last_visible_page
+        has_previous_page = current_page > 1
+        has_next_page = current_page < last_visible_page
 
         return {
             "pagination": {
                 "last_visible_page": last_visible_page,
+                "has_previous_page": has_previous_page,
                 "has_next_page": has_next_page,
-                "current_page": page,
+                "previous_page": current_page - 1 if has_previous_page else None,
+                "next_page": current_page + 1 if has_next_page else None,
+                "current_page": current_page,
                 "items": {
                     "count": len(works),
                     "total": total,
@@ -35,6 +60,9 @@ class WorkService:
             },
             "data": works,
         }
+
+    async def get_filters(self) -> dict:
+        return await self.repository.get_filters()
 
     # get work by slug
     async def get_work_by_slug(self, slug: str) -> Work:

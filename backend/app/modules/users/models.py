@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -14,6 +15,11 @@ class User(BaseModel):
     is_private: bool = False
     platform_role: str = "USER"
     status: str = "ACTIVE"
+    xp: int = 0
+    coins: int = 0
+    streak_days: int = 0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class CurrentUser(BaseModel):
@@ -29,6 +35,11 @@ class CurrentUser(BaseModel):
     is_private: bool = False
     platform_role: str = "USER"
     status: str = "ACTIVE"
+    xp: int = 0
+    coins: int = 0
+    streak_days: int = 0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class ReadingSettings(BaseModel):

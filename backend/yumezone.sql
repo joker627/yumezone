@@ -15,6 +15,9 @@ CREATE TABLE users (
     is_private BOOLEAN DEFAULT FALSE,
     platform_role ENUM('USER', 'ADMIN', 'SUPERADMIN') DEFAULT 'USER',
     status ENUM('ACTIVE', 'SUSPENDED', 'BLOCKED', 'DELETED') DEFAULT 'ACTIVE',
+    coins INT DEFAULT 0,
+    xp INT DEFAULT 0,
+    streak_days INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -241,3 +244,55 @@ CREATE TABLE hero_new_queue (
     INDEX idx_hero_queue_status (status, queued_at),
     INDEX idx_hero_queue_expires (expires_at)
 );
+
+CREATE TABLE home_chats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    pinned BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE home_announcements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    type_label VARCHAR(50) NOT NULL,
+    source VARCHAR(100),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- ==========================================
+-- 9. ÍNDICES ADICIONALES DE RENDIMIENTO
+-- ==========================================
+-- Búsqueda por slug
+CREATE INDEX idx_works_slug ON works (slug);
+
+-- Capítulos por obra + estado
+CREATE INDEX idx_chapters_work_status_num ON chapters (work_id, status, chapter_number);
+
+-- Historial de lectura por usuario ordenado por fecha
+CREATE INDEX idx_reading_history_user_date ON reading_history (user_id, read_at DESC);
+
+-- Ranking mensual
+CREATE INDEX idx_stats_monthly ON work_statistics (monthly_views);
+
+-- Estadísticas por favorites
+CREATE INDEX idx_stats_favorites ON work_statistics (favorites_count);
+
+-- Capítulos recientes
+CREATE INDEX idx_chapters_status_published ON chapters (status, published_at);
+
+-- ==========================================
+-- 10. TAREAS AUTOMÁTICAS (EVENTOS)
+-- ==========================================
+-- Purga de mensajes de chat antiguos
+CREATE EVENT IF NOT EXISTS evt_purge_old_chats
+ON SCHEDULE EVERY 1 HOUR
+DO
+  DELETE FROM home_chats 
+  WHERE created_at < NOW() - INTERVAL 24 HOUR 
+    AND pinned = FALSE;

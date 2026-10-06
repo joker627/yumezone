@@ -1,0 +1,210 @@
+/* reader.css - Lector inmersivo moderno */
+.reader-body {
+  background: #090c12;
+  color: var(--neutral-100);
+  min-height: 100vh;
+}
+
+.reader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: calc(100vh - 4.5rem);
+}
+
+.reader-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: rgba(9, 12, 18, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 1rem;
+}
+
+.reader-toolbar-left,
+.reader-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.reader-toolbar-center {
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+}
+
+.reader-chapter-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--neutral-100);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.reader-chapter-select {
+  background: #111622;
+  border: 1px solid var(--neutral-700);
+  border-radius: var(--radius-md);
+  color: var(--neutral-200);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reader-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 180ms ease;
+  border: none;
+}
+
+.reader-btn--ghost {
+  color: var(--neutral-300);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reader-btn--ghost:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reader-btn--primary {
+  color: var(--neutral-950);
+  background: var(--teal-400);
+}
+
+.reader-btn--primary:hover {
+  background: var(--teal-300);
+}
+
+.reader-viewport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 52rem;
+  margin: 0 auto;
+  min-height: 60vh;
+  padding: 1.5rem 0 3rem;
+}
+
+.reader-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 2px;
+}
+
+.reader-page-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 2px;
+  background: #0f131a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.reader-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 1rem;
+  color: var(--neutral-400);
+  font-size: 0.9rem;
+}
+
+.reader-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(45, 212, 191, 0.15);
+  border-top-color: var(--teal-400);
+  border-radius: 50%;
+  animation: reader-spin 0.8s linear infinite;
+}
+
+@keyframes reader-spin {
+  to { transform: rotate(360deg); }
+}
+
+.reader-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 52rem;
+  padding: 0.9rem 1.5rem;
+  background: rgba(9, 12, 18, 0.94);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-top: auto;
+}
+
+.reader-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--teal-300);
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.reader-nav-btn:hover:not(:disabled) {
+  background: var(--teal-400);
+  color: var(--neutral-950);
+}
+
+.reader-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.reader-counter {
+  font-size: 0.8rem;
+  color: var(--neutral-400);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .reader-toolbar {
+    padding: 0.6rem 0.8rem;
+  }
+  .reader-toolbar-center {
+    display: none;
+  }
+  .reader-footer {
+    padding: 0.6rem 0.8rem;
+  }
+}

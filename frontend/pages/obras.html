@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Obras | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/obras.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main id="search-page" class="search-page" aria-labelledby="search-title">
+    <header class="search-page-heading">
+      <p class="search-page-eyebrow">Catálogo YumeZone</p>
+      <h1 id="search-title">Obras</h1>
+      <p id="search-summary" class="search-page-summary" aria-live="polite"></p>
+    </header>
+    <section class="works-filter-bar" aria-label="Filtros de obras">
+      <button id="works-filter-toggle" class="works-filter-toggle" type="button"
+        aria-expanded="false" aria-controls="works-filter-panel">
+        <span>Filtros</span>
+        <span id="works-filter-count" class="works-filter-count" hidden>0</span>
+        <img src="/assets/icons/svg/filter.svg" alt="" aria-hidden="true">
+      </button>
+      <div id="works-filter-panel" class="works-filter-panel" hidden>
+        <div class="works-filter-panel-heading">
+          <div>
+            <p class="works-filter-panel-eyebrow">Personaliza el catálogo</p>
+            <h2>Filtrar obras</h2>
+          </div>
+        </div>
+        <div class="works-filter-groups">
+          <details class="works-filter-group">
+            <summary class="works-filter-group-summary">Formato</summary>
+            <div id="works-format-options" class="works-filter-options"></div>
+          </details>
+          <details class="works-filter-group">
+            <summary class="works-filter-group-summary">Estado</summary>
+            <div id="works-status-options" class="works-filter-options"></div>
+          </details>
+          <details class="works-filter-group">
+            <summary class="works-filter-group-summary">Demografía</summary>
+            <div id="works-demographic-options" class="works-filter-options"></div>
+          </details>
+          <details class="works-filter-group works-filter-group-wide">
+            <summary class="works-filter-group-summary">Género</summary>
+            <div id="works-genre-options" class="works-filter-options"></div>
+          </details>
+          <details class="works-filter-group works-filter-group-wide">
+            <summary class="works-filter-group-summary">Ordenar por</summary>
+            <div class="works-sort-options">
+              <label><input type="radio" name="works-sort" value="relevance"><span>Relevancia</span></label>
+              <label><input type="radio" name="works-sort" value="popular"><span>Popularidad</span></label>
+              <label><input type="radio" name="works-sort" value="recent"><span>Más recientes</span></label>
+              <label><input type="radio" name="works-sort" value="title"><span>Título A–Z</span></label>
+            </div>
+          </details>
+        </div>
+        <div class="works-filter-panel-actions">
+          <button id="works-reset-filters" class="works-reset-filters" type="button">Limpiar todo</button>
+          <button id="works-apply-filters" class="works-apply-filters" type="button">Aplicar filtros</button>
+        </div>
+      </div>
+      <div id="works-active-filters" class="works-active-filters" aria-label="Filtros activos" hidden></div>
+    </section>
+    <div id="search-results" class="search-result-list" aria-live="polite" aria-busy="false"></div>
+    <nav id="search-pagination" class="search-pagination" aria-label="Páginas de obras" hidden></nav>
+  </main>
+  <script type="module" src="/js/pages/search.js"></script>
+</body>
+</html>
