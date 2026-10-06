@@ -34,7 +34,13 @@ async def lifespan(app: FastAPI):
     await close_db_pool()
 
 
-app = FastAPI(title=os.environ["API_TITLE"], version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title=os.environ["API_TITLE"],
+    version="1.0.0",
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+)
 cors_origins = os.environ["CORS_ALLOW_ORIGINS"].split(",")
 
 app.add_middleware(
