@@ -51,73 +51,130 @@ class HeroRepository:
         """
         return await self._fetch_works(query)
 
-    async def enrich_work(
-        self, work: Dict[str, Any], user_id: Optional[int]
-    ) -> Dict[str, Any]:
-        work_id = work["id"]
-        genres = await self._fetch(
-            """
-            SELECT g.id, g.name
-            FROM genres AS g
-            JOIN work_genres AS wg ON wg.genre_id = g.id
-            WHERE wg.work_id = %s
+    async def enrich_works_batch(
+        self, works: List[Dict[str, Any]], user_id: Optional[int]
+    ) -> List[Dict[str, Any]]:
+        """Carga géneros, capítulos y biblioteca para todas las obras en 4 queries."""
+        if not works:
+            return []
+
+        ids = [w["id"] for w in works]
+        placeholders = ", ".join("%s" for _ in ids)
+
+        # 1. Géneros de todas las obras (1 query)
+        genres_rows = await self._fetch(
+            f"""
+            SELECT wg.work_id, g.id, g.name
+            FROM work_genres AS wg
+            JOIN genres AS g ON g.id = wg.genre_id
+            WHERE wg.work_id IN ({placeholders})
             ORDER BY g.name
             """,
-            (work_id,),
+            tuple(ids),
         )
-        latest = await self._fetch_one(
-            """
-            SELECT c.id, c.chapter_number AS number, c.title,
+        genres_map: Dict[int, list] = {wid: [] for wid in ids}
+        for row in genres_rows:
+            genres_map[row["work_id"]].append({"id": row["id"], "name": row["name"]})
+
+        # 2. Último capítulo publicado por obra (1 query con ROW_NUMBER)
+        latest_rows = await self._fetch(
+            f"""
+            SELECT c.work_id, c.id, c.chapter_number AS number, c.title,
                    c.published_at, sg.name AS scan_group_name
             FROM chapters AS c
             LEFT JOIN scan_groups AS sg ON sg.id = c.scan_group_id
-            WHERE c.work_id = %s AND c.status = 'PUBLISHED'
-            ORDER BY c.chapter_number DESC, c.published_at DESC
-            LIMIT 1
+            WHERE c.work_id IN ({placeholders})
+              AND c.status = 'PUBLISHED'
+              AND c.chapter_number = (
+                  SELECT MAX(c2.chapter_number)
+                  FROM chapters AS c2
+                  WHERE c2.work_id = c.work_id AND c2.status = 'PUBLISHED'
+              )
             """,
-            (work_id,),
+            tuple(ids),
         )
-        next_chapter = await self._fetch_one(
-            """
-            SELECT c.id, c.chapter_number AS number, c.title, c.status,
-                   sg.name AS scan_group_name
+        latest_map: Dict[int, Optional[Dict]] = {wid: None for wid in ids}
+        for row in latest_rows:
+            latest_map[row["work_id"]] = row
+
+        # 3. Primer capítulo publicado por obra (1 query)
+        first_rows = await self._fetch(
+            f"""
+            SELECT c.work_id, c.id, c.chapter_number AS number
+            FROM chapters AS c
+            WHERE c.work_id IN ({placeholders})
+              AND c.status = 'PUBLISHED'
+              AND c.chapter_number = (
+                  SELECT MIN(c2.chapter_number)
+                  FROM chapters AS c2
+                  WHERE c2.work_id = c.work_id AND c2.status = 'PUBLISHED'
+              )
+            """,
+            tuple(ids),
+        )
+        first_map: Dict[int, Optional[Dict]] = {wid: None for wid in ids}
+        for row in first_rows:
+            first_map[row["work_id"]] = row
+
+        # 4. Próximo capítulo programado (1 query)
+        next_rows = await self._fetch(
+            f"""
+            SELECT c.work_id, c.id, c.chapter_number AS number, c.title,
+                   c.status, sg.name AS scan_group_name
             FROM chapters AS c
             LEFT JOIN scan_groups AS sg ON sg.id = c.scan_group_id
-            WHERE c.work_id = %s AND c.status = 'SCHEDULED'
-            ORDER BY c.chapter_number ASC
-            LIMIT 1
+            WHERE c.work_id IN ({placeholders})
+              AND c.status = 'SCHEDULED'
+              AND c.chapter_number = (
+                  SELECT MIN(c2.chapter_number)
+                  FROM chapters AS c2
+                  WHERE c2.work_id = c.work_id AND c2.status = 'SCHEDULED'
+              )
             """,
-            (work_id,),
+            tuple(ids),
         )
-        first_chapter = await self._fetch_one(
-            """
-            SELECT id, chapter_number AS number
-            FROM chapters
-            WHERE work_id = %s AND status = 'PUBLISHED'
-            ORDER BY chapter_number ASC
-            LIMIT 1
-            """,
-            (work_id,),
-        )
-        library = await self._fetch_one(
-            """
-            SELECT COUNT(*) AS count,
+        next_map: Dict[int, Optional[Dict]] = {wid: None for wid in ids}
+        for row in next_rows:
+            next_map[row["work_id"]] = row
+
+        # 5. Estado de biblioteca del usuario (1 query)
+        library_rows = await self._fetch(
+            f"""
+            SELECT work_id,
+                   COUNT(*) AS count,
                    MAX(CASE WHEN user_id = %s THEN 1 ELSE 0 END) AS is_added,
                    MAX(CASE WHEN user_id = %s AND notify_new_chapters = TRUE
                             THEN 1 ELSE 0 END) AS is_subscribed
             FROM user_library
-            WHERE work_id = %s
+            WHERE work_id IN ({placeholders})
+            GROUP BY work_id
             """,
-            (user_id or 0, user_id or 0, work_id),
+            (user_id or 0, user_id or 0, *ids),
         )
-        return {
-            "work": work,
-            "genres": genres,
-            "latest": latest,
-            "next": next_chapter,
-            "first": first_chapter,
-            "library": library or {"count": 0, "is_added": 0, "is_subscribed": 0},
+        library_map: Dict[int, Dict] = {
+            wid: {"count": 0, "is_added": 0, "is_subscribed": 0} for wid in ids
         }
+        for row in library_rows:
+            library_map[row["work_id"]] = row
+
+        return [
+            {
+                "work": w,
+                "genres": genres_map[w["id"]],
+                "latest": latest_map[w["id"]],
+                "next": next_map[w["id"]],
+                "first": first_map[w["id"]],
+                "library": library_map[w["id"]],
+            }
+            for w in works
+        ]
+
+    async def enrich_work(
+        self, work: Dict[str, Any], user_id: Optional[int]
+    ) -> Dict[str, Any]:
+        """Mantiene compatibilidad; internamente usa el batch loader."""
+        results = await self.enrich_works_batch([work], user_id)
+        return results[0]
 
     async def rotate_new_queue(self, limit: int = 3) -> None:
         async with self.conn.cursor(aiomysql.DictCursor) as cur:

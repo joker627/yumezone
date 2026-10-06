@@ -7,111 +7,91 @@ from app.modules.users.models import CurrentUser, User
 
 
 class AuthRepository:
-    # Obtener usuario por nombre de usuario
+    """Repositorio de usuarios.
+
+    Abre su propia conexión porque se usa tanto desde dependencias de FastAPI
+    (donde no hay conexión inyectada) como desde servicios con conexión propia.
+    """
+
+    async def _get_user_by_field(self, field: str, value) -> Optional[User]:
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(
+                    f"SELECT * FROM users WHERE {field} = %s",
+                    (value,),
+                )
+                row = await cur.fetchone()
+                return User(**row) if row else None
+
     async def get_user(self, username: str) -> Optional[User]:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(
-                    "SELECT * FROM users WHERE username = %s",
-                    (username,),
-                )
-                row = await cur.fetchone()
-                if row:
-                    return User(**row)
-        return None
+        return await self._get_user_by_field("username", username)
 
-    # Obtener usuario por correo electrónico
     async def get_user_by_email(self, email: str) -> Optional[User]:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(
-                    "SELECT * FROM users WHERE email = %s",
-                    (email,),
-                )
-                row = await cur.fetchone()
-                if row:
-                    return User(**row)
-        return None
+        return await self._get_user_by_field("email", email)
 
-    # Crear usuario
     async def create_user(self, user: User) -> User:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
-                query = """
-                    INSERT INTO users (
-                        user_code,
-                        username,
-                        email,
-                        password,
-                        avatar_url,
-                        bio,
-                        is_private,
-                        platform_role,
-                        status
-                    )
+                await cur.execute(
+                    """
+                    INSERT INTO users
+                        (user_code, username, email, password,
+                         avatar_url, bio, is_private, platform_role, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                values = (
-                    user.user_code,
-                    user.username,
-                    user.email,
-                    user.password,
-                    user.avatar_url,
-                    user.bio,
-                    user.is_private,
-                    user.platform_role,
-                    user.status,
+                    """,
+                    (
+                        user.user_code,
+                        user.username,
+                        user.email,
+                        user.password,
+                        user.avatar_url,
+                        user.bio,
+                        user.is_private,
+                        user.platform_role,
+                        user.status,
+                    ),
                 )
-                await cur.execute(query, values)
                 await conn.commit()
-                return user
+        return user
 
-    # Actualizar contraseña de usuario
     async def update_password(self, user: User) -> User:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
-                query = "UPDATE users SET password = %s WHERE id = %s"
-                values = (user.password, user.id)
-                await cur.execute(query, values)
+                await cur.execute(
+                    "UPDATE users SET password = %s WHERE id = %s",
+                    (user.password, user.id),
+                )
                 await conn.commit()
         return user
 
-    # Actualizar usuario
     async def update_user(self, user: CurrentUser) -> CurrentUser:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
-                query = """
+                await cur.execute(
+                    """
                     UPDATE users
-                    SET username = %s,
-                        bio = %s,
-                        avatar_url = %s,
-                        is_private = %s
+                    SET username = %s, bio = %s, avatar_url = %s, is_private = %s
                     WHERE id = %s
-                """
-                values = (
-                    user.username,
-                    user.bio,
-                    user.avatar_url,
-                    user.is_private,
-                    user.id,
+                    """,
+                    (
+                        user.username,
+                        user.bio,
+                        user.avatar_url,
+                        user.is_private,
+                        user.id,
+                    ),
                 )
-                await cur.execute(query, values)
                 await conn.commit()
         return user
 
-    # Eliminar usuario
     async def delete_user(self, user_id: int) -> bool:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
-                await cur.execute(
-                    "DELETE FROM users WHERE id = %s",
-                    (user_id,),
-                )
+                await cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
                 await conn.commit()
         return True

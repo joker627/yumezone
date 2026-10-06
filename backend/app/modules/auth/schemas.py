@@ -17,6 +17,9 @@ class UserBase(BaseModel):
     is_private: bool
     platform_role: str
     status: str
+    xp: int = 0
+    coins: int = 0
+    streak_days: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

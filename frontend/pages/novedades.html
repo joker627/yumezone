@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Novedades de mangas, manhwas y manhuas en YumeZone. Próximamente disponible.">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Novedades | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/coming-soon.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main id="app" class="coming-soon-page" aria-labelledby="coming-soon-title">
+    <div class="coming-soon-inner">
+      <div class="coming-soon-icon-wrap">
+        <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true" width="40" height="40">
+      </div>
+      <p class="coming-soon-eyebrow">Próximamente</p>
+      <h1 id="coming-soon-title" class="coming-soon-title">Novedades</h1>
+      <p class="coming-soon-desc">
+        Los capítulos más recientes de tus series favoritas, organizados y filtrados a tu gusto.
+        Estamos trabajando para traértelos aquí muy pronto.
+      </p>
+      <span class="coming-soon-badge">
+        <img src="/assets/icons/svg/filter.svg" alt="" aria-hidden="true" width="12" height="12">
+        En construcción
+      </span>
+      <ul class="coming-soon-features" aria-label="Funciones que llegarán">
+        <li class="coming-soon-feature">
+          <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span>Lanzamientos en tiempo real</span>
+        </li>
+        <li class="coming-soon-feature">
+          <img src="/assets/icons/svg/filter.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span>Filtros por género y formato</span>
+        </li>
+        <li class="coming-soon-feature">
+          <img src="/assets/icons/svg/bell.svg" alt="" aria-hidden="true" width="16" height="16">
+          <span>Alertas personalizadas</span>
+        </li>
+      </ul>
+      <a href="/pages/obras.html" class="coming-soon-cta">Explorar obras disponibles</a>
+    </div>
+  </main>
+  <script type="module" src="/js/components/header.js"></script>
+  <script type="module">
+    import { renderSiteHeader } from '/js/components/header.js';
+    renderSiteHeader(document.getElementById('header'));
+  </script>
+</body>
+</html>

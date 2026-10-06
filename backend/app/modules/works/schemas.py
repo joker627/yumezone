@@ -1,9 +1,14 @@
 # imports internal
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 # imports external
 from datetime import datetime
+
+
+class WorkFilterOption(BaseModel):
+    id: int
+    name: str
 
 
 # validate data work for response
@@ -27,6 +32,8 @@ class WorkResponse(BaseModel):
     favorites_count: int = 0
     trending_score: float = 0.0
     views_last_24h: int = 0
+    first_chapter_id: Optional[int] = None
+    genres: list[WorkFilterOption] = Field(default_factory=list)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -68,7 +75,10 @@ class PaginationItems(BaseModel):
 
 class PaginationInfo(BaseModel):
     last_visible_page: int
+    has_previous_page: bool
     has_next_page: bool
+    previous_page: Optional[int]
+    next_page: Optional[int]
     current_page: int
     items: PaginationItems
 
@@ -76,3 +86,10 @@ class PaginationInfo(BaseModel):
 class WorkPaginatedResponse(BaseModel):
     pagination: PaginationInfo
     data: list[WorkResponse]
+
+
+class WorkFiltersResponse(BaseModel):
+    formats: list[WorkFilterOption]
+    statuses: list[WorkFilterOption]
+    demographics: list[WorkFilterOption]
+    genres: list[WorkFilterOption]

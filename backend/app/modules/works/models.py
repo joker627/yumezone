@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
@@ -24,5 +24,7 @@ class Work(BaseModel):
     favorites_count: int = 0
     trending_score: float = 0.0
     views_last_24h: int = 0
+    first_chapter_id: Optional[int] = None
+    genres: list[dict[str, object]] = Field(default_factory=list)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

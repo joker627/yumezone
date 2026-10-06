@@ -19,6 +19,7 @@ from app.core.dependencies import (
 from app.modules.users.models import CurrentUser
 from app.modules.works.repository import WorkRepository
 from app.modules.works.schemas import (
+    WorkFiltersResponse,
     WorkCreate,
     WorkPaginatedResponse,
     WorkResponse,
@@ -111,9 +112,40 @@ async def get_all_works(
         le=100,
         description="Cantidad de obras por página",
     ),
+    q: str | None = Query(
+        None,
+        min_length=1,
+        max_length=120,
+        description="Busca en títulos, autor, sinopsis, géneros, etiquetas y capítulos",
+    ),
+    format_id: list[int] | None = Query(None),
+    status_id: list[int] | None = Query(None),
+    demographic_id: list[int] | None = Query(None),
+    genre_id: list[int] | None = Query(None),
+    sort: str = Query("relevance", pattern="^(relevance|popular|recent|title)$"),
     work_service: WorkService = Depends(get_work_service),
 ):
-    return await work_service.get_all_works(page, per_page)
+    return await work_service.get_all_works(
+        page,
+        per_page,
+        q,
+        format_id=format_id,
+        status_id=status_id,
+        demographic_id=demographic_id,
+        genre_id=genre_id,
+        sort=sort,
+    )
+
+
+@router.get(
+    "/filters",
+    response_model=WorkFiltersResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_work_filters(
+    work_service: WorkService = Depends(get_work_service),
+):
+    return await work_service.get_filters()
 
 
 # endpoint obtener obra por slug

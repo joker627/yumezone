@@ -15,6 +15,7 @@ from app.modules.chapters.router import router as chapter_router
 from app.modules.scans.router import router as scan_group_router
 from app.modules.library.router import router as library_router
 from app.modules.hero.router import router as hero_router
+from app.modules.home.router import router as home_router
 
 load_dotenv()
 
@@ -48,6 +49,7 @@ app.include_router(chapter_router, prefix="/api/v1/chapters")
 app.include_router(scan_group_router, prefix="/api/v1/scan-groups")
 app.include_router(library_router, prefix="/api/v1/library")
 app.include_router(hero_router, prefix="/api/v1/hero")
+app.include_router(home_router, prefix="/api/v1/home")
 
 
 @app.get("/")

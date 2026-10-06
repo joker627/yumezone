@@ -1,0 +1,187 @@
+/* =====================================================
+   COMING SOON — Página en construcción / próximamente
+   ===================================================== */
+
+.coming-soon-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 4rem);
+  padding: 2rem 1.25rem;
+  background: var(--neutral-950);
+}
+
+.coming-soon-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  max-width: 520px;
+  width: 100%;
+  animation: cs-fade-up 0.5s ease both;
+}
+
+@keyframes cs-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Icono */
+.coming-soon-icon-wrap {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  background: rgb(57 198 165 / 0.08);
+  border: 1px solid rgb(57 198 165 / 0.18);
+  box-shadow: 0 0 48px rgb(57 198 165 / 0.08);
+  animation: cs-pulse 3s ease-in-out infinite;
+  margin-bottom: 0.25rem;
+}
+
+.coming-soon-icon-wrap img {
+  filter: invert(72%) sepia(43%) saturate(454%) hue-rotate(120deg) brightness(1.1);
+  opacity: 0.9;
+}
+
+.coming-soon-icon-wrap--gold {
+  background: rgb(240 199 94 / 0.08);
+  border-color: rgb(240 199 94 / 0.18);
+  box-shadow: 0 0 48px rgb(240 199 94 / 0.08);
+}
+
+.coming-soon-icon-wrap--gold img {
+  filter: invert(83%) sepia(35%) saturate(601%) hue-rotate(2deg) brightness(1.05);
+}
+
+.coming-soon-icon-wrap--rose {
+  background: rgb(232 120 120 / 0.08);
+  border-color: rgb(232 120 120 / 0.18);
+  box-shadow: 0 0 48px rgb(232 120 120 / 0.08);
+}
+
+.coming-soon-icon-wrap--rose img {
+  filter: invert(60%) sepia(40%) saturate(800%) hue-rotate(310deg) brightness(1.1);
+}
+
+@keyframes cs-pulse {
+  0%, 100% { box-shadow: 0 0 30px rgb(57 198 165 / 0.06); }
+  50%       { box-shadow: 0 0 60px rgb(57 198 165 / 0.16); }
+}
+
+/* Texto */
+.coming-soon-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal-500);
+}
+
+.coming-soon-title {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 800;
+  color: var(--neutral-50);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.coming-soon-desc {
+  font-size: 1rem;
+  color: var(--neutral-500);
+  line-height: 1.75;
+  max-width: 440px;
+}
+
+/* Badge */
+.coming-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  background: rgb(57 198 165 / 0.06);
+  border: 1px solid rgb(57 198 165 / 0.2);
+  color: var(--teal-500);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.coming-soon-badge img {
+  opacity: 0.7;
+  filter: invert(72%) sepia(43%) saturate(454%) hue-rotate(120deg) brightness(1.1);
+}
+
+/* Features */
+.coming-soon-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  justify-content: center;
+}
+
+.coming-soon-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--neutral-900);
+  border: 1px solid var(--neutral-800);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--neutral-300);
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.coming-soon-feature:hover {
+  background: rgb(57 198 165 / 0.06);
+  border-color: rgb(57 198 165 / 0.2);
+  transform: translateY(-2px);
+}
+
+.coming-soon-feature img {
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+/* CTA */
+.coming-soon-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--teal-500);
+  color: var(--teal-950);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 150ms ease, transform 150ms ease;
+  margin-top: 0.5rem;
+}
+
+.coming-soon-cta:hover {
+  background: var(--teal-300);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .coming-soon-features {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .coming-soon-feature {
+    justify-content: center;
+  }
+}

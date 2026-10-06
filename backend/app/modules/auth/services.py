@@ -34,6 +34,17 @@ class AuthService:
         else:
             username = user_data.username
 
+        if await self.repository.get_user_by_email(user_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Ya existe una cuenta con ese correo electrónico.",
+            )
+        if await self.repository.get_user(username):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Ese nombre de usuario ya está en uso.",
+            )
+
         hashed_password = hash_password(user_data.password)
 
         user_code = secrets.token_hex(8).upper()

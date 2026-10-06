@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <title>Mi perfil | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/account.css">
+</head>
+<body>
+  <header id="header"></header>
+  <main class="account-page account-page-wide">
+    <section id="profile-content" class="profile-layout" aria-busy="true">
+      <article class="profile-card" aria-labelledby="profile-title">
+        <div class="profile-card-heading">
+          <div id="profile-avatar-fallback" class="profile-avatar-fallback" aria-hidden="true">Y</div>
+          <img id="profile-avatar-preview" class="profile-avatar-preview" alt="" hidden>
+          <div>
+            <p class="account-eyebrow">Tu cuenta</p>
+            <h1 id="profile-title">Mi perfil</h1>
+            <p id="profile-username" class="profile-username"></p>
+          </div>
+        </div>
+        <dl class="profile-details">
+          <div><dt>Correo</dt><dd id="profile-email"></dd></div>
+          <div><dt>ID de usuario</dt><dd id="profile-user-id"></dd></div>
+          <div><dt>Tipo de cuenta</dt><dd id="profile-role"></dd></div>
+          <div><dt>Estado</dt><dd id="profile-status"></dd></div>
+          <div><dt>Privacidad</dt><dd id="profile-privacy"></dd></div>
+          <div><dt>Miembro desde</dt><dd id="profile-created"></dd></div>
+          <div><dt>Actualizado</dt><dd id="profile-updated"></dd></div>
+          <div class="profile-bio-row"><dt>Biografía</dt><dd id="profile-bio"></dd></div>
+        </dl>
+      </article>
+
+      <section id="profile-settings" class="account-card profile-edit-card" aria-labelledby="profile-settings-title">
+        <p class="account-eyebrow">Personaliza tu cuenta</p>
+        <h2 id="profile-settings-title">Editar perfil</h2>
+        <form id="profile-form" class="account-form">
+          <label for="profile-edit-username">Nombre de usuario</label>
+          <input id="profile-edit-username" name="username" type="text" autocomplete="username"
+            maxlength="50" minlength="2" required>
+          <label for="profile-edit-avatar">URL del avatar</label>
+          <input id="profile-edit-avatar" name="avatar_url" type="text" inputmode="url" maxlength="255"
+            placeholder="https://... o /uploads/...">
+          <label for="profile-edit-bio">Biografía</label>
+          <textarea id="profile-edit-bio" name="bio" rows="4" maxlength="500"></textarea>
+          <label class="account-checkbox" for="profile-edit-private">
+            <input id="profile-edit-private" name="is_private" type="checkbox">
+            <span>Hacer privado mi perfil</span>
+          </label>
+          <p id="profile-message" class="account-message" role="status" aria-live="polite"></p>
+          <button id="profile-submit" class="account-submit" type="submit">Guardar cambios</button>
+        </form>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/js/pages/profile.js"></script>
+</body>
+</html>

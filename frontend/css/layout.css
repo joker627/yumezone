@@ -1,4 +1,15 @@
 /* Layout general: define los contenedores principales de la aplicación. */
+
+body {
+  padding-top: 4rem; /* compensación para el header fixed */
+}
+
+@media (max-width: 600px) {
+  body {
+    padding-top: 3.5rem; /* header móvil es más pequeño */
+  }
+}
+
 #app {
   min-height: calc(100vh - 4rem);
 }

@@ -34,9 +34,10 @@ class HeroService:
         current_index = 0
 
         for group_name, works in groups.items():
-            for position, work in enumerate(works, start=1):
+            # Carga todos los datos del grupo en batch (4 queries en lugar de 5×N)
+            enriched_list = await self.repository.enrich_works_batch(works, user_id)
+            for position, details in enumerate(enriched_list, start=1):
                 current_index += 1
-                details = await self.repository.enrich_work(work, user_id)
                 grouped_items[group_name].append(
                     self._build_item(
                         details,
@@ -78,7 +79,11 @@ class HeroService:
         library = details["library"]
         first_number = first["number"] if first else 1
         first_text = f"Empezar a leer • Cap. {self._number(first_number)}"
-        first_url = f"/works/{work['slug']}/{first['id']}" if first else None
+        first_url = (
+            f"/pages/leer.html?slug={work['slug']}&chapter_id={first['id']}"
+            if first
+            else None
+        )
         count = int(library["count"])
         is_added = bool(library["is_added"])
         is_subscribed = bool(library["is_subscribed"])
