@@ -19,7 +19,10 @@ from app.modules.home.router import router as home_router
 
 load_dotenv()
 
-os.makedirs("uploads", exist_ok=True)
+try:
+    os.makedirs("uploads", exist_ok=True)
+except OSError:
+    pass  # Ignorar en entornos de solo lectura como Vercel
 
 
 @asynccontextmanager
