@@ -24,6 +24,9 @@ class WorkResponse(BaseModel):
     status_id: Optional[int] = None
     format_id: Optional[int] = None
     demographic_id: Optional[int] = None
+    format_name: Optional[str] = None
+    status_name: Optional[str] = None
+    demographic_name: Optional[str] = None
     scan_group_id: Optional[int] = None
     total_views: int = 0
     rating_average: float = 0.0

@@ -7,10 +7,11 @@ USE yumezone;
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_code VARCHAR(16) UNIQUE NOT NULL,
-    username VARCHAR(50) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     avatar_url VARCHAR(255),
+    banner_url VARCHAR(500) NULL,
     bio TEXT,
     is_private BOOLEAN DEFAULT FALSE,
     platform_role ENUM('USER', 'ADMIN', 'SUPERADMIN') DEFAULT 'USER',
@@ -18,9 +19,41 @@ CREATE TABLE users (
     coins INT DEFAULT 0,
     xp INT DEFAULT 0,
     streak_days INT DEFAULT 0,
+    last_streak_date DATE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE roles (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(64) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE permissions (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(100) NOT NULL UNIQUE,
+  description VARCHAR(255) NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE role_permissions (
+  role_id BIGINT UNSIGNED NOT NULL,
+  permission_id BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (role_id, permission_id),
+  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+  FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE user_roles (
+  user_id INT NOT NULL,
+  role_id BIGINT UNSIGNED NOT NULL,
+  assigned_by INT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, role_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+  FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
 
 CREATE TABLE reading_settings (
     user_id INT PRIMARY KEY,
@@ -110,7 +143,8 @@ CREATE TABLE works (
     FOREIGN KEY (demographic_id) REFERENCES demographics(id) ON DELETE SET NULL,
     FOREIGN KEY (scan_group_id) REFERENCES scan_groups(id) ON DELETE SET NULL,
     INDEX idx_works_title (title),
-    INDEX idx_works_created (created_at)
+    INDEX idx_works_created (created_at),
+    FULLTEXT INDEX idx_works_search (title, alternative_title, author, synopsis)
 );
 
 CREATE TABLE work_genres (
@@ -152,7 +186,7 @@ CREATE TABLE chapters (
 CREATE TABLE chapter_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
     chapter_id INT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
+    image_url VARCHAR(2048) NOT NULL,
     order_number INT NOT NULL,
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
     UNIQUE (chapter_id, order_number)
@@ -186,6 +220,72 @@ CREATE TABLE reading_history (
     UNIQUE (user_id, work_id)
 );
 
+-- Capítulos leídos por el usuario
+CREATE TABLE user_read_chapters (
+    user_id INT NOT NULL,
+    work_id INT NOT NULL,
+    chapter_id INT NOT NULL,
+    read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, chapter_id),
+    KEY idx_user_work (user_id, work_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+);
+
+-- Misiones diarias y recompensas reclamadas
+CREATE TABLE IF NOT EXISTS user_daily_missions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    mission_key VARCHAR(50) NOT NULL,
+    claimed_date DATE NOT NULL,
+    xp_awarded INT NOT NULL DEFAULT 0,
+    coins_awarded INT NOT NULL DEFAULT 0,
+    claimed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_mission_date (user_id, mission_key, claimed_date),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Medallas del sistema
+CREATE TABLE IF NOT EXISTS badges (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    tier VARCHAR(50) NOT NULL DEFAULT 'Bronce',
+    icon VARCHAR(50) NOT NULL DEFAULT 'award',
+    description TEXT,
+    condition_type VARCHAR(50) NOT NULL,
+    condition_value INT NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Catálogo de la tienda (banners, cosméticos, etc.)
+CREATE TABLE IF NOT EXISTS shop_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(50) NOT NULL DEFAULT 'BANNER',
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NULL,
+    price_coins INT NOT NULL DEFAULT 100,
+    preview_url VARCHAR(500) NOT NULL,
+    required_level INT NOT NULL DEFAULT 1,
+    rarity VARCHAR(30) NOT NULL DEFAULT 'RARE',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Inventario y cosméticos del usuario
+CREATE TABLE IF NOT EXISTS user_inventory (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    is_equipped BOOLEAN DEFAULT FALSE,
+    acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_shop_item (user_id, item_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES shop_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Estadísticas para rankings (TOP, POPULAR, etc.)
 CREATE TABLE work_statistics (
     work_id INT PRIMARY KEY,
@@ -193,15 +293,20 @@ CREATE TABLE work_statistics (
     daily_views INT DEFAULT 0,
     weekly_views INT DEFAULT 0,
     monthly_views INT DEFAULT 0,
-    rating_average DECIMAL(3,2) DEFAULT 0.00,
+    rating_average DECIMAL(4,2) DEFAULT 0.00,
     rating_count INT DEFAULT 0, -- Para mostrar "9.94 (42.8k)"
     trending_score DECIMAL(10,2) DEFAULT 0.00, -- Para el badge "#1 TENDENCIA GLOBAL"
     views_last_24h INT DEFAULT 0,
     followers_count INT DEFAULT 0,
     favorites_count INT DEFAULT 0,
+    last_published_at TIMESTAMP NULL,
+    latest_chapter_id INT NULL,
+    latest_chapter_number DECIMAL(6,2) NULL,
+    first_chapter_id INT NULL,
     FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
     INDEX idx_stats_trending (trending_score),
-    INDEX idx_stats_weekly (weekly_views)
+    INDEX idx_stats_weekly (weekly_views),
+    INDEX idx_ws_last_published (last_published_at)
 );
 
 -- Logs de vistas (alimenta a work_statistics)
@@ -210,13 +315,89 @@ CREATE TABLE view_logs (
     work_id INT NOT NULL,
     chapter_id INT,
     user_id INT,
-    ip_address VARCHAR(45),
+    ip_address VARCHAR(64),
     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_view_logs_work_date (work_id, viewed_at)
+    INDEX idx_view_logs_work_date (work_id, viewed_at),
+    FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ==========================================
--- 7. CONFIGURACIÓN GLOBAL
+-- 7. MODERACIÓN, NOTIFICACIONES Y AUDITORÍA
+-- ==========================================
+CREATE TABLE notifications (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(80) NOT NULL,
+    payload JSON NOT NULL,
+    read_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user_unread (user_id, read_at, created_at)
+);
+
+CREATE TABLE comments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    work_id INT NOT NULL,
+    chapter_id INT NULL,
+    user_id INT NOT NULL,
+    parent_id BIGINT NULL,
+    content TEXT NOT NULL,
+    contains_spoiler BOOLEAN DEFAULT FALSE,
+    status ENUM('VISIBLE', 'HIDDEN', 'DELETED') DEFAULT 'VISIBLE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE,
+    INDEX idx_comments_target_created (work_id, chapter_id, status, created_at)
+);
+
+CREATE TABLE comment_reactions (
+    comment_id BIGINT NOT NULL,
+    user_id INT NOT NULL,
+    reaction ENUM('LIKE', 'DISLIKE') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (comment_id, user_id),
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE content_reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reporter_user_id INT NOT NULL,
+    entity_type ENUM('COMMENT', 'CHAT', 'WORK', 'CHAPTER', 'USER') NOT NULL,
+    entity_id BIGINT NOT NULL,
+    reason VARCHAR(100) NOT NULL,
+    details TEXT NULL,
+    status ENUM('OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED') DEFAULT 'OPEN',
+    reviewed_by INT NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_reports_status_created (status, created_at)
+);
+
+CREATE TABLE audit_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    actor_user_id INT NULL,
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    entity_id VARCHAR(100) NULL,
+    before_data JSON NULL,
+    after_data JSON NULL,
+    ip_address VARCHAR(45) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_audit_entity_date (entity_type, entity_id, created_at),
+    INDEX idx_audit_actor_date (actor_user_id, created_at)
+);
+
+-- ==========================================
+-- 8. CONFIGURACIÓN GLOBAL
 -- ==========================================
 CREATE TABLE platform_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -226,11 +407,11 @@ CREATE TABLE platform_settings (
 );
 
 -- Configuración por defecto: rotación del Hero cada 24 horas
-INSERT INTO platform_settings (setting_key, setting_value, description) 
+INSERT IGNORE INTO platform_settings (setting_key, setting_value, description)
 VALUES ('hero_new_rotation_hours', '{"hours": 24}', 'Duración en horas de cada obra nueva en el Hero');
 
 -- ==========================================
--- 8. COLA DE ROTACIÓN PARA OBRAS NUEVAS EN EL HERO
+-- 9. COLA DE ROTACIÓN PARA OBRAS NUEVAS EN EL HERO
 -- ==========================================
 CREATE TABLE hero_new_queue (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -249,10 +430,18 @@ CREATE TABLE home_chats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     content TEXT NOT NULL,
-    pinned BOOLEAN DEFAULT FALSE,
+    channel VARCHAR(50) DEFAULT 'general',
+    is_pinned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Conserva solamente el chat de las ulltimas 24 horas.
+-- Requiere que MySQL tenga event_scheduler = ON.
+CREATE EVENT IF NOT EXISTS purge_expired_home_chats
+ON SCHEDULE EVERY 1 HOUR
+DO DELETE FROM home_chats
+WHERE created_at < (CURRENT_TIMESTAMP - INTERVAL 24 HOUR);
 
 CREATE TABLE home_announcements (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -266,11 +455,8 @@ CREATE TABLE home_announcements (
 );
 
 -- ==========================================
--- 9. ÍNDICES ADICIONALES DE RENDIMIENTO
+-- 10. ÍNDICES ADICIONALES DE RENDIMIENTO
 -- ==========================================
--- Búsqueda por slug
-CREATE INDEX idx_works_slug ON works (slug);
-
 -- Capítulos por obra + estado
 CREATE INDEX idx_chapters_work_status_num ON chapters (work_id, status, chapter_number);
 
@@ -286,13 +472,50 @@ CREATE INDEX idx_stats_favorites ON work_statistics (favorites_count);
 -- Capítulos recientes
 CREATE INDEX idx_chapters_status_published ON chapters (status, published_at);
 
+CREATE INDEX idx_library_user_status_added ON user_library (user_id, status, added_at);
+CREATE INDEX idx_scan_members_user_group ON scan_group_members (user_id, group_id);
+CREATE INDEX idx_announcements_active_created ON home_announcements (is_active, created_at);
+
 -- ==========================================
--- 10. TAREAS AUTOMÁTICAS (EVENTOS)
+-- 11. TRIGGERS DE RENDIMIENTO (OPTIMIZACIÓN)
 -- ==========================================
--- Purga de mensajes de chat antiguos
-CREATE EVENT IF NOT EXISTS evt_purge_old_chats
-ON SCHEDULE EVERY 1 HOUR
-DO
-  DELETE FROM home_chats 
-  WHERE created_at < NOW() - INTERVAL 24 HOUR 
-    AND pinned = FALSE;
+DELIMITER //
+
+CREATE TRIGGER trg_chapters_after_insert 
+AFTER INSERT ON chapters
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'PUBLISHED' THEN
+        -- Actualizar último capítulo publicado
+        UPDATE work_statistics 
+        SET last_published_at = NEW.published_at,
+            latest_chapter_id = NEW.id,
+            latest_chapter_number = NEW.chapter_number
+        WHERE work_id = NEW.work_id AND (last_published_at IS NULL OR NEW.published_at >= last_published_at);
+        
+        -- Actualizar primer capítulo (si es el primero)
+        UPDATE work_statistics 
+        SET first_chapter_id = NEW.id
+        WHERE work_id = NEW.work_id AND first_chapter_id IS NULL;
+    END IF;
+END;
+//
+
+CREATE TRIGGER trg_chapters_after_update
+AFTER UPDATE ON chapters
+FOR EACH ROW
+BEGIN
+    -- Recalcular todo de forma segura si hay un cambio de estado a publicado/oculto
+    IF OLD.status != NEW.status OR OLD.published_at != NEW.published_at THEN
+        UPDATE work_statistics 
+        SET 
+            first_chapter_id = (SELECT id FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number ASC, id ASC LIMIT 1),
+            latest_chapter_id = (SELECT id FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number DESC, id DESC LIMIT 1),
+            latest_chapter_number = (SELECT chapter_number FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number DESC, id DESC LIMIT 1),
+            last_published_at = (SELECT MAX(published_at) FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED')
+        WHERE work_id = NEW.work_id;
+    END IF;
+END;
+//
+
+DELIMITER ;

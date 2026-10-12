@@ -13,7 +13,7 @@
   --neutral-900: #0f1218;
   --neutral-950: #0b0d12;
 
-  /* Escala turquesa*/
+  /* Escala turquesa (Primario) */
   --teal-50: #e8fff8;
   --teal-100: #c8ffed;
   --teal-200: #a0f9dc;
@@ -25,6 +25,35 @@
   --teal-800: #176756;
   --teal-900: #10483d;
   --teal-950: #06231c;
+
+  /* Escala carmesí / rubí (Secundario - Biblioteca, Favoritos, Destacados) */
+  --ruby-50: #fff1f2;
+  --ruby-100: #ffe4e6;
+  --ruby-200: #fecdd3;
+  --ruby-300: #fda4af;
+  --ruby-400: #fb7185;
+  --ruby-500: #f43f5e;
+  --ruby-600: #e11d48;
+  --ruby-700: #be123c;
+  --ruby-800: #9f1239;
+  --ruby-900: #881337;
+  --ruby-950: #4c0519;
+
+  /* Escala violeta / índigo (Terciario - Tags, badges especiales, acentos) */
+  --violet-100: #ede9fe;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed;
+  --violet-700: #6d28d9;
+  --violet-950: #2e1065;
+
+  /* Escala ámbar / dorado (Acentos - Ratings, Estrellas, Fuego) */
+  --amber-300: #fcd34d;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
 
   /* Tipografía, bordes y sombras. */
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;

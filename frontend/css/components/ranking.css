@@ -1,0 +1,218 @@
+/* ==========================================================
+   YUMEZONE - RANKING CSS (Componentes propios de Ranking)
+   ========================================================== */
+
+.ranking-page {
+  width: min(100% - 2rem, 74rem);
+  min-height: calc(100vh - 4rem);
+  margin: 0 auto;
+  padding: 1.25rem 0 clamp(2rem, 5vw, 4rem);
+}
+
+.ranking-page-heading {
+  margin-bottom: 1.75rem;
+}
+
+.ranking-page-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--teal-400);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ranking-page-heading h1 {
+  margin: 0;
+  color: var(--neutral-50);
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+  line-height: 1.2;
+}
+
+.ranking-page-summary {
+  margin: 0.65rem 0 0;
+  color: var(--neutral-500);
+  font-size: 0.9rem;
+}
+
+.ranking-tabs {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  width: 100%;
+  border-bottom: 1px solid var(--neutral-800);
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.ranking-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, rgba(23, 28, 38, 0.75) 0%, rgba(13, 16, 23, 0.9) 100%);
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--neutral-50);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 180ms ease,
+              background 180ms ease,
+              box-shadow 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ranking-list-item:hover {
+  border-color: rgba(45, 212, 191, 0.35);
+  background: linear-gradient(135deg, rgba(28, 35, 48, 0.88) 0%, rgba(16, 20, 29, 0.96) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(45, 212, 191, 0.12);
+}
+
+.ranking-num {
+  font-size: 2rem;
+  font-weight: 900;
+  min-width: 40px;
+  text-align: center;
+  color: var(--neutral-500);
+}
+
+.ranking-num-top {
+  color: var(--amber-400);
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+}
+
+.ranking-cover {
+  width: 64px;
+  height: 86px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.item-info-col {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.item-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--neutral-50);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 150ms ease;
+}
+
+.ranking-list-item:hover .item-title {
+  color: var(--teal-300);
+}
+
+.item-author {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--neutral-400);
+  margin: 0;
+}
+
+.item-meta {
+  font-size: 0.78rem;
+  color: var(--neutral-400);
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 0.15rem;
+  align-items: center;
+}
+
+.item-rating {
+  color: var(--amber-400);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ranking-format-badge {
+  background: rgba(139, 92, 246, 0.14);
+  color: var(--violet-300);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 640px) {
+  .ranking-page {
+    width: min(100% - 1.25rem, 74rem);
+    padding-top: 1rem;
+  }
+
+  .ranking-list-item {
+    gap: 0.85rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .ranking-num {
+    font-size: 1.5rem;
+    min-width: 28px;
+  }
+
+  .ranking-cover {
+    width: 52px;
+    height: 72px;
+  }
+
+  .item-title {
+    font-size: 0.95rem;
+  }
+
+  .item-author {
+    font-size: 0.75rem;
+  }
+
+  .item-meta {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .ranking-list-item {
+    gap: 0.65rem;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .ranking-num {
+    font-size: 1.25rem;
+    min-width: 22px;
+  }
+
+  .ranking-cover {
+    width: 44px;
+    height: 60px;
+  }
+
+  .item-title {
+    font-size: 0.88rem;
+  }
+}
+

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0b0d12"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png"/>
+  <title>Perfil de Usuario | YumeZone</title>
+
+  <!-- YumeZone Core Stylesheets (Vanilla CSS Propio) -->
+  <link rel="stylesheet" href="/css/variables.css"/>
+  <link rel="stylesheet" href="/css/reset.css"/>
+  <link rel="stylesheet" href="/css/layout.css"/>
+  <link rel="stylesheet" href="/css/components/header.css"/>
+  <link rel="stylesheet" href="/css/components/toast.css"/>
+  <link rel="stylesheet" href="/css/pages/user.css"/>
+</head>
+
+<body>
+  <!-- Header Global del Sitio -->
+  <header id="header"></header>
+
+  <main class="profile-page-main">
+    <div class="profile-container">
+      
+      <!-- Contenedor de Error / Usuario No Encontrado -->
+      <div id="user-error" class="profile-empty-card" hidden>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <h2 class="profile-title" style="font-size: 1.35rem; margin-bottom: 0.5rem;" id="user-error-title">Lector no encontrado</h2>
+        <p class="profile-bio-text" style="margin: 0 auto 1.5rem;" id="user-error-desc">No pudimos encontrar el perfil que buscas.</p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+          <a href="/" class="profile-btn profile-btn--primary">Volver al Inicio</a>
+          <a href="/pages/catalogo.html" class="profile-btn profile-btn--secondary">Explorar Catálogo</a>
+        </div>
+      </div>
+
+      <!-- Vista Principal del Perfil -->
+      <div id="user-profile-view">
+        
+        <!-- BANNER HERO ATMOSFÉRICO -->
+        <section class="profile-banner-wrap">
+          <div id="profile-banner-bg" class="profile-banner-bg" style="background-image: url('/assets/images/banner-default.jpg');"></div>
+          <div class="profile-banner-scrim-bottom"></div>
+          <div class="profile-banner-scrim-sides"></div>
+
+          <!-- Badges superiores del banner (Renderizados según verificación y rol real) -->
+          <div class="profile-banner-badges">
+            <span id="badge-verified-top" class="profile-chip profile-chip--verified" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span id="badge-verified-text">Staff Verificado</span>
+            </span>
+            <span id="badge-role-top" class="profile-chip profile-chip--role" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              <span id="badge-role-text">Lector Veterano</span>
+            </span>
+          </div>
+
+          <!-- Acciones del banner -->
+          <div class="profile-banner-actions">
+            <button class="profile-icon-btn" id="btn-share" type="button" title="Copiar enlace del perfil">
+              <img class="profile-btn-icon" src="/assets/icons/svg/share.svg" alt="" aria-hidden="true"/>
+              <span id="btn-share-label">Compartir</span>
+            </button>
+            <div class="profile-menu-wrapper">
+              <button class="profile-icon-btn profile-icon-btn--dots" id="menu-dots-btn" type="button" title="Opciones">
+                <img class="profile-btn-icon" src="/assets/icons/svg/dots-vertical.svg" alt="" aria-hidden="true"/>
+              </button>
+              <div class="profile-dropdown-menu" id="dropdown-profile-menu" hidden>
+                <button class="profile-dropdown-item" id="btn-bookmark-profile" type="button">
+                  <img class="profile-item-icon" src="/assets/icons/svg/bookmark.svg" alt="" aria-hidden="true"/>
+                  <span>Guardar lector</span>
+                </button>
+                <button class="profile-dropdown-item profile-dropdown-item--danger" id="btn-report-profile" type="button">
+                  <img class="profile-item-icon" src="/assets/icons/svg/flag.svg" alt="" aria-hidden="true"/>
+                  <span>Reportar perfil</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TARJETA DE IDENTIDAD PRINCIPAL -->
+        <section class="profile-card-overlap">
+          <div class="profile-header-flex">
+            
+            <div class="profile-identity-group">
+              <!-- Avatar -->
+              <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-inner">
+                  <img id="user-avatar-img" class="profile-avatar-img hidden" src="" alt="Avatar"/>
+                  <span id="user-avatar-fallback" class="profile-avatar-fallback">Y</span>
+                </div>
+                <div class="profile-level-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  <span id="user-level-badge">Nv. 1</span>
+                </div>
+              </div>
+
+              <!-- Identidad y Meta -->
+              <div>
+                <div class="profile-name-row">
+                  <h1 class="profile-title" id="user-username">Cargando...</h1>
+                  <span class="profile-verified-badge" id="user-verified-icon" style="display: none;" title="Lector Verificado / Staff">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </span>
+                  <span class="profile-role-pill" id="user-role-pill">Lector</span>
+                </div>
+
+                <div class="profile-meta-row">
+                  <span class="profile-handle" id="user-handle">@usuario</span>
+                  <span>•</span>
+                  <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="8" x2="17" y2="8"></line><line x1="7" y1="12" x2="17" y2="12"></line></svg>
+                    <span id="user-code-val">#0000</span>
+                  </span>
+                  <span>•</span>
+                  <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span id="user-created-val">Miembro registrado</span>
+                  </span>
+                </div>
+
+                <p class="profile-bio-text" id="user-bio">Sin biografía disponible aún.</p>
+              </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="profile-actions-row">
+              <button class="profile-btn profile-btn--primary" id="btn-follow" type="button">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="follow-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                <span id="follow-text">Seguir</span>
+              </button>
+              <a href="/pages/chat.html" class="profile-btn profile-btn--secondary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Mensaje</span>
+              </a>
+            </div>
+
+          </div>
+
+          <!-- Tarjeta de Scanlation (si el usuario pertenece a un scan) -->
+          <div class="profile-scan-card" id="user-scan-card" hidden>
+            <div class="profile-scan-info">
+              <img id="user-scan-logo" class="profile-scan-logo" src="" alt="Scan Logo" onerror="this.src='/assets/icons/logo.png'"/>
+              <div>
+                <div class="profile-scan-tag" id="user-scan-role">Grupo Scan</div>
+                <h4 class="profile-scan-name" id="user-scan-name">GhostScans</h4>
+              </div>
+            </div>
+            <a id="user-scan-link" href="#" class="profile-scan-link">
+              <span>Ver obras del scan</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+          </div>
+
+          <!-- Barra de EXP y Nivel -->
+          <div class="profile-xp-strip">
+            <div class="profile-xp-left">
+              <div class="profile-xp-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              </div>
+              <div>
+                <div style="display: flex; align-items: baseline;">
+                  <span class="profile-xp-title" id="xp-level-title">Nivel 1: Iniciado</span>
+                  <span class="profile-xp-next" id="xp-next-level">→ Siguiente: Nv. 2</span>
+                </div>
+                <div class="profile-xp-nums" id="xp-numbers-label">0 / 1,000 EXP</div>
+              </div>
+            </div>
+
+            <div class="profile-xp-center">
+              <div class="profile-xp-labels">
+                <span style="color: var(--teal-400);" id="xp-pct-label">0% Completado</span>
+                <span style="color: var(--amber-400);" id="xp-remaining-label">Faltan 1,000 EXP</span>
+              </div>
+              <div class="profile-xp-bar">
+                <div class="profile-xp-fill" id="xp-progress-bar" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TIRA DE 6 MÉTRICAS CLAVE REALES -->
+        <section class="profile-metrics-strip">
+          <div class="profile-stat-box">
+            <div class="profile-stat-head">
+              <span>Caps Leídos</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            </div>
+            <div class="profile-stat-value" id="stat-chapters">0</div>
+            <div class="profile-stat-sub">Historial activo</div>
+          </div>
+
+          <div class="profile-stat-box">
+            <div class="profile-stat-head">
+              <span>En Biblioteca</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <div class="profile-stat-value" id="stat-following">0</div>
+            <div class="profile-stat-sub">Siguiendo</div>
+          </div>
+
+          <div class="profile-stat-box">
+            <div class="profile-stat-head">
+              <span style="color: var(--amber-400);">Racha</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--amber-400);"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+            </div>
+            <div class="profile-stat-value profile-stat-value--accent" id="stat-streak">0 Días</div>
+            <div class="profile-stat-sub">Lectura diaria</div>
+          </div>
+
+          <div class="profile-stat-box">
+            <div class="profile-stat-head">
+              <span style="color: var(--amber-400);">Yume Coins</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--amber-400);"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M15 9.5a3.5 3.5 0 0 0-6 0c0 2 2 3 3 3s3 1 3 3a3.5 3.5 0 0 1-6 0"></path></svg>
+            </div>
+            <div class="profile-stat-value" id="stat-coins">0</div>
+            <div class="profile-stat-sub">Billetera</div>
+          </div>
+
+          <div class="profile-stat-box">
+            <div class="profile-stat-head">
+              <span>Comentarios</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <div class="profile-stat-value" id="stat-comments">0</div>
+            <div class="profile-stat-sub">Comunidad</div>
+          </div>
+
+          <div class="profile-stat-box">
+            <div class="profile-stat-head">
+              <span>Completadas</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="profile-stat-value" id="stat-completed">0</div>
+            <div class="profile-stat-sub">Obras al 100%</div>
+          </div>
+        </section>
+
+        <!-- LAYOUT DE 2 COLUMNAS (8 / 4) -->
+        <section class="profile-main-grid">
+          
+          <!-- Columna Izquierda: Obras y Pestañas del Feed (8 cols) -->
+          <div class="profile-col-primary">
+            
+            <!-- Vitrina de Obras Reales -->
+            <div>
+              <div class="profile-section-header">
+                <div class="profile-section-title-wrap">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--teal-400);"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  <h2 class="profile-section-title">Obras en Biblioteca / Favoritas</h2>
+                  <span class="profile-chip profile-chip--verified" style="padding: 0.15rem 0.5rem; font-size: 0.65rem;" id="fav-count-badge">0</span>
+                </div>
+                <a href="/pages/catalogo.html" class="profile-section-link">
+                  <span>Explorar Catálogo</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+              </div>
+
+              <!-- Contenedor dinámico de obras -->
+              <div class="profile-works-grid" id="favorite-works-container"></div>
+            </div>
+
+            <!-- Feed Pestañas (Actividad / Biblioteca / Comentarios) -->
+            <div>
+              <div class="profile-tabs-header" id="profile-tabs">
+                <button class="profile-tab-btn active" data-tab="activity" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Actividad Reciente</span>
+                </button>
+                <button class="profile-tab-btn" data-tab="library" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  <span>Biblioteca Completa</span>
+                </button>
+                <button class="profile-tab-btn" data-tab="comments" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  <span>Comentarios</span>
+                </button>
+              </div>
+
+              <div class="feed-panes">
+                <div class="tab-pane" id="pane-activity">
+                  <div id="activity-feed-container"></div>
+                </div>
+
+                <div class="tab-pane" id="pane-library" hidden>
+                  <div class="profile-works-grid" id="library-feed-container"></div>
+                </div>
+
+                <div class="tab-pane" id="pane-comments" hidden>
+                  <div id="comments-feed-container"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Columna Derecha: Medallas, Géneros & Consolas (4 cols) -->
+          <div class="profile-col-sidebar">
+            
+            <!-- Logros & Medallas -->
+            <div>
+              <div class="profile-section-header">
+                <div class="profile-section-title-wrap">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--amber-400);"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                  <h2 class="profile-section-title">Logros & Medallas</h2>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--amber-400);" id="badges-unlocked-ratio">0/0</span>
+              </div>
+
+              <div class="profile-badges-card" id="badges-container"></div>
+            </div>
+
+            <!-- Géneros Más Leídos (Donut SVG Propio) -->
+            <div class="profile-sidebar-card">
+              <div class="profile-sidebar-head">
+                <div class="profile-sidebar-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--teal-400);"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                  <span>Géneros Más Leídos</span>
+                </div>
+                <span style="font-size: 0.72rem; color: var(--neutral-400);" id="sidebar-total-caps">0 Caps</span>
+              </div>
+              <div id="genres-content-wrap"></div>
+            </div>
+
+            <!-- Accesos a Consolas & Plataforma -->
+            <div class="profile-sidebar-card">
+              <div class="profile-sidebar-head">
+                <div class="profile-sidebar-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--teal-400);"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                  <span>Plataforma & Accesos</span>
+                </div>
+              </div>
+
+              <div class="profile-quick-nav">
+                <!-- Enlaces directos a las plataformas del ecosistema -->
+                <a href="http://192.168.1.43:4400/" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--scan" id="profile-scan-quicklink" style="display: none;" title="YumeScan Studio | Plataforma de Scanlation & Producción">
+                  <span style="display: flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    YumeScan Studio
+                  </span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+
+                <a href="http://192.168.1.43:4000/" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--admin" id="profile-admin-quicklink" style="display: none;" title="YumeZone Cloud & Webmaster Console | Super Admin">
+                  <span style="display: flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    YumeZone Console
+                  </span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+
+                <a href="/pages/catalogo.html" class="profile-quick-nav-link">
+                  <span style="display: flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                    Catálogo de Obras
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+
+                <a href="/pages/ranking.html" class="profile-quick-nav-link">
+                  <span style="display: flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    Ranking de Lectores
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+
+                <a href="/pages/comunidad.html" class="profile-quick-nav-link">
+                  <span style="display: flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Foros & Comunidad
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- Mensaje de Perfil Privado -->
+        <section class="profile-empty-card" id="private-profile-view" style="margin-top: 2rem;" hidden>
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <h3 class="profile-title" style="font-size: 1.25rem;">Este perfil es privado</h3>
+          <p class="profile-bio-text" style="margin: 0.5rem auto 0;">El lector ha protegido su cuenta y mantiene sus estadísticas e historial en modo privado.</p>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/js/pages/user.js"></script>
+</body>
+</html>

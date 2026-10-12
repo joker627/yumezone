@@ -1,5 +1,6 @@
 import { authRequest, setAccessToken } from '../shared/auth.js';
 import { renderSiteHeader } from '../components/header.js';
+import { showToast } from '../shared/toast.js';
 
 const header = document.getElementById('header');
 if (header) renderSiteHeader(header);
@@ -26,8 +27,10 @@ form?.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
 });
 
 function setMessage(text, kind = 'error') {
-    message.textContent = text;
-    message.dataset.kind = kind;
+    if (message) {
+        message.textContent = text;
+        message.dataset.kind = kind;
+    }
 }
 
 function getReturnPath() {
@@ -50,14 +53,18 @@ form?.addEventListener('submit', async (event) => {
     const username = String(values.get('username') || '').trim();
 
     if (mode === 'register' && password !== values.get('password_confirm')) {
-        setMessage('Las contraseñas no coinciden.');
+        const msg = 'Las contraseñas no coinciden.';
+        setMessage(msg, 'error');
+        showToast(msg, 'warning');
         return;
     }
 
     submit.disabled = true;
     submit.textContent = mode === 'register' ? 'Creando cuenta…' : 'Iniciando sesión…';
-    message.textContent = '';
-    delete message.dataset.kind;
+    if (message) {
+        message.textContent = '';
+        delete message.dataset.kind;
+    }
 
     try {
         if (mode === 'register') {
@@ -66,6 +73,7 @@ form?.addEventListener('submit', async (event) => {
                 token: '',
                 body: { username, email, password },
             });
+            showToast('¡Cuenta creada con éxito! Iniciando sesión…', 'success');
         }
 
         const token = await authRequest('/login', {
@@ -74,10 +82,15 @@ form?.addEventListener('submit', async (event) => {
             body: { email, password },
         });
         setAccessToken(token.access_token);
-        setMessage('Sesión iniciada. Abriendo tu cuenta…', 'success');
-        window.location.assign(getReturnPath());
+        setMessage('Sesión iniciada. Redirigiendo…', 'success');
+        showToast('¡Inicio de sesión exitoso!', 'success');
+        setTimeout(() => {
+            window.location.assign(getReturnPath());
+        }, 400);
     } catch (error) {
-        setMessage(error.message || 'No se pudo completar la solicitud. Inténtalo de nuevo.');
+        const errText = error.message || 'Correo o contraseña incorrectos.';
+        setMessage(errText, 'error');
+        showToast(errText, 'error');
         submit.disabled = false;
         submit.textContent = mode === 'register' ? 'Crear cuenta' : 'Iniciar sesión';
     }

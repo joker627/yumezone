@@ -13,7 +13,7 @@ from app.modules.scans.schemas import (
 from app.modules.scans.services import ScanGroupService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter(tags=["Scan Groups"])
+router = APIRouter()
 
 
 def get_scan_group_service():

@@ -1,0 +1,183 @@
+/* ==========================================================
+   YUMEZONE - NOVEDADES CSS (Componentes propios de Novedades)
+   ========================================================== */
+
+.novedades-page {
+  width: min(100% - 2rem, 74rem);
+  min-height: calc(100vh - 4rem);
+  margin: 0 auto;
+  padding: 1.25rem 0 clamp(2rem, 5vw, 4rem);
+}
+
+.novedades-page-heading {
+  margin-bottom: 1.75rem;
+}
+
+.novedades-page-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--teal-400);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.novedades-page-heading h1 {
+  margin: 0;
+  color: var(--neutral-50);
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+  line-height: 1.2;
+}
+
+.novedades-page-summary {
+  margin: 0.65rem 0 0;
+  color: var(--neutral-500);
+  font-size: 0.9rem;
+}
+
+.novedades-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.novedad-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  background: linear-gradient(135deg, rgba(23, 28, 38, 0.75) 0%, rgba(13, 16, 23, 0.9) 100%);
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--neutral-50);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 180ms ease,
+              background 180ms ease,
+              box-shadow 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.novedad-list-item:hover {
+  border-color: rgba(45, 212, 191, 0.35);
+  background: linear-gradient(135deg, rgba(28, 35, 48, 0.88) 0%, rgba(16, 20, 29, 0.96) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(45, 212, 191, 0.12);
+}
+
+.novedad-cover {
+  width: 76px;
+  height: 102px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  transition: transform 250ms ease;
+}
+
+.novedad-list-item:hover .novedad-cover {
+  transform: scale(1.05);
+}
+
+.novedad-info-col {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.novedad-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--neutral-50);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 150ms ease;
+}
+
+.novedad-list-item:hover .novedad-title {
+  color: var(--teal-300);
+}
+
+.novedad-tag-studio {
+  font-size: 0.75rem;
+  color: var(--neutral-400);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.novedad-tag-label {
+  color: var(--ruby-400);
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.26);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.novedad-chapter {
+  background: rgba(45, 212, 191, 0.12);
+  color: var(--teal-300);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .novedades-page {
+    width: min(100% - 1.25rem, 74rem);
+    padding-top: 1rem;
+  }
+
+  .novedad-list-item {
+    gap: 0.85rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .novedad-cover {
+    width: 60px;
+    height: 82px;
+  }
+
+  .novedad-title {
+    font-size: 0.95rem;
+  }
+
+  .novedad-tag-studio {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .novedad-list-item {
+    gap: 0.65rem;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .novedad-cover {
+    width: 50px;
+    height: 68px;
+  }
+
+  .novedad-title {
+    font-size: 0.88rem;
+  }
+}
+

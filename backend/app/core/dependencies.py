@@ -3,7 +3,7 @@ import aiomysql
 import json
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # imports internal
@@ -12,20 +12,29 @@ from app.core.security import decode_access_token
 from app.modules.auth.repository import AuthRepository
 from app.modules.users.models import CurrentUser
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 optional_security = HTTPBearer(auto_error=False)
 
 
 # Obtener usuario actual
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> CurrentUser:
-    token = credentials.credentials
+    token = None
+    if credentials:
+        token = credentials.credentials
+    else:
+        token = request.cookies.get("access_token")
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="No se pudieron validar las credenciales",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    if not token:
+        raise credentials_exception
 
     payload = decode_access_token(token)
     if payload is None:
@@ -42,16 +51,21 @@ async def get_current_user(
     if user is None or user.id is None:
         raise credentials_exception
 
-    return CurrentUser(**user.model_dump())
+    user_dict = user.model_dump()
+    user_dict["is_scan_member"] = await repository.is_scan_leader(user.id)
+    return CurrentUser(**user_dict)
 
 
 async def get_optional_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
 ) -> Optional[CurrentUser]:
-    if credentials is None:
+    # Intentamos leer de cookie si no hay credentials
+    token = credentials.credentials if credentials else request.cookies.get("access_token")
+    if not token:
         return None
     try:
-        return await get_current_user(credentials)
+        return await get_current_user(request, credentials)
     except HTTPException:
         return None
 

@@ -28,13 +28,13 @@
   <link rel="icon" type="image/png" href="assets/icons/logo.png">
   <link rel="apple-touch-icon" href="assets/icons/logo.png">
   <title>YumeZone | Mangas, manhwas y manhuas</title>
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/reset.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components/header.css">
-  <link rel="stylesheet" href="css/components/notice.css">
-  <link rel="stylesheet" href="css/components/hero.css">
-  <link rel="stylesheet" href="css/components/home-sections.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/notice.css">
+  <link rel="stylesheet" href="/css/components/hero.css">
+  <link rel="stylesheet" href="/css/components/home-sections.css">
 </head>
 
 <body>
@@ -83,7 +83,7 @@
               <img class="hero-icon" width="12" height="12" alt="" aria-hidden="true" data-home-hero-badge-icon>
               <span data-home-hero-badge-text></span>
             </span>
-            <span class="hero-rating" title="Puntuación">
+            <span class="hero-rating" title="Calificar esta obra" data-home-hero-rating-badge role="button" tabindex="0">
               <img class="hero-icon" width="12" height="12" src="assets/icons/svg/star.svg" alt="" aria-hidden="true">
               <span data-home-hero-rating></span>
               <span class="hero-rating-count">(<span data-home-hero-rating-count></span>)</span>
@@ -97,7 +97,11 @@
             <img class="hero-icon" width="14" height="14" src="assets/icons/svg/info.svg" alt="" aria-hidden="true">
             <span data-home-hero-alternative-title></span>
           </div>
-          <h1 class="hero-title"><span data-home-hero-title-top></span><br data-home-hero-title-break><span data-home-hero-title-accent></span></h1>
+          <h1 class="hero-title">
+            <span class="hero-title-top" data-home-hero-title-top></span>
+            <span class="hero-title-accent" data-home-hero-title-accent></span>
+          </h1>
+
           <p class="hero-synopsis" data-home-hero-synopsis></p>
           <div class="hero-genres" data-home-hero-genres>
             <span class="hero-update">
@@ -111,7 +115,7 @@
               <span data-home-hero-read-text>Leer</span>
             </a>
             <button type="button" class="hero-cta hero-cta-secondary" data-home-hero-library-btn>
-              <img class="hero-icon" width="16" height="16" src="assets/icons/svg/heart.svg" alt="" aria-hidden="true">
+              <img class="hero-icon hero-library-icon" width="16" height="16" src="assets/icons/svg/heart.svg" alt="" aria-hidden="true">
               <span data-home-hero-library-text></span>
             </button>
             <a href="#" class="hero-cta hero-cta-view" data-home-hero-detail-link
@@ -124,22 +128,67 @@
         <aside class="hero-next" aria-label="Próximo capítulo">
           <header class="hero-next-header">
             <img class="hero-icon" width="14" height="14" src="assets/icons/svg/history.svg" alt="" aria-hidden="true">
-            <span>Próximo Capítulo</span>
+            <span data-home-hero-next-label>Próximo Capítulo</span>
             <span class="hero-next-status" data-home-hero-next-status></span>
           </header>
           <h3 class="hero-next-title" data-home-hero-next-title></h3>
           <p class="hero-next-meta" data-home-hero-next-release></p>
           <footer class="hero-next-footer">
             <span class="hero-next-scan">Subido por <span data-home-hero-next-scan></span></span>
-            <button type="button" class="hero-next-cta" data-home-hero-subscribe-btn>
-              <img class="hero-icon" width="14" height="14" src="assets/icons/svg/bell.svg" alt="" aria-hidden="true">
-              <span>Recordar</span>
-            </button>
+            <a href="#" class="hero-next-cta" data-home-hero-next-link aria-label="Ver detalles de la obra">
+              <span>Ver obra</span>
+              <img class="hero-icon" width="12" height="12" src="assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
+            </a>
           </footer>
         </aside>
       </div>
     </article>
   </template>
+  <dialog id="hero-rating-modal" class="rating-modal" aria-labelledby="rating-modal-title">
+    <div class="rating-modal-backdrop" data-rating-modal-close></div>
+    <div class="rating-modal-card">
+      <header class="rating-modal-header">
+        <div class="rating-modal-icon-wrap">
+          <img src="assets/icons/svg/star.svg" alt="" width="22" height="22">
+        </div>
+        <div class="rating-modal-title-group">
+          <h2 id="rating-modal-title" class="rating-modal-title">Calificar Obra</h2>
+          <p class="rating-modal-subtitle" id="rating-modal-work-title">Obra</p>
+        </div>
+        <button type="button" class="rating-modal-close-btn" data-rating-modal-close aria-label="Cerrar">&times;</button>
+      </header>
+      <div class="rating-modal-body">
+        <div id="rating-status-pill" class="rating-status-pill is-unrated">
+          <span class="rating-status-dot"></span>
+          <span id="rating-status-text">Sin calificar aún</span>
+        </div>
+        <div class="rating-score-display">
+          <span id="rating-score-num" class="rating-score-num">—</span>
+          <span class="rating-score-max">/ 10</span>
+        </div>
+        <div id="rating-score-label" class="rating-score-label">Toca una estrella o mueve el selector</div>
+        <div class="rating-stars-preview" id="rating-stars-preview" aria-label="Selector de estrellas de 1 a 10"></div>
+        <div class="rating-slider-wrap">
+          <button type="button" class="rating-step-btn" id="rating-minus-btn" aria-label="Restar 0.5">-0.5</button>
+          <input type="range" id="rating-range-slider" class="rating-range-slider" min="1.0" max="10.0" step="0.1" value="8.0" aria-label="Seleccionar calificación de 1.0 a 10.0">
+          <button type="button" class="rating-step-btn" id="rating-plus-btn" aria-label="Sumar 0.5">+0.5</button>
+        </div>
+        <div class="rating-presets" id="rating-presets">
+          <button type="button" class="rating-preset-chip" data-val="5.0">5.0</button>
+          <button type="button" class="rating-preset-chip" data-val="6.5">6.5</button>
+          <button type="button" class="rating-preset-chip" data-val="7.5">7.5</button>
+          <button type="button" class="rating-preset-chip" data-val="8.5">8.5</button>
+          <button type="button" class="rating-preset-chip" data-val="9.0">9.0</button>
+          <button type="button" class="rating-preset-chip" data-val="9.5">9.5</button>
+          <button type="button" class="rating-preset-chip" data-val="10.0">10.0 ★</button>
+        </div>
+      </div>
+      <footer class="rating-modal-footer">
+        <button type="button" class="rating-modal-btn rating-modal-btn--ghost" data-rating-modal-close>Cancelar</button>
+        <button type="button" class="rating-modal-btn rating-modal-btn--primary" id="rating-submit-btn">Guardar calificación</button>
+      </footer>
+    </div>
+  </dialog>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -150,12 +199,18 @@
       "inLanguage": "es"
     }
   </script>
-  <script type="module" src="js/pages/home.js"></script>
+  <script type="module" src="/js/pages/home.js"></script>
   <script type="module">
     import { renderHomeSections } from '/js/pages/home-sections.js';
-    document.addEventListener('DOMContentLoaded', () => {
-      renderHomeSections(document.getElementById('home-sections'));
-    });
+    const initSections = () => {
+      const el = document.getElementById('home-sections');
+      if (el) renderHomeSections(el);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initSections);
+    } else {
+      initSections();
+    }
   </script>
 </body>
 

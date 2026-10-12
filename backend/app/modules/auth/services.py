@@ -29,12 +29,19 @@ class AuthService:
     async def register(self, user_data: UserCreate) -> User:
         # Si no envía un username, generamos uno aleatorio
         if not user_data.username:
-            random_suffix = "".join(random.choices(string.digits, k=5))
-            username = f"Lector_{random_suffix}"
+            # Un sufijo aleatorio no sustituye la restricción UNIQUE de la BD,
+            # pero evita rechazos innecesarios durante el registro automático.
+            for _ in range(10):
+                username = f"Lector_{''.join(random.choices(string.digits, k=5))}"
+                if not await self.repository.get_user(username):
+                    break
+            else:
+                raise HTTPException(status_code=503, detail="No se pudo asignar un nombre de usuario")
         else:
-            username = user_data.username
+            username = user_data.username.strip()
 
-        if await self.repository.get_user_by_email(user_data.email):
+        email = str(user_data.email).strip().lower()
+        if await self.repository.get_user_by_email(email):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Ya existe una cuenta con ese correo electrónico.",
@@ -51,7 +58,7 @@ class AuthService:
         db_user = User(
             user_code=user_code,
             username=username,
-            email=user_data.email,
+            email=email,
             password=hashed_password,
         )
         created_user = await self.repository.create_user(db_user)
@@ -72,6 +79,14 @@ class AuthService:
                 detail="Correo o contraseña incorrectos",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        if user.status.upper() != "ACTIVE":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Esta cuenta no está activa",
+            )
+        # Validar racha diaria por inicio de sesión
+        await self.repository.update_streak(user.id)
+
         access_token_expires = timedelta(minutes=settings.jwt_exp)
         access_token = create_access_token(
             data={"sub": user.email}, expires_delta=access_token_expires
@@ -87,7 +102,11 @@ class AuthService:
         # Copiamos los datos actuales para no borrar lo que
         # el usuario no quiere cambiar
         if update_data.username is not None:
-            current_user.username = update_data.username
+            username = update_data.username.strip()
+            existing_user = await self.repository.get_user(username)
+            if existing_user and existing_user.id != current_user.id:
+                raise HTTPException(status_code=409, detail="Ese nombre de usuario ya está en uso")
+            current_user.username = username
         if update_data.avatar_url is not None:
             current_user.avatar_url = update_data.avatar_url
         if update_data.bio is not None:
