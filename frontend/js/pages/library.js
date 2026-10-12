@@ -1,5 +1,5 @@
 import { apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
-import { safeUrl } from '../shared/url-utils.js';
+import { safeUrl, IMG_FALLBACK } from '../shared/url-utils.js';
 import { renderSiteHeader } from '../components/header.js';
 
 const header = document.getElementById('header');
@@ -8,8 +8,6 @@ if (header) renderSiteHeader(header);
 const page = document.getElementById('library-page');
 const summary = document.getElementById('library-summary');
 const authPrompt = document.getElementById('library-auth-prompt');
-const signInLink = authPrompt.querySelector('a[href*="login.html"]');
-const signUpLink = authPrompt.querySelector('a[href*="registro.html"]');
 const errorPanel = document.getElementById('library-error');
 const errorMessage = document.getElementById('library-error-message');
 const retryButton = document.getElementById('library-retry');
@@ -62,9 +60,14 @@ function clearPendingAdd(params) {
 }
 
 function updateCounts() {
-    const counts = { ALL: libraryItems.length };
+    const counts = { ALL: libraryItems.length, READING: 0 };
     Object.keys(STATUS_LABELS).forEach((status) => { counts[status] = 0; });
-    libraryItems.forEach((item) => { counts[item.library_status] += 1; });
+    libraryItems.forEach((item) => {
+        counts[item.library_status] = (counts[item.library_status] || 0) + 1;
+        if (item.reading_progress) {
+            counts.READING += 1;
+        }
+    });
     filters.querySelectorAll('[data-library-count]').forEach((element) => {
         element.textContent = String(counts[element.dataset.libraryCount] || 0);
     });
@@ -82,23 +85,11 @@ function createCard(work) {
 
     const cover = document.createElement('div');
     cover.className = 'library-card-cover';
-    const coverUrl = safeUrl(work.cover_url, '');
-    if (coverUrl) {
-        const image = document.createElement('img');
-        image.src = coverUrl;
-        image.alt = `Portada de ${work.title}`;
-        image.loading = 'lazy';
-        image.addEventListener('error', () => {
-            cover.replaceChildren();
-            cover.classList.add('library-card-cover-placeholder');
-            cover.textContent = (work.title || '?').slice(0, 1).toLocaleUpperCase();
-        }, { once: true });
-        cover.append(image);
-    } else {
-        cover.classList.add('library-card-cover-placeholder');
-        cover.textContent = (work.title || '?').slice(0, 1).toLocaleUpperCase();
-        cover.setAttribute('aria-hidden', 'true');
-    }
+    const image = document.createElement('img');
+    image.src = safeUrl(work.cover_url, IMG_FALLBACK);
+    image.alt = `Portada de ${work.title}`;
+    image.loading = 'lazy';
+    cover.append(image);
     card.append(cover);
 
     const body = document.createElement('div');
@@ -147,6 +138,39 @@ function createCard(work) {
         body.append(meta);
     }
 
+    if (work.reading_progress) {
+        const prog = work.reading_progress;
+        const progWrap = document.createElement('div');
+        progWrap.className = 'library-progress-wrap';
+
+        const progHeader = document.createElement('div');
+        progHeader.className = 'library-progress-header';
+
+        const chapSpan = document.createElement('span');
+        chapSpan.className = 'library-progress-chapter';
+        chapSpan.textContent = prog.chapter_text;
+
+        const pagSpan = document.createElement('span');
+        pagSpan.className = 'library-progress-pag';
+        pagSpan.textContent = prog.page_text;
+
+        const pctSpan = document.createElement('span');
+        pctSpan.className = 'library-progress-pct';
+        pctSpan.textContent = `${prog.progress_pct}%`;
+
+        progHeader.append(chapSpan, pagSpan, pctSpan);
+
+        const progBar = document.createElement('div');
+        progBar.className = 'library-progress-bar';
+        const progFill = document.createElement('div');
+        progFill.className = 'library-progress-fill';
+        progFill.style.width = `${Math.min(100, Math.max(0, prog.progress_pct))}%`;
+        progBar.append(progFill);
+
+        progWrap.append(progHeader, progBar);
+        body.append(progWrap);
+    }
+
     const cardFooter = document.createElement('div');
     cardFooter.className = 'library-card-footer';
 
@@ -168,12 +192,12 @@ function createCard(work) {
     statusLabel.append(statusText, statusSelect);
     cardFooter.append(statusLabel);
 
-    const readUrl = makeReaderUrl(work);
+    const readUrl = work.reading_progress?.reader_url || makeReaderUrl(work);
     if (readUrl) {
         const readLink = document.createElement('a');
-        readLink.className = 'library-read-link';
+        readLink.className = 'library-read-link' + (work.reading_progress ? ' library-read-link--resume' : '');
         readLink.href = readUrl;
-        readLink.textContent = 'Leer';
+        readLink.textContent = work.reading_progress ? '▶ Reanudar' : 'Leer';
         cardFooter.append(readLink);
     }
     body.append(cardFooter);
@@ -198,7 +222,11 @@ function renderLibrary() {
     updateCounts();
     const query = searchInput.value.trim().toLocaleLowerCase();
     const visibleItems = libraryItems
-        .filter((item) => activeFilter === 'ALL' || item.library_status === activeFilter)
+        .filter((item) => {
+            if (activeFilter === 'ALL') return true;
+            if (activeFilter === 'READING') return Boolean(item.reading_progress);
+            return item.library_status === activeFilter;
+        })
         .filter((item) => !query || [
             item.title,
             item.alternative_title,
@@ -217,10 +245,14 @@ function renderLibrary() {
         emptyTitle.textContent = 'Tu biblioteca empieza aquí';
         emptyCopy.textContent = 'Explora el catálogo y guarda las obras que quieras seguir.';
     } else if (query || activeFilter !== 'ALL') {
-        emptyTitle.textContent = 'No hay obras en esta selección';
+        emptyTitle.textContent = activeFilter === 'READING'
+            ? 'No tienes lecturas en curso'
+            : 'No hay obras en esta selección';
         emptyCopy.textContent = query
             ? 'Prueba con otro título, nombre alternativo o autor.'
-            : 'Guarda una obra en este estado y aparecerá aquí.';
+            : (activeFilter === 'READING'
+                ? 'Abre y lee cualquier capítulo para registrar tu progreso automáticamente.'
+                : 'Guarda una obra en este estado y aparecerá aquí.');
     }
 }
 
@@ -332,6 +364,15 @@ async function loadLibrary() {
                     : 'FOLLOWING',
             }))
             : [];
+        const filterParam = (params.get('filter') || '').toUpperCase();
+        if (filterParam === 'READING' || filterParam === 'HISTORY' || filterParam === 'HISTORIAL') {
+            activeFilter = 'READING';
+            filters.querySelectorAll('[data-library-filter]').forEach((filter) => {
+                const isActive = filter.dataset.libraryFilter === 'READING';
+                filter.classList.toggle('is-active', isActive);
+                filter.setAttribute('aria-pressed', String(isActive));
+            });
+        }
         content.hidden = false;
         renderLibrary();
     } catch (error) {
@@ -365,3 +406,9 @@ sortSelect.addEventListener('change', renderLibrary);
 retryButton.addEventListener('click', loadLibrary);
 
 loadLibrary();
+
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        loadLibrary();
+    }
+});

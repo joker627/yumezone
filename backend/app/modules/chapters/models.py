@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 
@@ -8,7 +9,7 @@ class Chapter(BaseModel):
     id: Optional[int] = None
     work_id: int
     scan_group_id: Optional[int] = None
-    chapter_number: float
+    chapter_number: Decimal
     title: Optional[str] = None
     slug: str
     status: str = "PUBLISHED"

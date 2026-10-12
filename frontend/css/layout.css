@@ -1,4 +1,6 @@
 /* Layout general: define los contenedores principales de la aplicación. */
+@import './components/toast.css';
+@import './components/loader.css';
 
 body {
   padding-top: 4rem; /* compensación para el header fixed */

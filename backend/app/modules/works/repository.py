@@ -109,15 +109,21 @@ class WorkRepository:
             """
             order_values = [search_term, search_term]
 
+        count_joins = ""
+        if search_term:
+            count_joins = """
+                LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id
+                LEFT JOIN statuses AS st ON st.id = w.status_id
+                LEFT JOIN formats AS f ON f.id = w.format_id
+                LEFT JOIN demographics AS d ON d.id = w.demographic_id
+            """
+            
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute(
                 f"""
                 SELECT COUNT(*) AS total
                 FROM works AS w
-                LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id
-                LEFT JOIN statuses AS st ON st.id = w.status_id
-                LEFT JOIN formats AS f ON f.id = w.format_id
-                LEFT JOIN demographics AS d ON d.id = w.demographic_id
+                {count_joins}
                 {where_sql}
                 """,
                 tuple(values),
@@ -132,20 +138,17 @@ class WorkRepository:
             await cur.execute(
                 f"""
                 SELECT w.*,
-                       (
-                           SELECT c.id
-                           FROM chapters AS c
-                           WHERE c.work_id = w.id AND c.status = 'PUBLISHED'
-                           ORDER BY c.chapter_number ASC, c.id ASC
-                           LIMIT 1
-                       ) AS first_chapter_id,
+                       ws.first_chapter_id,
                        COALESCE(ws.total_views, 0) AS total_views,
                        COALESCE(ws.rating_average, 0.00) AS rating_average,
                        COALESCE(ws.rating_count, 0) AS rating_count,
                        COALESCE(ws.followers_count, 0) AS followers_count,
                        COALESCE(ws.favorites_count, 0) AS favorites_count,
                        COALESCE(ws.trending_score, 0.00) AS trending_score,
-                       COALESCE(ws.views_last_24h, 0) AS views_last_24h
+                       COALESCE(ws.views_last_24h, 0) AS views_last_24h,
+                       f.name AS format_name,
+                       st.name AS status_name,
+                       d.name AS demographic_name
                 FROM works AS w
                 LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id
                 LEFT JOIN statuses AS st ON st.id = w.status_id
@@ -193,22 +196,22 @@ class WorkRepository:
             await cur.execute(
                 """
                 SELECT w.*,
-                       (
-                           SELECT c.id
-                           FROM chapters AS c
-                           WHERE c.work_id = w.id AND c.status = 'PUBLISHED'
-                           ORDER BY c.chapter_number ASC, c.id ASC
-                           LIMIT 1
-                       ) AS first_chapter_id,
+                       ws.first_chapter_id,
                        COALESCE(ws.total_views, 0) AS total_views,
                        COALESCE(ws.rating_average, 0.00) AS rating_average,
                        COALESCE(ws.rating_count, 0) AS rating_count,
                        COALESCE(ws.followers_count, 0) AS followers_count,
                        COALESCE(ws.favorites_count, 0) AS favorites_count,
                        COALESCE(ws.trending_score, 0.00) AS trending_score,
-                       COALESCE(ws.views_last_24h, 0) AS views_last_24h
+                       COALESCE(ws.views_last_24h, 0) AS views_last_24h,
+                       f.name AS format_name,
+                       st.name AS status_name,
+                       d.name AS demographic_name
                 FROM works AS w
                 LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
+                LEFT JOIN formats AS f ON f.id = w.format_id
+                LEFT JOIN statuses AS st ON st.id = w.status_id
+                LEFT JOIN demographics AS d ON d.id = w.demographic_id
                 WHERE w.slug = %s
                 """,
                 (slug,),

@@ -17,8 +17,18 @@ export function setAccessToken(token) {
 export function clearAccessToken() {
     try {
         window.localStorage.removeItem(TOKEN_KEY);
-    } catch {
-        // El header sigue mostrando la sesión como cerrada si el almacenamiento está bloqueado.
+    } catch {}
+}
+
+export async function logoutUser() {
+    try {
+        await apiRequest('/chat/heartbeat', { method: 'DELETE' }).catch(() => {});
+        await apiRequest('/logout', { method: 'POST' });
+    } catch (e) {
+        console.error("Error al cerrar sesión", e);
+    } finally {
+        clearAccessToken();
+        window.location.href = '/pages/login.html';
     }
 }
 
@@ -36,6 +46,8 @@ export async function apiRequest(path, options = {}) {
     if (body && typeof body !== 'string' && !(body instanceof FormData)) {
         headers.set('Content-Type', 'application/json');
         body = JSON.stringify(body);
+    } else if (typeof body === 'string') {
+        headers.set('Content-Type', 'application/json');
     }
     headers.set('Accept', 'application/json');
 
@@ -44,6 +56,7 @@ export async function apiRequest(path, options = {}) {
         ...requestOptions,
         headers,
         body,
+        credentials: 'include' // Obligatorio para cookies HttpOnly
     });
     const payload = await response.json().catch(() => null);
 
@@ -55,6 +68,14 @@ export async function apiRequest(path, options = {}) {
         const error = new Error(message || `No se pudo completar la solicitud (${response.status}).`);
         error.status = response.status;
         throw error;
+    }
+
+    // Disparador reactivo global: si se realiza una acción mutante (POST, PUT, PATCH, DELETE) que altera datos
+    const method = (requestOptions.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !path.includes('/chat/heartbeat') && !path.includes('/notifications')) {
+        try {
+            window.dispatchEvent(new CustomEvent('yume:mutation', { detail: { path, method, payload } }));
+        } catch {}
     }
 
     return payload;

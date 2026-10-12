@@ -2,7 +2,7 @@
 from typing import List
 
 # imports external
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 # imports internal
 from app.core.dependencies import (
@@ -12,6 +12,7 @@ from app.core.dependencies import (
 from app.modules.chapters.schemas import (
     ChapterCreate,
     ChapterImageResponse,
+    ChapterPagesReplace,
     ChapterResponse,
     ChapterUpdate,
 )
@@ -23,7 +24,7 @@ def get_chapter_service():
     return ChapterService()
 
 
-router = APIRouter(tags=["chapters"])
+router = APIRouter()
 
 
 # Obtener capitulos por ID de obra
@@ -33,9 +34,13 @@ router = APIRouter(tags=["chapters"])
 )
 async def get_chapters(
     work_id: int,
+    published_only: bool = Query(False, description="Filtrar solo capítulos publicados"),
+    order: str = Query("asc", description="Orden de número de capítulo: asc o desc"),
     service: ChapterService = Depends(get_chapter_service),
 ):
-    return await service.get_chapters(work_id)
+    return await service.get_chapters(
+        work_id, published_only=published_only, order=order
+    )
 
 
 # Obtener capítulo por ID
@@ -104,14 +109,15 @@ async def delete_chapter(
     return None
 
 
-# Subir imágenes a un capítulo existente
-@router.post(
-    "/{chapter_id}/upload_pages",
+# Registrar referencias de imágenes de un capítulo existente.
+# Los binarios se alojan fuera de la API (Azure Blob/CDN u otro proveedor).
+@router.put(
+    "/{chapter_id}/pages",
     response_model=List[ChapterImageResponse],
 )
-async def upload_chapter_pages(
+async def replace_chapter_pages(
     chapter_id: int,
-    files: List[UploadFile] = File(...),
+    payload: ChapterPagesReplace,
     service: ChapterService = Depends(get_chapter_service),
     current_user: CurrentUser = Depends(get_current_active_user),
 ):
@@ -125,8 +131,8 @@ async def upload_chapter_pages(
 
     await verify_upload_permission(current_user, chapter.scan_group_id)
 
-    # Procesar imágenes
-    return await service.process_and_save_images(chapter_id, files)
+    return await service.replace_chapter_page_references(chapter_id, payload.pages)
+
 
 
 # Obtener las imágenes (páginas) de un capítulo

@@ -14,7 +14,7 @@ from app.modules.auth.schemas import (
 from app.modules.auth.services import AuthService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter(tags=["Auth"])
+router = APIRouter()
 
 
 # dependencias del endpoint router
@@ -37,6 +37,8 @@ async def register_user(
     return new_user
 
 
+from fastapi import APIRouter, Depends, status, Response
+
 # endpoint iniciar sesión
 @router.post(
     "/login",
@@ -45,10 +47,33 @@ async def register_user(
 )
 async def login_user(
     user_credentials: UserLogin,
+    response: Response,
     auth_service: AuthService = Depends(get_auth_service),
 ):
     access_token = await auth_service.login(user_credentials)
+    
+    # Configurar cookie HttpOnly
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite="lax", # O strict dependiendo del dominio
+        secure=False, # True en producción con HTTPS
+        max_age=3600 * 24 * 7 # 7 días (ajustable)
+    )
+    
     return {"access_token": access_token, "token_type": "bearer"}
+
+# endpoint cerrar sesión
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout_user(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="lax",
+        secure=False
+    )
+    return {"message": "Sesión cerrada exitosamente"}
 
 
 # endpoint obtener usuario actual
@@ -59,7 +84,14 @@ async def login_user(
 )
 async def get_me(
     current_user: CurrentUser = Depends(get_current_active_user),
+    auth_service: AuthService = Depends(get_auth_service),
 ):
+    streak_info = await auth_service.repository.update_streak(current_user.id)
+    current_user.streak_days = streak_info.get("streak_days", current_user.streak_days)
+    current_user.last_streak_date = streak_info.get("last_streak_date", current_user.last_streak_date)
+    current_user.streak_event = streak_info.get("event")
+    current_user.streak_message = streak_info.get("message")
+    current_user.previous_streak = streak_info.get("previous_streak")
     return current_user
 
 

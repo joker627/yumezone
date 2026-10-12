@@ -2,6 +2,7 @@
 import aiomysql
 
 # imports locales
+from decimal import Decimal
 from typing import List, Optional
 
 from app.core.database import get_db_pool
@@ -25,7 +26,7 @@ class ChapterRepository:
 
     # Obtener capítulo por número
     async def get_chapter_by_number(
-        self, work_id: int, chapter_number: float
+        self, work_id: int, chapter_number: Decimal
     ) -> Optional[Chapter]:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
@@ -41,14 +42,21 @@ class ChapterRepository:
         return None
 
     # Obtener capítulos de una obra
-    async def get_chapters(self, work_id: int) -> List[Chapter]:
+    async def get_chapters(
+        self,
+        work_id: int,
+        published_only: bool = False,
+        order: str = "asc",
+    ) -> List[Chapter]:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
+                where_clause = "WHERE work_id = %s"
+                if published_only:
+                    where_clause += " AND status = 'PUBLISHED'"
+                order_dir = "DESC" if order.lower() == "desc" else "ASC"
                 await cur.execute(
-                    "SELECT * FROM chapters "
-                    "WHERE work_id = %s "
-                    "ORDER BY chapter_number ASC",
+                    f"SELECT * FROM chapters {where_clause} ORDER BY chapter_number {order_dir}",
                     (work_id,),
                 )
                 rows = await cur.fetchall()
@@ -82,6 +90,7 @@ class ChapterRepository:
                     chapter.published_at,
                 )
                 await cur.execute(query, values)
+                chapter.id = cur.lastrowid
                 await conn.commit()
                 return chapter
 
@@ -160,6 +169,26 @@ class ChapterImageRepository:
                     (img.chapter_id, img.image_url, img.order_number) for img in images
                 ]
                 await cur.executemany(query, values)
+                await conn.commit()
+        return images
+
+    async def replace_chapter_images(
+        self, chapter_id: int, images: List[ChapterImage]
+    ) -> List[ChapterImage]:
+        """Reemplaza referencias de páginas en una única transacción."""
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM chapter_images WHERE chapter_id = %s", (chapter_id,))
+                for image in images:
+                    await cur.execute(
+                        """
+                        INSERT INTO chapter_images (chapter_id, image_url, order_number)
+                        VALUES (%s, %s, %s)
+                        """,
+                        (image.chapter_id, image.image_url, image.order_number),
+                    )
+                    image.id = cur.lastrowid
                 await conn.commit()
         return images
 

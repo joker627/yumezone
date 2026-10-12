@@ -9,7 +9,7 @@ from app.modules.hero.schemas import HeroResponse
 from app.modules.hero.services import HeroService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter(tags=["Hero"])
+router = APIRouter()
 
 
 def get_hero_service(

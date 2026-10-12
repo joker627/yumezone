@@ -49,6 +49,15 @@ function renderUser(user) {
     const username = user.username || 'Lector';
     document.getElementById('profile-title').textContent = username;
     document.getElementById('profile-username').textContent = `@${username}`;
+    const coinsEl = document.getElementById('profile-coins');
+    if (coinsEl) coinsEl.textContent = `${(user.coins || 0).toLocaleString()} G`;
+    const streakEl = document.getElementById('profile-streak');
+    if (streakEl) streakEl.textContent = `${user.streak_days || 0} ${user.streak_days === 1 ? 'día' : 'días'}`;
+    const levelEl = document.getElementById('profile-level');
+    if (levelEl) {
+        const lvl = Math.floor((user.xp || 0) / 1000) + 1;
+        levelEl.textContent = `Nv. ${lvl} (${(user.xp || 0).toLocaleString()} XP)`;
+    }
     document.getElementById('profile-email').textContent = user.email || '—';
     document.getElementById('profile-user-id').textContent = user.user_code || '—';
     document.getElementById('profile-role').textContent = user.platform_role || 'USER';

@@ -1,17 +1,17 @@
 # imports externos
-import os
-import shutil
+from decimal import Decimal
 from typing import List, Optional
 
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException
 
 # imports locales
 from app.modules.chapters.models import Chapter, ChapterImage
-from app.modules.chapters.schemas import ChapterCreate
+from app.modules.chapters.schemas import ChapterCreate, ChapterPageReference
 from app.modules.chapters.repository import (
     ChapterImageRepository,
     ChapterRepository,
 )
+from app.utils.generate_slug import generate_slug
 
 
 class ChapterService:
@@ -21,7 +21,14 @@ class ChapterService:
 
     # Crear capítulo
     async def create_chapter(self, data: ChapterCreate) -> Chapter:
-        chapter = Chapter(**data.model_dump())
+        if await self.get_chapter_by_number(data.work_id, data.chapter_number):
+            raise HTTPException(status_code=409, detail="Ya existe ese número de capítulo en la obra")
+
+        number = format(data.chapter_number.normalize(), "f").replace(".", "-")
+        chapter = Chapter(
+            **data.model_dump(),
+            slug=generate_slug(f"work-{data.work_id}-chapter-{number}"),
+        )
         return await self.chapter_repository.create_chapter(chapter)
 
     # Obtener capítulo por ID
@@ -30,15 +37,22 @@ class ChapterService:
 
     # Obtener capítulo por número
     async def get_chapter_by_number(
-        self, work_id: int, chapter_number: float
+        self, work_id: int, chapter_number: Decimal
     ) -> Optional[Chapter]:
         return await self.chapter_repository.get_chapter_by_number(
             work_id, chapter_number
         )
 
     # Obtener capítulos de una obra
-    async def get_chapters(self, work_id: int) -> List[Chapter]:
-        return await self.chapter_repository.get_chapters(work_id)
+    async def get_chapters(
+        self,
+        work_id: int,
+        published_only: bool = False,
+        order: str = "asc",
+    ) -> List[Chapter]:
+        return await self.chapter_repository.get_chapters(
+            work_id, published_only=published_only, order=order
+        )
 
     # Actualizar capítulo
     async def update_chapter(self, chapter_id: int, chapter_data: dict) -> Chapter:
@@ -79,40 +93,19 @@ class ChapterService:
     async def get_chapter_images(self, chapter_id: int) -> List[ChapterImage]:
         return await self.chapter_image_repository.get_chapter_images(chapter_id)
 
-    # ==========================================
-    # LÓGICA DE NEGOCIO: SUBIDA DE ARCHIVOS
-    # ==========================================
-    async def process_and_save_images(
-        self, chapter_id: int, files: List[UploadFile]
+    async def replace_chapter_page_references(
+        self, chapter_id: int, pages: list[ChapterPageReference]
     ) -> List[ChapterImage]:
-        upload_dir = f"uploads/chapters/{chapter_id}"
-        os.makedirs(upload_dir, exist_ok=True)
+        orders = [page.order_number for page in pages]
+        if len(orders) != len(set(orders)):
+            raise HTTPException(status_code=422, detail="order_number no puede repetirse")
 
-        chapter_images_to_db = []
-
-        # 2. Guardar cada archivo físico y generar la ruta de la BD
-        for index, file in enumerate(files):
-            # order_number empieza en 1
-            order = index + 1
-
-            file_name = f"{order}_{file.filename}"
-            file_path = os.path.join(upload_dir, file_name)
-
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-
-            image_url = f"/uploads/chapters/{chapter_id}/{file_name}"
-
-            # Crear el objeto modelo
-            chapter_image = ChapterImage(
+        images = [
+            ChapterImage(
                 chapter_id=chapter_id,
-                image_url=image_url,
-                order_number=order,
+                image_url=page.image_url,
+                order_number=page.order_number,
             )
-            chapter_images_to_db.append(chapter_image)
-
-        # 3. Guardar masivamente en la BD usando el repositorio
-        if chapter_images_to_db:
-            await self.create_chapter_images(chapter_images_to_db)
-
-        return chapter_images_to_db
+            for page in sorted(pages, key=lambda page: page.order_number)
+        ]
+        return await self.chapter_image_repository.replace_chapter_images(chapter_id, images)

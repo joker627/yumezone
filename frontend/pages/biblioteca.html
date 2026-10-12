@@ -24,7 +24,7 @@
           <h1 id="library-title">Mi biblioteca</h1>
           <p id="library-summary" class="library-summary" aria-live="polite">Cargando tus obras…</p>
         </div>
-          <a class="library-explore-link" href="/pages/obras.html">Ver obras</a>
+          <a class="library-explore-link" href="/pages/catalogo.html">Explorar Catálogo</a>
       </div>
     </section>
 
@@ -44,10 +44,11 @@
       <button id="library-retry" class="library-secondary-link" type="button">Reintentar</button>
     </section>
 
-    <section id="library-content" hidden>
+    <section id="library-content" class="library-content" hidden>
       <div class="library-toolbar">
         <div id="library-filters" class="library-filters" role="group" aria-label="Filtrar biblioteca">
           <button class="library-filter is-active" type="button" data-library-filter="ALL" aria-pressed="true">Todas <span data-library-count="ALL">0</span></button>
+          <button class="library-filter" type="button" data-library-filter="READING" aria-pressed="false">Leyendo <span data-library-count="READING">0</span></button>
           <button class="library-filter" type="button" data-library-filter="FOLLOWING" aria-pressed="false">Siguiendo <span data-library-count="FOLLOWING">0</span></button>
           <button class="library-filter" type="button" data-library-filter="READ_LATER" aria-pressed="false">Leer después <span data-library-count="READ_LATER">0</span></button>
           <button class="library-filter" type="button" data-library-filter="FAVORITE" aria-pressed="false">Favoritos <span data-library-count="FAVORITE">0</span></button>
@@ -73,7 +74,7 @@
         <p class="library-message-eyebrow">Tu próxima lectura</p>
         <h2 id="library-empty-title">Tu biblioteca empieza aquí</h2>
         <p id="library-empty-copy">Explora el catálogo y guarda las obras que quieras seguir.</p>
-        <a class="library-primary-link" href="/pages/obras.html">Ver obras</a>
+        <a class="library-primary-link" href="/pages/catalogo.html">Ver catálogo</a>
       </section>
     </section>
   </main>

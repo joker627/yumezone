@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Acceso Scan Studio | YumeZone</title>
+    <link rel="icon" type="image/png" href="https://placehold.co/32x32/191c25/f0c75e?text=YZ">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#39c6a5",
+              "tertiary": "#f0c75e",
+              "surface": "#10131a",
+              "surface-container-lowest": "#0b0e15",
+              "surface-container-low": "#13161f",
+              "surface-container": "#191c25",
+              "surface-container-high": "#232733",
+              "outline": "#86948e",
+              "on-surface": "#e0e2ec"
+            },
+            fontFamily: {
+              sans: ["Plus Jakarta Sans", "sans-serif"]
+            }
+          }
+        }
+      };
+    </script>
+</head>
+<body class="bg-[#0b0d12] text-[#e0e2ec] font-sans min-h-screen flex items-center justify-center p-4 selection:bg-[#f0c75e] selection:text-[#0b0d12]">
+    <!-- Ambient Glow Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#f0c75e]/10 rounded-full blur-[120px]"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-[#392e10]/30 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="w-full max-w-md relative z-10">
+        <!-- Logo Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-surface-container-high border border-[#282e3b] shadow-xl shadow-black/40 mb-3">
+                <span class="material-symbols-outlined text-3xl text-tertiary">draw</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">Yume<span class="text-tertiary">Scan</span> Studio</h1>
+            <p class="text-xs text-outline mt-1">Portal de Grupos de Traducción, Scans & Editores</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="p-8 rounded-2xl bg-surface-container-low/90 backdrop-blur-xl border border-[#282e3b] shadow-2xl shadow-black/60">
+            <form id="scan-login-form" class="space-y-5">
+                <div id="error-alert" class="hidden p-3 rounded-lg bg-[#93000a]/20 border border-[#93000a] text-xs text-[#ffb4ab]"></div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-outline uppercase tracking-wider mb-2">Correo de la Cuenta de Scan</label>
+                    <div class="relative flex items-center">
+                        <span class="material-symbols-outlined absolute left-3 text-outline text-lg pointer-events-none">mail</span>
+                        <input id="scan-email" type="text" required autocomplete="username" class="w-full h-11 pl-10 pr-3 bg-surface-container border border-[#282e3b] rounded-xl text-sm text-white placeholder:text-outline/60 focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary transition-colors" placeholder="lider@scanlation.com">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-semibold text-outline uppercase tracking-wider">Contraseña</label>
+                    </div>
+                    <div class="relative flex items-center">
+                        <span class="material-symbols-outlined absolute left-3 text-outline text-lg pointer-events-none">lock</span>
+                        <input id="scan-password" type="password" required autocomplete="current-password" class="w-full h-11 pl-10 pr-10 bg-surface-container border border-[#282e3b] rounded-xl text-sm text-white placeholder:text-outline/60 focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary transition-colors" placeholder="••••••••••••">
+                        <button type="button" id="toggle-pwd" class="absolute right-3 text-outline hover:text-white transition-colors focus:outline-none">
+                            <span class="material-symbols-outlined text-lg" id="toggle-pwd-icon">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="btn-submit" class="w-full h-11 rounded-xl bg-tertiary text-black font-extrabold text-sm hover:bg-yellow-400 active:scale-[0.99] transition-all shadow-lg shadow-tertiary/20 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-lg">login</span>
+                        <span>Ingresar al Taller de Scan</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 pt-5 border-t border-[#282e3b]/50 flex items-center justify-between text-[11px] text-outline">
+                <span class="flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+                    Acceso Colaborador / Scan
+                </span>
+                <a href="http://192.168.1.43:5500/" class="text-tertiary hover:underline">← Volver al Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { API_BASE_URL, setAccessToken } from './js/auth.js';
+
+        const form = document.getElementById('scan-login-form');
+        const emailInput = document.getElementById('scan-email');
+        const pwdInput = document.getElementById('scan-password');
+        const submitBtn = document.getElementById('btn-submit');
+        const errorAlert = document.getElementById('error-alert');
+        const togglePwd = document.getElementById('toggle-pwd');
+        const togglePwdIcon = document.getElementById('toggle-pwd-icon');
+
+        togglePwd.addEventListener('click', () => {
+            const isPassword = pwdInput.type === 'password';
+            pwdInput.type = isPassword ? 'text' : 'password';
+            togglePwdIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorAlert.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">sync</span> Validando credenciales...';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/v1/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: emailInput.value.trim(),
+                        password: pwdInput.value
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Credenciales incorrectas');
+
+                setAccessToken(data.access_token);
+
+                submitBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> Acceso Concedido';
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 400);
+
+            } catch (err) {
+                errorAlert.textContent = err.message;
+                errorAlert.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="material-symbols-outlined text-lg">login</span> Ingresar al Taller de Scan';
+            }
+        });
+    </script>
+</body>
+</html>

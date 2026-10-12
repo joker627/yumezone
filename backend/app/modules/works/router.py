@@ -27,7 +27,7 @@ from app.modules.works.schemas import (
 )
 from app.modules.works.services import WorkService
 
-router = APIRouter(tags=["Works"])
+router = APIRouter()
 
 
 # dependencias del endpoint router
