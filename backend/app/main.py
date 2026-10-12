@@ -41,9 +41,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
     description="API para mangas, manhwas y manhuas",
-    docs_url="/docs",
+    docs_url=None,
     redoc_url=None,
-    openapi_url="/openapi.json"
+    openapi_url=None,
 )
 
 # strip() previene que un espacio extra en .env rompa el preflight de CORS
@@ -84,11 +84,3 @@ app.include_router(shop_router, prefix="/api/v1/shop", tags=["Tienda"])
 @app.get("/")
 def read_root():
     return {"message": "Bienvenido a YumeZone API"}
-
-@app.get("/redoc", include_in_schema=False)
-async def redoc_html():
-    return get_redoc_html(
-        openapi_url="/openapi.json",
-        title=f"{app.title} - ReDoc",
-        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.1.3/bundles/redoc.standalone.js"
-    )
