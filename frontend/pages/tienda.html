@@ -4,9 +4,31 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#0b0d12"/>
-  <meta name="robots" content="index, follow"/>
+  <meta name="description" content="Tienda de YumeCoins y personalización en YumeZone. Desbloquea marcos de avatar exclusivos, banners y apoya a tus proyectos favoritos."/>
+  <meta name="keywords" content="tienda manga, yumecoins, marcos de avatar anime, monedas manga, yumezone store"/>
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="YumeZone"/>
+  <meta property="og:url" content="https://yumezone.page/pages/tienda.html"/>
+  <meta property="og:title" content="Tienda de Objetos y YumeCoins | YumeZone"/>
+  <meta property="og:description" content="Desbloquea marcos de avatar exclusivos, insignias y apoya a tus scans favoritos en YumeZone."/>
+  <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="https://yumezone.page/pages/tienda.html"/>
+  <meta name="twitter:title" content="Tienda de Objetos y YumeCoins | YumeZone"/>
+  <meta name="twitter:description" content="Desbloquea marcos de avatar exclusivos, insignias y apoya a tus scans favoritos en YumeZone."/>
+  <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png"/>
+
+  <link rel="canonical" href="https://yumezone.page/pages/tienda.html"/>
   <link rel="icon" type="image/png" href="/assets/icons/logo.png"/>
-  <title>Tienda de Objetos | YumeZone</title>
+  <link rel="apple-touch-icon" href="/assets/icons/logo.png"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <title>Tienda de Objetos y YumeCoins | YumeZone</title>
 
   <!-- YumeZone Core Stylesheets (Vanilla CSS Propio) -->
   <link rel="stylesheet" href="/css/variables.css"/>
@@ -33,7 +55,7 @@
           </div>
           <h1 class="shop-hero-title">Tienda de Objetos</h1>
           <p class="shop-hero-desc">
-            Personaliza tu perfil y desbloquea ventajas exclusivas con fondos, marcos, insignias, títulos y objetos especiales. Canjea tus Yume Coins ganadas leyendo capítulos y completando misiones diarias.
+            Personaliza tu perfil y desbloquea cosméticos exclusivos con marcos animados, avatares dinámicos y fondos panorámicos. Canjea tus Yume Coins ganadas leyendo capítulos y completando misiones diarias.
           </p>
         </div>
 
@@ -44,10 +66,10 @@
             <span id="shop-wallet-user-tag">Lector</span>
           </div>
           <div class="shop-wallet-amount">
-            <span class="shop-wallet-coins-symbol">🪙</span>
+            <img class="shop-wallet-coin-icon" src="/assets/icons/svg/coin.svg" alt="Monedas" width="24" height="24"/>
             <span id="wallet-coins-val">0</span>
           </div>
-          <div class="shop-wallet-sub" id="wallet-sub-hint">Inicia sesión para canjear objetos</div>
+          <div class="shop-wallet-sub" id="wallet-sub-hint">Inicia sesión para canjear cosméticos</div>
           <div class="shop-wallet-actions">
             <a href="/pages/usuario.html" class="shop-wallet-btn shop-wallet-btn--profile" id="wallet-view-profile-btn">
               <img class="shop-icon" src="/assets/icons/svg/user.svg" alt="" aria-hidden="true"/>
@@ -64,21 +86,13 @@
             <img class="shop-tab-icon" src="/assets/icons/svg/grid.svg" alt="" aria-hidden="true"/>
             <span>Todos</span>
           </button>
-          <button type="button" class="shop-tab-btn" data-tab="BANNER">
-            <img class="shop-tab-icon" src="/assets/icons/svg/banner.svg" alt="" aria-hidden="true"/>
-            <span>Banners</span>
-          </button>
           <button type="button" class="shop-tab-btn" data-tab="FRAME">
             <img class="shop-tab-icon" src="/assets/icons/svg/frame.svg" alt="" aria-hidden="true"/>
-            <span>Marcos</span>
+            <span>Marcos de Anillo</span>
           </button>
-          <button type="button" class="shop-tab-btn" data-tab="BADGE_TITLE">
-            <img class="shop-tab-icon" src="/assets/icons/svg/badge.svg" alt="" aria-hidden="true"/>
-            <span>Insignias & Títulos</span>
-          </button>
-          <button type="button" class="shop-tab-btn" data-tab="CONSUMABLE">
-            <img class="shop-tab-icon" src="/assets/icons/svg/potion.svg" alt="" aria-hidden="true"/>
-            <span>Consumibles</span>
+          <button type="button" class="shop-tab-btn" data-tab="BANNER">
+            <img class="shop-tab-icon" src="/assets/icons/svg/banner.svg" alt="" aria-hidden="true"/>
+            <span>Banners de Fondo</span>
           </button>
           <button type="button" class="shop-tab-btn" data-tab="inventory">
             <img class="shop-tab-icon" src="/assets/icons/svg/inventory.svg" alt="" aria-hidden="true"/>

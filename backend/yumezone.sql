@@ -12,6 +12,9 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     avatar_url VARCHAR(255),
     banner_url VARCHAR(500) NULL,
+    anillo_url VARCHAR(500) NULL,
+    active_title VARCHAR(100) NULL,
+    country VARCHAR(10) NULL DEFAULT 'CO',
     bio TEXT,
     is_private BOOLEAN DEFAULT FALSE,
     platform_role ENUM('USER', 'ADMIN', 'SUPERADMIN') DEFAULT 'USER',
@@ -57,11 +60,9 @@ CREATE TABLE user_roles (
 
 CREATE TABLE reading_settings (
     user_id INT PRIMARY KEY,
-    reading_mode ENUM('VERTICAL', 'PAGINATED') DEFAULT 'VERTICAL',
     zoom_level INT DEFAULT 100,
     brightness INT DEFAULT 100,
     background_color VARCHAR(20) DEFAULT 'DARK',
-    image_quality ENUM('LOW', 'MEDIUM', 'HIGH') DEFAULT 'HIGH',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -318,6 +319,8 @@ CREATE TABLE view_logs (
     ip_address VARCHAR(64),
     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_view_logs_work_date (work_id, viewed_at),
+    INDEX idx_view_logs_user_dedup (user_id, work_id, chapter_id),
+    INDEX idx_view_logs_ip_dedup (ip_address, work_id, viewed_at),
     FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -433,7 +436,8 @@ CREATE TABLE home_chats (
     channel VARCHAR(50) DEFAULT 'general',
     is_pinned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_home_chats_channel_created (channel, is_pinned, created_at)
 );
 
 -- Conserva solamente el chat de las ulltimas 24 horas.
@@ -453,6 +457,33 @@ CREATE TABLE home_announcements (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE
 );
+
+-- ==========================================
+-- 9.1 TIENDA Y PERSONALIZACIÓN DE USUARIOS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS shop_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(50) NOT NULL DEFAULT 'BANNER',
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NULL,
+    price_coins INT NOT NULL DEFAULT 100,
+    preview_url VARCHAR(500) NOT NULL,
+    required_level INT NOT NULL DEFAULT 1,
+    rarity VARCHAR(30) NOT NULL DEFAULT 'RARE',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_inventory (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    is_equipped BOOLEAN DEFAULT FALSE,
+    acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_shop_item (user_id, item_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES shop_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==========================================
 -- 10. ÍNDICES ADICIONALES DE RENDIMIENTO

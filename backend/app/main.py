@@ -37,13 +37,13 @@ async def lifespan(app: FastAPI):
     await close_db_pool()
 
 app = FastAPI(
-    title=os.environ.get("API_TITLE", "YumeZone API"),
+    title=os.environ.get("API_TITLE"),
     version="1.0.0",
     lifespan=lifespan,
     description="API para mangas, manhwas y manhuas",
     docs_url=None,
     redoc_url=None,
-    openapi_url=None,
+    openapi_url=None
 )
 
 # strip() previene que un espacio extra en .env rompa el preflight de CORS

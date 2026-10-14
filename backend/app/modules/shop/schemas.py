@@ -34,4 +34,8 @@ class EquipResponse(BaseModel):
     success: bool
     message: str
     item_id: int
+    preview_url: Optional[str] = None
     banner_url: Optional[str] = None
+    anillo_url: Optional[str] = None
+    avatar_frame_url: Optional[str] = None
+    category: Optional[str] = None

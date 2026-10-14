@@ -37,6 +37,7 @@ async def register_user(
     return new_user
 
 
+import os
 from fastapi import APIRouter, Depends, status, Response
 
 # endpoint iniciar sesión
@@ -51,15 +52,16 @@ async def login_user(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     access_token = await auth_service.login(user_credentials)
+    cookie_secure = os.getenv("COOKIE_SECURE", "false").lower() == "true"
     
     # Configurar cookie HttpOnly
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax", # O strict dependiendo del dominio
-        secure=False, # True en producción con HTTPS
-        max_age=3600 * 24 * 7 # 7 días (ajustable)
+        samesite="lax",
+        secure=cookie_secure,
+        max_age=3600 * 24 * 7 # 7 días
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
@@ -67,11 +69,12 @@ async def login_user(
 # endpoint cerrar sesión
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout_user(response: Response):
+    cookie_secure = os.getenv("COOKIE_SECURE", "false").lower() == "true"
     response.delete_cookie(
         key="access_token",
         httponly=True,
         samesite="lax",
-        secure=False
+        secure=cookie_secure
     )
     return {"message": "Sesión cerrada exitosamente"}
 

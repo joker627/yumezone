@@ -21,7 +21,8 @@ async def init_db_pool():
         )
         print(" Pool de conexiones inicializado exitosamente.")
     except Exception as e:
-        print(f" Error inicializando Pool de conexiones: {e}")
+        print(f"❌ Error crítico inicializando Pool de conexiones: {e}")
+        raise RuntimeError(f"Fallo crítico al conectar con la base de datos: {e}") from e
 
 
 async def close_db_pool():

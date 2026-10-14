@@ -10,12 +10,13 @@ venv/
 htmlcov/
 
 # Frontend
-/web
+frontend/assets/images/others
 
 # Backend
+.env
+*.env
 backend/.env
 backend/scripts
-backend/.env.example
 
 # Editor / OS
 .DS_Store

@@ -12,6 +12,17 @@
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components/header.css">
   <link rel="stylesheet" href="/css/components/account.css">
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const isSettings = window.location.hash.includes('settings');
+      if (isSettings) {
+        params.set('edit', '1');
+      }
+      const queryStr = params.toString() ? '?' + params.toString() : '';
+      window.location.replace('/pages/usuario.html' + queryStr);
+    })();
+  </script>
 </head>
 <body>
   <header id="header"></header>

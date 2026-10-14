@@ -23,6 +23,10 @@ class UserProfileResponse(BaseModel):
     username: str
     avatar_url: Optional[str] = None
     banner_url: Optional[str] = None
+    anillo_url: Optional[str] = None
+    avatar_frame_url: Optional[str] = None
+    active_title: Optional[str] = None
+    country: Optional[str] = "CO"
     bio: Optional[str] = None
     is_private: bool
     platform_role: str
@@ -31,6 +35,7 @@ class UserProfileResponse(BaseModel):
     streak_days: int
     last_streak_date: Optional[date] = None
     created_at: datetime
+    is_owner: bool = False
     is_hidden: bool = False
     scan_group: Optional[dict] = None
     stats: Optional[UserProfileStats] = None
@@ -46,6 +51,10 @@ class UserUpdate(BaseModel):
     bio: Optional[str] = None
     avatar_url: Optional[str] = None
     banner_url: Optional[str] = None
+    anillo_url: Optional[str] = None
+    avatar_frame_url: Optional[str] = None
+    active_title: Optional[str] = None
+    country: Optional[str] = None
     is_private: Optional[bool] = None
 
 class UserSearchItem(BaseModel):

@@ -22,7 +22,7 @@ class UserRepository:
                     
                 await cur.execute(
                     f"""
-                    SELECT id, user_code, username, avatar_url, banner_url, bio, is_private, 
+                    SELECT id, user_code, username, avatar_url, banner_url, anillo_url, anillo_url AS avatar_frame_url, active_title, country, bio, is_private, 
                            platform_role, coins, xp, streak_days, last_streak_date, created_at, status
                     FROM users
                     WHERE ({where_clause}) AND status != 'DELETED'

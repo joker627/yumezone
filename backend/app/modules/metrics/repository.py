@@ -44,24 +44,21 @@ class MetricsRepository:
                 """,
                 (work_id, chapter_id, user_id, ip_address),
             )
-            # Actualización inmediata en tiempo real de estadísticas de la obra
+            # Actualización inmediata en tiempo real de estadísticas de la obra mediante incrementos atómicos O(1)
             await cur.execute(
                 """
-                INSERT INTO work_statistics (work_id, total_views, daily_views, weekly_views, monthly_views, trending_score)
-                VALUES (%s, 1, 1, 1, 1, 4.00)
+                INSERT INTO work_statistics (
+                    work_id, total_views, daily_views, weekly_views, monthly_views, trending_score
+                )
+                VALUES (%s, 1, 1, 1, 1, 1.00)
                 ON DUPLICATE KEY UPDATE
-                    total_views = (SELECT COUNT(*) FROM view_logs WHERE work_id = %s),
-                    daily_views = (SELECT COUNT(*) FROM view_logs WHERE work_id = %s AND viewed_at >= NOW() - INTERVAL 1 DAY),
-                    weekly_views = (SELECT COUNT(*) FROM view_logs WHERE work_id = %s AND viewed_at >= NOW() - INTERVAL 7 DAY),
-                    monthly_views = (SELECT COUNT(*) FROM view_logs WHERE work_id = %s AND viewed_at >= NOW() - INTERVAL 30 DAY),
-                    trending_score = (
-                        (SELECT COUNT(*) FROM view_logs WHERE work_id = %s AND viewed_at >= NOW() - INTERVAL 7 DAY) * 3.0 +
-                        (SELECT COUNT(*) FROM view_logs WHERE work_id = %s) * 1.0 +
-                        COALESCE(favorites_count, 0) * 5.0 +
-                        COALESCE(rating_average, 0.0) * COALESCE(rating_count, 0) * 2.0
-                    )
+                    total_views = COALESCE(total_views, 0) + 1,
+                    daily_views = COALESCE(daily_views, 0) + 1,
+                    weekly_views = COALESCE(weekly_views, 0) + 1,
+                    monthly_views = COALESCE(monthly_views, 0) + 1,
+                    trending_score = COALESCE(trending_score, 0) + 1.00
                 """,
-                (work_id, work_id, work_id, work_id, work_id, work_id, work_id),
+                (work_id,),
             )
             await self.conn.commit()
 

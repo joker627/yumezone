@@ -23,7 +23,7 @@ export function clearAccessToken() {
 export async function logoutUser() {
     try {
         await apiRequest('/chat/heartbeat', { method: 'DELETE' }).catch(() => {});
-        await apiRequest('/logout', { method: 'POST' });
+        await authRequest('/logout', { method: 'POST' }).catch(() => {});
     } catch (e) {
         console.error("Error al cerrar sesión", e);
     } finally {
@@ -51,7 +51,9 @@ export async function apiRequest(path, options = {}) {
     }
     headers.set('Accept', 'application/json');
 
-    const apiUrl = `${API_BASE_URL.replace(/\/+$/, '')}/v1${path}`;
+    const cleanBase = (API_BASE_URL || '').trim();
+    const normalizedBase = /^https?:\/\//i.test(cleanBase) ? cleanBase : `https://${cleanBase}`;
+    const apiUrl = `${normalizedBase.replace(/\/+$/, '')}/v1${path}`;
     const response = await fetch(apiUrl, {
         ...requestOptions,
         headers,

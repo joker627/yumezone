@@ -1,4 +1,28 @@
+# Robots.txt YumeZone - Plataforma de Mangas, Manhwas y Manhuas
 User-agent: *
 Allow: /
+Allow: /index.html
+Allow: /pages/catalogo.html
+Allow: /pages/obra.html
+Allow: /pages/leer.html
+Allow: /pages/ranking.html
+Allow: /pages/novedades.html
+Allow: /pages/tienda.html
+Allow: /pages/comunidad.html
+Allow: /pages/usuario.html
+Allow: /assets/
+Allow: /css/
+Allow: /js/
 
+# Rutas privadas o administrativas protegidas
+Disallow: /admin/
+Disallow: /scan/
+Disallow: /pages/login.html
+Disallow: /pages/registro.html
+Disallow: /pages/perfil.html
+Disallow: /pages/biblioteca.html
+Disallow: /pages/historial.html
+Disallow: /*?*edit=*
+
+# Sitemap oficial
 Sitemap: https://yumezone.page/sitemap.xml

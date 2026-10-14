@@ -11,6 +11,11 @@ class User(BaseModel):
     email: str
     password: Optional[str] = None
     avatar_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    anillo_url: Optional[str] = None
+    avatar_frame_url: Optional[str] = None
+    active_title: Optional[str] = None
+    country: Optional[str] = "CO"
     bio: Optional[str] = None
     is_private: bool = False
     platform_role: str = "USER"
@@ -34,6 +39,11 @@ class CurrentUser(BaseModel):
     username: str
     email: str
     avatar_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    anillo_url: Optional[str] = None
+    avatar_frame_url: Optional[str] = None
+    active_title: Optional[str] = None
+    country: Optional[str] = "CO"
     bio: Optional[str] = None
     is_private: bool = False
     platform_role: str = "USER"
@@ -52,8 +62,6 @@ class CurrentUser(BaseModel):
 
 class ReadingSettings(BaseModel):
     user_id: int
-    reading_mode: str = "VERTICAL"
     zoom_level: int = 100
     brightness: int = 100
     background_color: str = "DARK"
-    image_quality: str = "HIGH"

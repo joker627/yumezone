@@ -99,7 +99,7 @@ async function checkChapterReadStatus(workId, chId) {
       isChapterAlreadyRead = true;
       viewLoggedForThisChapter = true; // Ya fue leído en este navegador: no volver a contar
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // Contabilizar lectura solo si es legítima: progreso real (>=80% o fin) y tiempo activo (>=8s)
@@ -130,7 +130,7 @@ function checkAndRecordLegitimateView(pageNumber, chapterMeta) {
     const anonReads = JSON.parse(localStorage.getItem('yumezone_anon_read_chapters') || '{}');
     anonReads[cId] = Date.now();
     localStorage.setItem('yumezone_anon_read_chapters', JSON.stringify(anonReads));
-  } catch (e) {}
+  } catch (e) { }
 
   // Enviar métrica de vista legítima a la API
   apiRequest('/metrics/views', {
@@ -143,7 +143,7 @@ function checkAndRecordLegitimateView(pageNumber, chapterMeta) {
     apiRequest('/library/history', {
       method: 'POST',
       body: { work_id: wId, chapter_id: cId, last_page_read: pageNumber }
-    }).catch(() => {});
+    }).catch(() => { });
   }
 }
 
@@ -167,7 +167,7 @@ function flushSaveProgress(immediatePage = null) {
       };
       localStorage.setItem('yumezone_reading_history', JSON.stringify(historyMap));
     }
-  } catch (e) {}
+  } catch (e) { }
 
   lastSavedPage = pageToSave;
 
@@ -175,12 +175,12 @@ function flushSaveProgress(immediatePage = null) {
   const token = getAccessToken();
   if (token && wId) {
     clearTimeout(saveHistoryTimeout);
-    
+
     // Envío regular via apiRequest
     apiRequest('/library/history', {
       method: 'POST',
       body: { work_id: wId, chapter_id: cId, last_page_read: pageToSave }
-    }).catch(() => {});
+    }).catch(() => { });
 
     // Envío con keepalive (garantizado si el navegador está cerrando la pestaña)
     try {
@@ -199,8 +199,8 @@ function flushSaveProgress(immediatePage = null) {
         body: payload,
         credentials: 'include',
         keepalive: true
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
   }
 }
 
@@ -291,7 +291,7 @@ async function loadChapter() {
     let localPage = 0;
     try {
       localPage = Number(localStorage.getItem(`yumezone_last_page_${chapterId}`) || 0);
-    } catch (e) {}
+    } catch (e) { }
 
     // 2) Progreso guardado en servidor para usuario autenticado
     let serverPage = 0;
@@ -302,7 +302,7 @@ async function loadChapter() {
         if (prog && Number(prog.chapter_id) === Number(chapterId) && Number(prog.last_page_read) > 0) {
           serverPage = Number(prog.last_page_read);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // El progreso real más reciente prevalece sobre parámetros estáticos de URL viejos
@@ -333,11 +333,92 @@ async function loadChapter() {
   }
 }
 
+function updateReaderSEO(chapter, work) {
+  try {
+    const num = chapter?.chapter_number != null ? `Capítulo ${chapter.chapter_number}` : `Capítulo #${chapterId}`;
+    const fullChapterTitle = chapter?.title ? `${num}: ${chapter.title}` : num;
+    const workTitle = work?.title || 'Manga';
+    const pageTitle = `${fullChapterTitle} - ${workTitle} | Leer Online Gratis en YumeZone`;
+    document.title = pageTitle;
+
+    const metaDesc = `Lee ${fullChapterTitle} de ${workTitle} online en español gratis y en alta resolución en YumeZone. Disfruta de la mejor experiencia de lectura vertical y webtoon.`;
+    const cleanSlug = work?.slug || slug || '';
+    const readerUrl = cleanSlug
+      ? `https://yumezone.page/pages/leer.html?slug=${encodeURIComponent(cleanSlug)}&chapter_id=${chapter?.id || chapterId}`
+      : window.location.href;
+    const imageUrl = work?.cover_url || 'https://yumezone.page/assets/icons/logo.png';
+
+    let descMeta = document.querySelector('meta[name="description"]');
+    if (descMeta) descMeta.content = metaDesc;
+
+    const canonical = document.getElementById('canonical-link') || document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.href = readerUrl;
+
+    const ogTitle = document.getElementById('og-title') || document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.content = pageTitle;
+
+    const ogDesc = document.getElementById('og-desc') || document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.content = metaDesc;
+
+    const ogUrl = document.getElementById('og-url') || document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = readerUrl;
+
+    const ogImage = document.getElementById('og-image') || document.querySelector('meta[property="og:image"]');
+    if (ogImage) ogImage.content = imageUrl;
+
+    const twTitle = document.getElementById('tw-title') || document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) twTitle.content = pageTitle;
+
+    const twDesc = document.getElementById('tw-desc') || document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) twDesc.content = metaDesc;
+
+    const twImage = document.getElementById('tw-image') || document.querySelector('meta[name="twitter:image"]');
+    if (twImage) twImage.content = imageUrl;
+
+    let script = document.getElementById('reader-schema-jsonld');
+    if (!script) {
+      script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = 'reader-schema-jsonld';
+      document.head.appendChild(script);
+    }
+
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://yumezone.page/" },
+            { "@type": "ListItem", "position": 2, "name": workTitle, "item": cleanSlug ? `https://yumezone.page/pages/obra.html?slug=${encodeURIComponent(cleanSlug)}` : "https://yumezone.page/pages/catalogo.html" },
+            { "@type": "ListItem", "position": 3, "name": fullChapterTitle, "item": readerUrl }
+          ]
+        },
+        {
+          "@type": "ComicIssue",
+          "name": fullChapterTitle,
+          "issueNumber": chapter?.chapter_number != null ? String(chapter.chapter_number) : undefined,
+          "partOfSeries": {
+            "@type": "ComicSeries",
+            "name": workTitle
+          },
+          "url": readerUrl,
+          "image": imageUrl,
+          "inLanguage": "es"
+        }
+      ]
+    };
+    script.textContent = JSON.stringify(schemaData);
+  } catch (e) {
+    console.warn('Error al actualizar SEO en el lector:', e);
+  }
+}
+
 function renderHeaderInfo(chapter) {
   const num = chapter?.chapter_number != null ? `Capítulo ${chapter.chapter_number}` : `Capítulo #${chapterId}`;
   const title = chapter?.title ? `${num}: ${chapter.title}` : num;
   if (chapterTitleEl) chapterTitleEl.textContent = title;
-  document.title = `${title} | YumeZone`;
+  updateReaderSEO(chapter, currentWork);
 
   const workUrl = currentWork ? makeWorkUrl(currentWork.slug || currentWork) : (slug ? makeWorkUrl(slug) : '/pages/catalogo.html');
 
@@ -509,29 +590,33 @@ function handleScrollProgress(chapterMeta) {
     lastScrollY = currentY;
   }
 
-  // Cálculo de página activa
-  const pageItems = pagesContainerEl.querySelectorAll('.reader-page-item');
-  if (!pageItems.length) return;
+  // Si IntersectionObserver no está soportado en este navegador, fallback seguro
+  if (!window.IntersectionObserver) {
+    const pageItems = pagesContainerEl.querySelectorAll('.reader-page-item');
+    if (!pageItems.length) return;
+    const viewportHeight = window.innerHeight;
+    const triggerPoint = currentY + (viewportHeight * 0.35);
+    let activePageNumber = 1;
+    pageItems.forEach((item, index) => {
+      if (item.offsetTop <= triggerPoint) {
+        activePageNumber = index + 1;
+      }
+    });
+    onPageChanged(activePageNumber, chapterMeta);
+  }
+}
 
-  const viewportHeight = window.innerHeight;
-  const triggerPoint = currentY + (viewportHeight * 0.35);
-
-  let activePageNumber = 1;
-  pageItems.forEach((item, index) => {
-    if (item.offsetTop <= triggerPoint) {
-      activePageNumber = index + 1;
-    }
-  });
-
+function onPageChanged(activePageNumber, chapterMeta) {
+  if (!activePageNumber || activePageNumber === currentPageNumber) return;
   currentPageNumber = activePageNumber;
   updateReadingProgress(activePageNumber);
 
-  // Guardar en localStorage de inmediato la página actual (adelante o atrás)
+  // Guardar en localStorage de inmediato la página actual
   try {
     localStorage.setItem(`yumezone_last_page_${chapterId}`, String(activePageNumber));
-  } catch (e) {}
+  } catch (e) { }
 
-  // Guardar en backend siempre que cambie de página (hacia adelante o atrás)
+  // Guardar en backend siempre que cambie de página
   if (activePageNumber !== lastSavedPage) {
     const wId = chapterMeta?.work_id || currentWork?.id;
     debouncedSaveProgress(activePageNumber, wId, chapterId);
@@ -646,6 +731,7 @@ function renderPages(pages, chapter) {
       img.src = safeUrl(p.image_url, IMG_FALLBACK);
       img.alt = `Página ${pageNum}`;
       img.loading = idx < 2 ? 'eager' : 'lazy';
+      img.decoding = 'async';
 
       img.onerror = () => {
         if (!img.dataset.fallbackTried) {
@@ -666,6 +752,30 @@ function renderPages(pages, chapter) {
 
     pagesContainerEl.append(pageItem);
   });
+
+  // Seguimiento de página activa sin layout thrashing mediante IntersectionObserver (120 FPS)
+  if (window.IntersectionObserver) {
+    if (window._readerPageObserver) {
+      window._readerPageObserver.disconnect();
+    }
+    window._readerPageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const pageNum = Number(entry.target.dataset.pageNumber);
+          if (pageNum) {
+            onPageChanged(pageNum, chapter);
+          }
+        }
+      });
+    }, {
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0
+    });
+
+    pagesContainerEl.querySelectorAll('.reader-page-item').forEach(item => {
+      window._readerPageObserver.observe(item);
+    });
+  }
 
   if (!scrollListenerAttached) {
     let ticking = false;
@@ -812,9 +922,9 @@ document.addEventListener('click', e => {
 // Pantalla completa
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(() => {});
+    document.documentElement.requestFullscreen().catch(() => { });
   } else {
-    document.exitFullscreen().catch(() => {});
+    document.exitFullscreen().catch(() => { });
   }
 }
 

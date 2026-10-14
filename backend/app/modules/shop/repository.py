@@ -64,93 +64,131 @@ class ShopRepository:
     async def buy_item(self, user_id: int, item_id: int) -> int:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                # 1. Obtener item
-                await cur.execute("SELECT * FROM shop_items WHERE id = %s AND is_active = TRUE", (item_id,))
-                item = await cur.fetchone()
-                if not item:
-                    raise ValueError("El item no existe o no está disponible.")
+            try:
+                await conn.begin()
+                async with conn.cursor(aiomysql.DictCursor) as cur:
+                    # 1. Obtener item
+                    await cur.execute("SELECT * FROM shop_items WHERE id = %s AND is_active = TRUE", (item_id,))
+                    item = await cur.fetchone()
+                    if not item:
+                        raise ValueError("El item no existe o no está disponible.")
 
-                # 2. Verificar si ya lo tiene
-                await cur.execute("SELECT id FROM user_inventory WHERE user_id = %s AND item_id = %s", (user_id, item_id))
-                if await cur.fetchone():
-                    raise ValueError("Ya posees este objeto en tu inventario.")
+                    # 2. Verificar si ya lo tiene
+                    await cur.execute("SELECT id FROM user_inventory WHERE user_id = %s AND item_id = %s", (user_id, item_id))
+                    if await cur.fetchone():
+                        raise ValueError("Ya posees este objeto en tu inventario.")
 
-                # 3. Obtener monedas y nivel del usuario
-                await cur.execute("SELECT coins, xp FROM users WHERE id = %s FOR UPDATE", (user_id,))
-                user = await cur.fetchone()
-                if not user:
-                    raise ValueError("Usuario no encontrado.")
+                    # 3. Obtener monedas y nivel del usuario
+                    await cur.execute("SELECT coins, xp FROM users WHERE id = %s FOR UPDATE", (user_id,))
+                    user = await cur.fetchone()
+                    if not user:
+                        raise ValueError("Usuario no encontrado.")
 
-                user_level = (user["xp"] // 1000) + 1
-                if user_level < item["required_level"]:
-                    raise ValueError(f"Requiere Nivel {item['required_level']} de lector (tu nivel actual: {user_level}).")
+                    user_level = (user["xp"] // 1000) + 1
+                    if user_level < item["required_level"]:
+                        raise ValueError(f"Requiere Nivel {item['required_level']} de lector (tu nivel actual: {user_level}).")
 
-                price = item["price_coins"]
-                if user["coins"] < price:
-                    raise ValueError(f"Monedas insuficientes. Cuesta {price} monedas y tienes {user['coins']}.")
+                    price = item["price_coins"]
+                    if user["coins"] < price:
+                        raise ValueError(f"Monedas insuficientes. Cuesta {price} monedas y tienes {user['coins']}.")
 
-                # 4. Descontar monedas
-                new_coins = user["coins"] - price
-                await cur.execute("UPDATE users SET coins = %s WHERE id = %s", (new_coins, user_id))
+                    # 4. Descontar monedas de forma atómica
+                    new_coins = user["coins"] - price
+                    await cur.execute(
+                        "UPDATE users SET coins = coins - %s WHERE id = %s AND coins >= %s",
+                        (price, user_id, price),
+                    )
+                    if cur.rowcount == 0:
+                        raise ValueError("No se pudieron descontar las monedas.")
 
-                # 5. Agregar al inventario
-                await cur.execute("""
-                    INSERT INTO user_inventory (user_id, item_id, is_equipped)
-                    VALUES (%s, %s, FALSE)
-                """, (user_id, item_id))
+                    # 5. Agregar al inventario
+                    await cur.execute("""
+                        INSERT INTO user_inventory (user_id, item_id, is_equipped)
+                        VALUES (%s, %s, FALSE)
+                    """, (user_id, item_id))
 
-                await conn.commit()
-                return new_coins
+                    await conn.commit()
+                    return new_coins
+            except Exception:
+                await conn.rollback()
+                raise
 
     async def equip_item(self, user_id: int, item_id: int) -> str:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                # Verificar propiedad
-                await cur.execute("""
-                    SELECT ui.id, si.category, si.preview_url 
-                    FROM user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    WHERE ui.user_id = %s AND ui.item_id = %s
-                """, (user_id, item_id))
-                inv_row = await cur.fetchone()
-                if not inv_row:
-                    raise ValueError("No posees este item en tu inventario.")
+            try:
+                await conn.begin()
+                async with conn.cursor(aiomysql.DictCursor) as cur:
+                    # Verificar propiedad
+                    await cur.execute("""
+                        SELECT ui.id, si.category, si.name, si.preview_url 
+                        FROM user_inventory ui
+                        JOIN shop_items si ON si.id = ui.item_id
+                        WHERE ui.user_id = %s AND ui.item_id = %s
+                    """, (user_id, item_id))
+                    inv_row = await cur.fetchone()
+                    if not inv_row:
+                        raise ValueError("No posees este item en tu inventario.")
 
-                category = inv_row["category"]
-                preview_url = inv_row["preview_url"]
+                    category = (inv_row["category"] or "").upper()
+                    name = inv_row["name"]
+                    preview_url = inv_row["preview_url"]
 
-                # Desequipar otros items de la misma categoría
-                await cur.execute("""
-                    UPDATE user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    SET ui.is_equipped = FALSE
-                    WHERE ui.user_id = %s AND si.category = %s
-                """, (user_id, category))
+                    # Desequipar otros items de la misma categoría
+                    await cur.execute("""
+                        UPDATE user_inventory ui
+                        JOIN shop_items si ON si.id = ui.item_id
+                        SET ui.is_equipped = FALSE
+                        WHERE ui.user_id = %s AND UPPER(si.category) = %s
+                    """, (user_id, category))
 
-                # Equipar este item
-                await cur.execute("""
-                    UPDATE user_inventory SET is_equipped = TRUE
-                    WHERE user_id = %s AND item_id = %s
-                """, (user_id, item_id))
+                    # Equipar este item
+                    await cur.execute("""
+                        UPDATE user_inventory SET is_equipped = TRUE
+                        WHERE user_id = %s AND item_id = %s
+                    """, (user_id, item_id))
 
-                # Si es un banner, actualizar banner_url en users
-                if category == "BANNER":
-                    await cur.execute("UPDATE users SET banner_url = %s WHERE id = %s", (preview_url, user_id))
+                    # Persistir en la tabla users según categoría de cosmético
+                    if category == "BANNER":
+                        await cur.execute("UPDATE users SET banner_url = %s WHERE id = %s", (preview_url, user_id))
+                    elif category == "FRAME":
+                        await cur.execute("UPDATE users SET anillo_url = %s WHERE id = %s", (preview_url, user_id))
+                    elif category == "AVATAR":
+                        await cur.execute("UPDATE users SET avatar_url = %s WHERE id = %s", (preview_url, user_id))
+                    elif category in ("TITLE", "BADGE"):
+                        await cur.execute("UPDATE users SET active_title = %s WHERE id = %s", (name, user_id))
 
-                await conn.commit()
-                return preview_url
+                    await conn.commit()
+                    return {"preview_url": preview_url, "category": category}
+            except Exception:
+                await conn.rollback()
+                raise
 
-    async def unequip_banner(self, user_id: int) -> None:
+    async def unequip_item(self, user_id: int, category: str = "BANNER") -> None:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
-            async with conn.cursor() as cur:
-                await cur.execute("""
-                    UPDATE user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    SET ui.is_equipped = FALSE
-                    WHERE ui.user_id = %s AND si.category = 'BANNER'
-                """, (user_id,))
-                await cur.execute("UPDATE users SET banner_url = NULL WHERE id = %s", (user_id,))
-                await conn.commit()
+            try:
+                await conn.begin()
+                async with conn.cursor() as cur:
+                    cat_upper = (category or "BANNER").upper()
+                    await cur.execute("""
+                        UPDATE user_inventory ui
+                        JOIN shop_items si ON si.id = ui.item_id
+                        SET ui.is_equipped = FALSE
+                        WHERE ui.user_id = %s AND UPPER(si.category) = %s
+                    """, (user_id, cat_upper))
+                    if cat_upper == "BANNER":
+                        await cur.execute("UPDATE users SET banner_url = NULL WHERE id = %s", (user_id,))
+                    elif cat_upper == "FRAME":
+                        await cur.execute("UPDATE users SET anillo_url = NULL WHERE id = %s", (user_id,))
+                    elif cat_upper == "AVATAR":
+                        await cur.execute("UPDATE users SET avatar_url = NULL WHERE id = %s", (user_id,))
+                    elif cat_upper in ("TITLE", "BADGE"):
+                        await cur.execute("UPDATE users SET active_title = NULL WHERE id = %s", (user_id,))
+                    await conn.commit()
+            except Exception:
+                await conn.rollback()
+                raise
+
+    async def unequip_banner(self, user_id: int) -> None:
+        await self.unequip_item(user_id, "BANNER")
