@@ -59,11 +59,8 @@ async function loadShopItems() {
 }
 
 const CATEGORY_NAMES = {
-  BANNER: 'Banner',
-  FRAME: 'Marco',
-  BADGE: 'Insignia',
-  TITLE: 'Título',
-  CONSUMABLE: 'Consumible'
+  FRAME: 'Marco de Anillo',
+  BANNER: 'Banner de Fondo'
 };
 
 function renderGrid() {
@@ -82,18 +79,12 @@ function renderGrid() {
   if (currentFilter === 'inventory') {
     itemsToDisplay = ownedItems;
     if (summaryLabel) summaryLabel.textContent = `Mostrando tu inventario (${ownedItems.length} objetos)`;
-  } else if (currentFilter === 'BANNER') {
-    itemsToDisplay = shopItemsCache.filter(i => i.category === 'BANNER');
-    if (summaryLabel) summaryLabel.textContent = `Mostrando fondos y banners (${itemsToDisplay.length})`;
   } else if (currentFilter === 'FRAME') {
     itemsToDisplay = shopItemsCache.filter(i => i.category === 'FRAME');
-    if (summaryLabel) summaryLabel.textContent = `Mostrando marcos de avatar (${itemsToDisplay.length})`;
-  } else if (currentFilter === 'BADGE_TITLE') {
-    itemsToDisplay = shopItemsCache.filter(i => i.category === 'BADGE' || i.category === 'TITLE');
-    if (summaryLabel) summaryLabel.textContent = `Mostrando insignias y títulos (${itemsToDisplay.length})`;
-  } else if (currentFilter === 'CONSUMABLE') {
-    itemsToDisplay = shopItemsCache.filter(i => i.category === 'CONSUMABLE');
-    if (summaryLabel) summaryLabel.textContent = `Mostrando consumibles y objetos (${itemsToDisplay.length})`;
+    if (summaryLabel) summaryLabel.textContent = `Mostrando marcos de anillo (${itemsToDisplay.length})`;
+  } else if (currentFilter === 'BANNER') {
+    itemsToDisplay = shopItemsCache.filter(i => i.category === 'BANNER');
+    if (summaryLabel) summaryLabel.textContent = `Mostrando banners de fondo (${itemsToDisplay.length})`;
   } else {
     if (summaryLabel) summaryLabel.textContent = `Mostrando todos los objetos (${shopItemsCache.length})`;
   }
@@ -114,43 +105,94 @@ function renderGrid() {
     const isOwned = item.is_owned;
     const meetsLevel = userLevel >= item.required_level;
     const hasEnoughCoins = userCoins >= item.price_coins;
-    const isBanner = item.category === 'BANNER';
-    const categoryName = CATEGORY_NAMES[item.category] || item.category || 'Objeto';
+    const isFrame = item.category === 'FRAME';
+    const categoryName = CATEGORY_NAMES[item.category] || item.category || 'Cosmético';
 
     let actionButtonHtml = '';
 
     if (!currentUser) {
-      actionButtonHtml = `<a href="/pages/login.html" class="shop-btn shop-btn--buy" style="text-decoration: none;">Inicia sesión para canjear</a>`;
+      actionButtonHtml = `
+        <a href="/pages/login.html" class="shop-btn shop-btn--buy" style="text-decoration: none;">
+          <img src="/assets/icons/svg/login.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <span>Iniciar sesión para canjear</span>
+        </a>
+      `;
     } else if (isEquipped) {
-      actionButtonHtml = `<button class="shop-btn shop-btn--equipped" disabled>✓ Equipado</button>`;
+      actionButtonHtml = `
+        <button class="shop-btn shop-btn--equipped" disabled>
+          <img src="/assets/icons/svg/check.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <span>Equipado</span>
+        </button>
+      `;
     } else if (isOwned) {
-      if (item.category === 'CONSUMABLE') {
-        actionButtonHtml = `<button class="shop-btn shop-btn--equipped" disabled>✓ En Tu Inventario</button>`;
-      } else {
-        actionButtonHtml = `<button class="shop-btn shop-btn--equip" data-action="equip" data-id="${item.id}" data-category="${item.category}">⚡ Equipar en Perfil</button>`;
-      }
+      actionButtonHtml = `
+        <button class="shop-btn shop-btn--equip" data-action="equip" data-id="${item.id}" data-category="${item.category}">
+          <img src="/assets/icons/svg/bolt.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <span>Equipar en Perfil</span>
+        </button>
+      `;
     } else if (!meetsLevel) {
-      actionButtonHtml = `<button class="shop-btn shop-btn--disabled" disabled title="Sube de nivel leyendo más capítulos">🔒 Requiere Nv. ${item.required_level}</button>`;
+      actionButtonHtml = `
+        <button class="shop-btn shop-btn--disabled" disabled title="Sube de nivel leyendo más capítulos">
+          <img src="/assets/icons/svg/lock.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <span>Requiere Nv. ${item.required_level}</span>
+        </button>
+      `;
     } else if (!hasEnoughCoins) {
-      actionButtonHtml = `<button class="shop-btn shop-btn--disabled" disabled title="Gana monedas leyendo o en misiones diarias">⚠️ Faltan ${(item.price_coins - userCoins).toLocaleString()} 🪙</button>`;
+      const missingCoins = (item.price_coins - userCoins).toLocaleString();
+      actionButtonHtml = `
+        <button class="shop-btn shop-btn--disabled" disabled title="Gana monedas leyendo o en misiones diarias">
+          <img src="/assets/icons/svg/warning.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <span>Faltan ${missingCoins}</span>
+          <img src="/assets/icons/svg/coin.svg" class="shop-btn-icon-inline" alt="" width="14" height="14" aria-hidden="true"/>
+        </button>
+      `;
     } else {
-      actionButtonHtml = `<button class="shop-btn shop-btn--buy" data-action="buy" data-id="${item.id}">🪙 Comprar por ${item.price_coins} Coins</button>`;
+      actionButtonHtml = `
+        <button class="shop-btn shop-btn--buy" data-action="buy" data-id="${item.id}" data-category="${item.category}">
+          <img src="/assets/icons/svg/coin.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <span>Comprar por ${item.price_coins.toLocaleString()} Coins</span>
+        </button>
+      `;
     }
+
+    const previewHtml = isFrame ? `
+      <div class="shop-card-preview shop-card-preview--frame">
+        <div class="shop-frame-sample-wrap">
+          <div class="shop-frame-sample-avatar">
+            <span class="shop-frame-sample-initials">Y</span>
+          </div>
+          <img src="${escapeHTML(item.preview_url)}" class="shop-frame-overlay-img" alt="${escapeHTML(item.name)}" loading="lazy"/>
+        </div>
+        <div class="shop-card-scrim"></div>
+        <div class="shop-card-badges">
+          <span class="shop-card-cat-badge">${escapeHTML(categoryName)}</span>
+          <span class="shop-card-rarity ${rarityClass}">${escapeHTML(item.rarity || 'Raro')}</span>
+        </div>
+        <span class="shop-card-level-req">Nv. ${item.required_level}+</span>
+      </div>
+    ` : `
+      <div class="shop-card-preview shop-card-preview--banner">
+        <img src="${escapeHTML(item.preview_url)}" class="shop-card-preview-img" alt="${escapeHTML(item.name)}" loading="lazy"/>
+        <div class="shop-card-scrim"></div>
+        <div class="shop-card-badges">
+          <span class="shop-card-cat-badge">${escapeHTML(categoryName)}</span>
+          <span class="shop-card-rarity ${rarityClass}">${escapeHTML(item.rarity || 'Raro')}</span>
+        </div>
+        <span class="shop-card-level-req">Nv. ${item.required_level}+</span>
+      </div>
+    `;
 
     return `
       <article class="shop-card ${isEquipped ? 'shop-card--equipped' : ''}">
-        <div class="shop-card-preview ${isBanner ? '' : 'shop-card-preview--contain'}" style="background-image: url('${escapeHTML(item.preview_url)}')">
-          <div class="shop-card-scrim"></div>
-          <div class="shop-card-badges">
-            <span class="shop-card-cat-badge">${escapeHTML(categoryName)}</span>
-            <span class="shop-card-rarity ${rarityClass}">${escapeHTML(item.rarity || 'Raro')}</span>
-          </div>
-          <span class="shop-card-level-req">Nv. ${item.required_level}+</span>
-        </div>
+        ${previewHtml}
         <div class="shop-card-info">
           <div class="shop-card-name-row">
             <h3 class="shop-card-name">${escapeHTML(item.name)}</h3>
-            <span class="shop-card-price">🪙 ${item.price_coins}</span>
+            <span class="shop-card-price">
+              <img src="/assets/icons/svg/coin.svg" class="shop-card-coin-icon" alt="" width="16" height="16" aria-hidden="true"/>
+              <span>${item.price_coins.toLocaleString()}</span>
+            </span>
           </div>
           <p class="shop-card-desc">${escapeHTML(item.description || '')}</p>
           <div class="shop-card-footer">
@@ -161,6 +203,8 @@ function renderGrid() {
     `;
   }).join('');
 }
+
+let isProcessingAction = false;
 
 function initEventHandlers() {
   // Pestañas
@@ -181,10 +225,14 @@ function initEventHandlers() {
     grid.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
+      if (isProcessingAction) return;
+
       const action = btn.dataset.action;
       const itemId = parseInt(btn.dataset.id, 10);
       const itemCategory = btn.dataset.category;
       if (!itemId) return;
+
+      isProcessingAction = true;
 
       if (action === 'buy') {
         try {
@@ -201,13 +249,14 @@ function initEventHandlers() {
 
           window.dispatchEvent(new CustomEvent('yume:coins-updated', { detail: { new_coins: res.new_coins } }));
 
-          const targetItem = shopItemsCache.find(i => i.id === itemId);
-          if (targetItem) targetItem.is_owned = true;
-
-          renderGrid();
+          // Recargar usuario y catálogo fresco desde el servidor
+          await initUser();
+          await loadShopItems();
         } catch (err) {
           showToast(err.message || 'Error al procesar la compra', 'error');
           renderGrid();
+        } finally {
+          isProcessingAction = false;
         }
       } else if (action === 'equip') {
         try {
@@ -217,17 +266,40 @@ function initEventHandlers() {
           const res = await apiRequest(`/shop/equip/${itemId}`, { method: 'POST' });
           showToast(res.message || '¡Artículo equipado con éxito!', 'success');
 
-          shopItemsCache.forEach(i => {
-            if (i.category === itemCategory) {
-              i.is_equipped = (i.id === itemId);
-            }
-          });
+          const category = res.category || itemCategory;
+          const previewUrl = res.preview_url;
 
-          renderGrid();
+          // Disparar evento para actualizar el header y el perfil inmediatamente
+          if (currentUser) {
+            if (category === 'FRAME') {
+              currentUser.anillo_url = previewUrl;
+              currentUser.avatar_frame_url = previewUrl;
+            } else if (category === 'BANNER') {
+              currentUser.banner_url = previewUrl;
+            }
+            try { localStorage.setItem('user', JSON.stringify(currentUser)); } catch {}
+          }
+
+          window.dispatchEvent(new CustomEvent('yume:cosmetics-updated', {
+            detail: {
+              anillo_url: res.anillo_url || (category === 'FRAME' ? previewUrl : undefined),
+              avatar_frame_url: res.avatar_frame_url || (category === 'FRAME' ? previewUrl : undefined),
+              banner_url: res.banner_url || (category === 'BANNER' ? previewUrl : undefined),
+              category
+            }
+          }));
+
+          // Recargar catálogo e inventario para reflejar el estado equipado exacto desde la BD
+          await initUser();
+          await loadShopItems();
         } catch (err) {
           showToast(err.message || 'Error al equipar el artículo', 'error');
           renderGrid();
+        } finally {
+          isProcessingAction = false;
         }
+      } else {
+        isProcessingAction = false;
       }
     });
   }

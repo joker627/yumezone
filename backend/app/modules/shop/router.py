@@ -38,14 +38,19 @@ async def buy_shop_item(item_id: int, current_user: CurrentUser = Depends(get_cu
 
 @router.post("/equip/{item_id}", response_model=EquipResponse)
 async def equip_shop_item(item_id: int, current_user: CurrentUser = Depends(get_current_user)):
-    """Equipa un cosmético u objeto adquirido."""
     try:
-        banner_url = await repo.equip_item(current_user.id, item_id)
+        res = await repo.equip_item(current_user.id, item_id)
+        preview_url = res["preview_url"]
+        category = res["category"]
         return EquipResponse(
             success=True,
             message="¡Artículo equipado exitosamente!",
             item_id=item_id,
-            banner_url=banner_url
+            preview_url=preview_url,
+            banner_url=preview_url if category == "BANNER" else None,
+            anillo_url=preview_url if category == "FRAME" else None,
+            avatar_frame_url=preview_url if category == "FRAME" else None,
+            category=category
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

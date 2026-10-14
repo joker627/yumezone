@@ -675,7 +675,7 @@ class HomeRepository:
         try:
             rows = await self._fetch("""
                 SELECT hc.id, hc.content, hc.channel, COALESCE(hc.is_pinned, FALSE) AS is_pinned, hc.created_at,
-                       u.username, u.avatar_url, u.platform_role, u.xp
+                       u.username, u.avatar_url, u.anillo_url, u.platform_role, u.xp
                 FROM home_chats AS hc
                 JOIN users AS u ON u.id = hc.user_id
                 WHERE hc.channel = %s OR (%s = 'general' AND (hc.channel IS NULL OR hc.channel = '' OR hc.channel = 'general'))
@@ -685,7 +685,7 @@ class HomeRepository:
         except Exception:
             rows = await self._fetch("""
                 SELECT hc.id, hc.content, COALESCE(hc.is_pinned, FALSE) AS is_pinned, hc.created_at,
-                       u.username, u.avatar_url, u.platform_role, u.xp
+                       u.username, u.avatar_url, u.anillo_url, u.platform_role, u.xp
                 FROM home_chats AS hc
                 JOIN users AS u ON u.id = hc.user_id
                 ORDER BY hc.created_at DESC
@@ -707,6 +707,8 @@ class HomeRepository:
                     "is_pinned": bool(r.get("is_pinned")),
                     "username": r["username"],
                     "avatar_url": r.get("avatar_url"),
+                    "anillo_url": r.get("anillo_url"),
+                    "avatar_frame_url": r.get("anillo_url"),
                     "role": role_key,
                     "role_label": role_label,
                     "level": f"NV. {level}",

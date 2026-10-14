@@ -4,8 +4,28 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#0b0d12"/>
-  <meta name="robots" content="index, follow"/>
+  <meta name="description" content="Perfil público de usuario en YumeZone. Conoce sus lecturas, favoritos, estadísticas y actividad en la comunidad."/>
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="profile"/>
+  <meta property="og:site_name" content="YumeZone"/>
+  <meta property="og:url" content="https://yumezone.page/pages/usuario.html"/>
+  <meta property="og:title" content="Perfil de Usuario | YumeZone"/>
+  <meta property="og:description" content="Perfil público de usuario en YumeZone. Conoce sus lecturas, favoritos y actividad."/>
+  <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Perfil de Usuario | YumeZone"/>
+  <meta name="twitter:description" content="Perfil público de usuario en YumeZone."/>
+  <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png"/>
+
+  <link rel="canonical" href="https://yumezone.page/pages/usuario.html"/>
   <link rel="icon" type="image/png" href="/assets/icons/logo.png"/>
+  <link rel="apple-touch-icon" href="/assets/icons/logo.png"/>
+  <link rel="manifest" href="/manifest.json"/>
   <title>Perfil de Usuario | YumeZone</title>
 
   <!-- YumeZone Core Stylesheets (Vanilla CSS Propio) -->
@@ -22,9 +42,8 @@
   <header id="header"></header>
 
   <main class="profile-page-main">
+    <!-- Contenedor de Error / Usuario No Encontrado -->
     <div class="profile-container">
-      
-      <!-- Contenedor de Error / Usuario No Encontrado -->
       <div id="user-error" class="profile-empty-card" hidden>
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -38,152 +57,138 @@
           <a href="/pages/catalogo.html" class="profile-btn profile-btn--secondary">Explorar Catálogo</a>
         </div>
       </div>
+    </div>
 
-      <!-- Vista Principal del Perfil -->
-      <div id="user-profile-view">
-        
-        <!-- BANNER HERO ATMOSFÉRICO -->
-        <section class="profile-banner-wrap">
-          <div id="profile-banner-bg" class="profile-banner-bg" style="background-image: url('/assets/images/banner-default.jpg');"></div>
-          <div class="profile-banner-scrim-bottom"></div>
-          <div class="profile-banner-scrim-sides"></div>
+    <!-- Vista Principal del Perfil -->
+    <div id="user-profile-view">
+      
+      <!-- HERO UNIFICADO INMERSIVO A PANTALLA COMPLETA (Banner atrás de fondo + Info en la mitad, sin tarjeta gris) -->
+      <section class="profile-hero-immersive">
+        <!-- Imagen de Banner a pantalla completa atrás -->
+        <div id="profile-banner-bg" class="profile-hero-bg" style="background-image: url('/assets/images/banner-default.jpg');"></div>
+        <div class="profile-hero-scrim-radial"></div>
+        <div class="profile-hero-scrim-bottom"></div>
 
-          <!-- Badges superiores del banner (Renderizados según verificación y rol real) -->
-          <div class="profile-banner-badges">
-            <span id="badge-verified-top" class="profile-chip profile-chip--verified" style="display: none;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span id="badge-verified-text">Staff Verificado</span>
-            </span>
-            <span id="badge-role-top" class="profile-chip profile-chip--role" style="display: none;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
-              <span id="badge-role-text">Lector Veterano</span>
-            </span>
-          </div>
+        <div class="profile-hero-inner">
+          <!-- Barra Superior (Badges a la izquierda, Acciones a la derecha) -->
+          <div class="profile-hero-top-bar">
+            <div class="profile-banner-badges">
+              <span id="badge-verified-top" class="profile-chip profile-chip--verified" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span id="badge-verified-text">Staff Verificado</span>
+              </span>
+              <span id="badge-role-top" class="profile-chip profile-chip--role" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                <span id="badge-role-text">Lector Veterano</span>
+              </span>
+            </div>
 
-          <!-- Acciones del banner -->
-          <div class="profile-banner-actions">
-            <button class="profile-icon-btn" id="btn-share" type="button" title="Copiar enlace del perfil">
-              <img class="profile-btn-icon" src="/assets/icons/svg/share.svg" alt="" aria-hidden="true"/>
-              <span id="btn-share-label">Compartir</span>
-            </button>
-            <div class="profile-menu-wrapper">
-              <button class="profile-icon-btn profile-icon-btn--dots" id="menu-dots-btn" type="button" title="Opciones">
-                <img class="profile-btn-icon" src="/assets/icons/svg/dots-vertical.svg" alt="" aria-hidden="true"/>
+            <div class="profile-banner-actions">
+              <button class="profile-icon-btn" id="btn-share" type="button" title="Copiar enlace del perfil">
+                <img class="profile-btn-icon" src="/assets/icons/svg/share.svg" alt="" aria-hidden="true"/>
+                <span id="btn-share-label">Compartir</span>
               </button>
-              <div class="profile-dropdown-menu" id="dropdown-profile-menu" hidden>
-                <button class="profile-dropdown-item" id="btn-bookmark-profile" type="button">
-                  <img class="profile-item-icon" src="/assets/icons/svg/bookmark.svg" alt="" aria-hidden="true"/>
-                  <span>Guardar lector</span>
+              <div class="profile-menu-wrapper">
+                <button class="profile-icon-btn profile-icon-btn--dots" id="menu-dots-btn" type="button" title="Opciones">
+                  <img class="profile-btn-icon" src="/assets/icons/svg/dots-vertical.svg" alt="" aria-hidden="true"/>
                 </button>
-                <button class="profile-dropdown-item profile-dropdown-item--danger" id="btn-report-profile" type="button">
-                  <img class="profile-item-icon" src="/assets/icons/svg/flag.svg" alt="" aria-hidden="true"/>
-                  <span>Reportar perfil</span>
-                </button>
+                <div class="profile-dropdown-menu" id="dropdown-profile-menu" hidden>
+                  <button class="profile-dropdown-item profile-dropdown-item--danger" id="btn-report-profile" type="button">
+                    <img class="profile-item-icon" src="/assets/icons/svg/flag.svg" alt="" aria-hidden="true"/>
+                    <span>Reportar perfil</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </section>
 
-        <!-- TARJETA DE IDENTIDAD PRINCIPAL -->
-        <section class="profile-card-overlap">
-          <div class="profile-header-flex">
+          <!-- Centro de Identidad (Toda la info en la mitad flotando sobre el banner) -->
+          <div class="profile-hero-center">
             
-            <div class="profile-identity-group">
-              <!-- Avatar -->
-              <div class="profile-avatar-wrapper">
-                <div class="profile-avatar-inner">
+            <!-- 1. Avatar Circular Centrado con Marco y Nivel -->
+            <div class="profile-pro-avatar-wrap">
+              <div class="profile-avatar-wrapper profile-avatar-wrapper--circle">
+                <div class="profile-avatar-inner profile-avatar-inner--circle">
                   <img id="user-avatar-img" class="profile-avatar-img hidden" src="" alt="Avatar"/>
                   <span id="user-avatar-fallback" class="profile-avatar-fallback">Y</span>
                 </div>
-                <div class="profile-level-badge">
+                <!-- Marco Cosmético de Avatar -->
+                <img id="user-avatar-frame" class="profile-avatar-frame profile-avatar-frame--circle" src="" alt="Marco de Avatar" style="display: none;"/>
+                <div class="profile-level-badge" id="user-level-badge-wrap">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                   <span id="user-level-badge">Nv. 1</span>
                 </div>
               </div>
+            </div>
 
-              <!-- Identidad y Meta -->
-              <div>
-                <div class="profile-name-row">
-                  <h1 class="profile-title" id="user-username">Cargando...</h1>
-                  <span class="profile-verified-badge" id="user-verified-icon" style="display: none;" title="Lector Verificado / Staff">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  </span>
-                  <span class="profile-role-pill" id="user-role-pill">Lector</span>
-                </div>
+            <!-- 2. Botón de Acción Centrado Directamente Debajo del Avatar (Personalizar perfil) -->
+            <div class="profile-pro-action-center">
+              <button class="profile-pro-btn-edit" id="btn-edit-profile" type="button">
+                <span>Personalizar perfil</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </button>
+            </div>
 
-                <div class="profile-meta-row">
-                  <span class="profile-handle" id="user-handle">@usuario</span>
-                  <span>•</span>
-                  <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="8" x2="17" y2="8"></line><line x1="7" y1="12" x2="17" y2="12"></line></svg>
-                    <span id="user-code-val">#0000</span>
-                  </span>
-                  <span>•</span>
-                  <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    <span id="user-created-val">Miembro registrado</span>
-                  </span>
-                </div>
+            <!-- 3. Nombre de Usuario Pro en Mayúsculas Centrado -->
+            <div class="profile-pro-name-row">
+              <h1 class="profile-pro-title" id="user-username">LECTOR</h1>
+              <span class="profile-verified-badge" id="user-verified-icon" style="display: none;" title="Lector Verificado / Staff">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+            </div>
 
-                <p class="profile-bio-text" id="user-bio">Sin biografía disponible aún.</p>
+            <!-- 4. Insignia de Rango / Título Centrada (ej. Cazador Rango E) -->
+            <div class="profile-pro-rank-wrap">
+              <span class="profile-pro-rank-badge" id="user-active-title">Cazador Rango E</span>
+              <span class="profile-role-pill" id="user-role-pill" style="display: none;">Lector</span>
+            </div>
+
+            <!-- 5. Barra de EXP Gamer con Brillo Ámbar y Etiquetas Simétricas -->
+            <div class="profile-pro-xp-container">
+              <div class="profile-pro-xp-bar-bg">
+                <div class="profile-pro-xp-bar-fill" id="xp-progress-bar" style="width: 35%;"></div>
+              </div>
+              <div class="profile-pro-xp-labels">
+                <span class="profile-pro-xp-left" id="xp-numbers-label">188 XP</span>
+                <span class="profile-pro-xp-right" id="xp-remaining-label">FALTAN 312</span>
               </div>
             </div>
 
-            <!-- Botones de Acción -->
-            <div class="profile-actions-row">
-              <button class="profile-btn profile-btn--primary" id="btn-follow" type="button">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="follow-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                <span id="follow-text">Seguir</span>
-              </button>
-              <a href="/pages/chat.html" class="profile-btn profile-btn--secondary">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Mensaje</span>
+            <!-- 6. Bandera Nacional Centrada (SVG Vectorial Nativo) -->
+            <div class="profile-pro-flag" id="user-country-flag" title="País">
+              <svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="10" fill="#FCD116"/><rect y="10" width="28" height="5" fill="#003893"/><rect y="15" width="28" height="5" fill="#CE1126"/></svg>
+            </div>
+
+            <!-- 7. Fecha de Miembro en Mayúsculas -->
+            <div class="profile-pro-member-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span id="user-created-val">MIEMBRO DESDE JULIO DE 2026</span>
+            </div>
+
+            <!-- 8. Biografía Centrada -->
+            <p class="profile-pro-bio" id="user-bio">Sin biografía disponible aún.</p>
+
+            <!-- 9. Tarjeta de Scanlation (si pertenece a un scan) -->
+            <div class="profile-scan-card" id="user-scan-card" hidden style="margin-top: 1.25rem;">
+              <div class="profile-scan-info">
+                <img id="user-scan-logo" class="profile-scan-logo" src="" alt="Scan Logo" onerror="this.src='/assets/icons/logo.png'"/>
+                <div>
+                  <div class="profile-scan-tag" id="user-scan-role">Grupo Scan</div>
+                  <h4 class="profile-scan-name" id="user-scan-name">GhostScans</h4>
+                </div>
+              </div>
+              <a id="user-scan-link" href="#" class="profile-scan-link">
+                <span>Ver obras del scan</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </a>
             </div>
 
           </div>
+        </div>
+      </section>
 
-          <!-- Tarjeta de Scanlation (si el usuario pertenece a un scan) -->
-          <div class="profile-scan-card" id="user-scan-card" hidden>
-            <div class="profile-scan-info">
-              <img id="user-scan-logo" class="profile-scan-logo" src="" alt="Scan Logo" onerror="this.src='/assets/icons/logo.png'"/>
-              <div>
-                <div class="profile-scan-tag" id="user-scan-role">Grupo Scan</div>
-                <h4 class="profile-scan-name" id="user-scan-name">GhostScans</h4>
-              </div>
-            </div>
-            <a id="user-scan-link" href="#" class="profile-scan-link">
-              <span>Ver obras del scan</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </a>
-          </div>
-
-          <!-- Barra de EXP y Nivel -->
-          <div class="profile-xp-strip">
-            <div class="profile-xp-left">
-              <div class="profile-xp-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              </div>
-              <div>
-                <div style="display: flex; align-items: baseline;">
-                  <span class="profile-xp-title" id="xp-level-title">Nivel 1: Iniciado</span>
-                  <span class="profile-xp-next" id="xp-next-level">→ Siguiente: Nv. 2</span>
-                </div>
-                <div class="profile-xp-nums" id="xp-numbers-label">0 / 1,000 EXP</div>
-              </div>
-            </div>
-
-            <div class="profile-xp-center">
-              <div class="profile-xp-labels">
-                <span style="color: var(--teal-400);" id="xp-pct-label">0% Completado</span>
-                <span style="color: var(--amber-400);" id="xp-remaining-label">Faltan 1,000 EXP</span>
-              </div>
-              <div class="profile-xp-bar">
-                <div class="profile-xp-fill" id="xp-progress-bar" style="width: 0%;"></div>
-              </div>
-            </div>
-          </div>
-        </section>
+      <!-- CONTENEDOR PARA LAS MÉTRICAS Y EL RESTO DE LA PÁGINA -->
+      <div class="profile-container">
 
         <!-- TIRA DE 6 MÉTRICAS CLAVE REALES -->
         <section class="profile-metrics-strip">
@@ -339,7 +344,7 @@
 
               <div class="profile-quick-nav">
                 <!-- Enlaces directos a las plataformas del ecosistema -->
-                <a href="http://192.168.1.43:4400/" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--scan" id="profile-scan-quicklink" style="display: none;" title="YumeScan Studio | Plataforma de Scanlation & Producción">
+                <a href="#" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--scan" id="profile-scan-quicklink" style="display: none;" title="YumeScan Studio | Plataforma de Scanlation & Producción">
                   <span style="display: flex; align-items: center; gap: 0.45rem;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                     YumeScan Studio
@@ -347,7 +352,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>
 
-                <a href="http://192.168.1.43:4000/" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--admin" id="profile-admin-quicklink" style="display: none;" title="YumeZone Cloud & Webmaster Console | Super Admin">
+                <a href="#" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--admin" id="profile-admin-quicklink" style="display: none;" title="YumeZone Cloud & Webmaster Console | Super Admin">
                   <span style="display: flex; align-items: center; gap: 0.45rem;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     YumeZone Console
@@ -395,6 +400,81 @@
           <p class="profile-bio-text" style="margin: 0.5rem auto 0;">El lector ha protegido su cuenta y mantiene sus estadísticas e historial en modo privado.</p>
         </section>
 
+      </div>
+    </div>
+
+    <!-- Modal de Edición de Perfil para el Propietario -->
+    <div class="profile-modal-overlay" id="edit-profile-modal" aria-hidden="true">
+      <div class="profile-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
+        <div class="profile-modal-header">
+          <h3 class="profile-modal-title" id="modal-edit-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Editar Mi Perfil</span>
+          </h3>
+          <button type="button" class="profile-modal-close" id="modal-close-btn" aria-label="Cerrar modal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <form id="edit-profile-form">
+          <div class="profile-modal-body">
+            <div class="profile-form-group">
+              <label for="edit-username" class="profile-form-label">Nombre de Usuario</label>
+              <input type="text" id="edit-username" name="username" class="profile-form-input" minlength="3" maxlength="50" required placeholder="Tu alias en YumeZone" />
+              <span class="profile-form-hint">Visible en tu perfil público y comentarios (3-50 caracteres).</span>
+            </div>
+
+            <div class="profile-form-group">
+              <label for="edit-bio" class="profile-form-label">Biografía</label>
+              <textarea id="edit-bio" name="bio" class="profile-form-textarea" maxlength="500" placeholder="Cuéntale a la comunidad sobre ti, tus géneros favoritos o mangas predilectos..."></textarea>
+              <span class="profile-form-hint">Máximo 500 caracteres.</span>
+            </div>
+
+            <div class="profile-form-group">
+              <label for="edit-avatar-url" class="profile-form-label">URL del Avatar</label>
+              <input type="url" id="edit-avatar-url" name="avatar_url" class="profile-form-input" placeholder="https://ejemplo.com/mi-avatar.webp" />
+              <span class="profile-form-hint">Enlace directo a tu imagen de avatar (.webp recomendado).</span>
+            </div>
+
+            <div class="profile-form-group">
+              <label for="edit-country" class="profile-form-label">País / Bandera</label>
+              <select id="edit-country" name="country" class="profile-form-input">
+                <option value="CO">🇨🇴 Colombia</option>
+                <option value="MX">🇲🇽 México</option>
+                <option value="AR">🇦🇷 Argentina</option>
+                <option value="ES">🇪🇸 España</option>
+                <option value="CL">🇨🇱 Chile</option>
+                <option value="PE">🇵🇪 Perú</option>
+                <option value="VE">🇻🇪 Venezuela</option>
+                <option value="EC">🇪🇨 Ecuador</option>
+                <option value="BO">🇧🇴 Bolivia</option>
+                <option value="UY">🇺🇾 Uruguay</option>
+                <option value="PY">🇵🇾 Paraguay</option>
+                <option value="CR">🇨🇷 Costa Rica</option>
+                <option value="PA">🇵🇦 Panamá</option>
+                <option value="GT">🇬🇹 Guatemala</option>
+                <option value="DO">🇩🇴 Rep. Dominicana</option>
+                <option value="US">🇺🇸 Estados Unidos</option>
+                <option value="JP">🇯🇵 Japón</option>
+                <option value="KR">🇰🇷 Corea del Sur</option>
+              </select>
+              <span class="profile-form-hint">Tu bandera nacional mostrada en tu perfil público.</span>
+            </div>
+
+            <label class="profile-form-switch-row" for="edit-is-private">
+              <div class="profile-form-switch-label">
+                <span class="profile-form-switch-title">Perfil Privado</span>
+                <span class="profile-form-switch-desc">Si lo activas, otros lectores no podrán ver tu biblioteca, estadísticas ni lecturas.</span>
+              </div>
+              <input type="checkbox" id="edit-is-private" name="is_private" style="width: 1.25rem; height: 1.25rem; accent-color: var(--teal-500); cursor: pointer;" />
+            </label>
+          </div>
+
+          <div class="profile-modal-footer">
+            <button type="button" class="profile-btn profile-btn--secondary" id="modal-cancel-btn">Cancelar</button>
+            <button type="submit" class="profile-btn profile-btn--primary" id="modal-submit-btn">Guardar Cambios</button>
+          </div>
+        </form>
       </div>
     </div>
   </main>

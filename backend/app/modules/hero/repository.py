@@ -178,6 +178,16 @@ class HeroRepository:
 
     async def rotate_new_queue(self, limit: int = 3) -> None:
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
+            # Comprobar primero si hay elementos que requieran rotación para evitar mutaciones innecesarias en peticiones GET
+            await cur.execute("""
+                SELECT 1 FROM hero_new_queue
+                WHERE (status = 'ACTIVE' AND expires_at IS NOT NULL AND expires_at <= NOW())
+                   OR (status = 'PENDING')
+                LIMIT 1
+            """)
+            if not await cur.fetchone():
+                return
+
             await cur.execute("""
                 SELECT setting_value
                 FROM platform_settings

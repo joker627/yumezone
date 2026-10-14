@@ -94,6 +94,7 @@ function renderChatMsg(msg) {
   const isPinned = Boolean(msg.is_pinned);
   const name = esc(msg.username ?? msg.name ?? 'Usuario');
   const avatarUrl = (msg.avatar_url ?? msg.avatar ?? '').trim();
+  const anilloUrl = (msg.anillo_url ?? msg.avatar_frame_url ?? '').trim();
   const initial = esc((msg.username ?? msg.name ?? 'U').slice(0, 1).toUpperCase());
   const role = esc(msg.role ?? '');
   const roleLabel = esc(msg.role_label ?? msg.roleLabel ?? role.toUpperCase());
@@ -116,6 +117,10 @@ function renderChatMsg(msg) {
     ? `<img class="chat-msg--avatar-img" src="${esc(avatarUrl)}" alt="${name}" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling){this.nextElementSibling.style.display='flex';}"><span class="chat-msg--initial" style="display:none;" aria-hidden="true">${initial}</span>`
     : `<span class="chat-msg--initial">${initial}</span>`;
 
+  const frameMarkup = anilloUrl
+    ? `<img class="chat-msg--frame-img" src="${esc(anilloUrl)}" alt="" aria-hidden="true">`
+    : '';
+
   const pinBadgeMarkup = isPinned
     ? `<span class="chat-msg--pin-badge" title="Mensaje fijado por la Administración">📌 Fijado</span>`
     : '';
@@ -126,7 +131,10 @@ function renderChatMsg(msg) {
 
   return `
   <div class="chat-msg ${isPinned ? 'chat-msg--pinned' : ''} ${isMentioned ? 'chat-msg--mention' : ''}" data-author="${name}" data-msg-id="${msgId || ''}">
-    <div class="chat-msg--avatar" title="Mencionar a @${name}">${avatarMarkup}</div>
+    <div class="chat-msg--avatar" title="Mencionar a @${name}">
+      <div class="chat-msg--avatar-inner">${avatarMarkup}</div>
+      ${frameMarkup}
+    </div>
     <div class="chat-msg--body">
       <div class="chat-msg--header">
         <span class="chat-msg--name" title="Clic para mencionar">${name}</span>
@@ -368,16 +376,21 @@ async function loadChatOnlineStats() {
       onlineListEl.innerHTML = data.active_users.map(u => {
         const uName = esc(u.username ?? 'Lector');
         const uAvatar = (u.avatar_url ?? '').trim();
+        const uAnillo = (u.anillo_url ?? u.avatar_frame_url ?? '').trim();
         const uInitial = esc((u.username ?? 'U').slice(0, 1).toUpperCase());
         const uRole = esc(u.platform_role ?? 'USER');
         const isMod = ['ADMIN', 'SUPERADMIN'].includes(uRole.toUpperCase());
         const avatarEl = uAvatar
           ? `<img class="chat-online-user-avatar" src="${esc(uAvatar)}" alt="${uName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><span class="chat-online-user-initial" style="display:none;">${uInitial}</span>`
           : `<span class="chat-online-user-initial">${uInitial}</span>`;
+        const frameEl = uAnillo
+          ? `<img class="chat-online-user-frame" src="${esc(uAnillo)}" alt="" aria-hidden="true">`
+          : '';
         return `
           <div class="chat-online-user-item">
             <div class="chat-online-user-avatar-wrap">
-              ${avatarEl}
+              <div class="chat-online-user-avatar-inner">${avatarEl}</div>
+              ${frameEl}
               <span class="chat-online-status-dot"></span>
             </div>
             <div class="chat-online-user-info">

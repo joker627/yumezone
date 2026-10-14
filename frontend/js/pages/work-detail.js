@@ -2,7 +2,7 @@
 
 import { renderSiteHeader } from '../components/header.js';
 import { apiRequest, getAccessToken, clearAccessToken } from '../shared/auth.js';
-import { safeUrl, IMG_FALLBACK, formatNumber, makeReaderUrl, formatTimeAgoCompact } from '../shared/ui-utils.js';
+import { safeUrl, IMG_FALLBACK, formatNumber, makeReaderUrl, formatTimeAgoCompact, escapeHTML } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
 
 const header = document.getElementById('header');
@@ -427,9 +427,139 @@ function formatChapterNumber(value) {
     return formatNumber(value, 2);
 }
 
+function updateWorkSEO(work) {
+    if (!work || !work.title) return;
+
+    const pageTitle = `${work.title} - Leer Manga Online Gratis en Español | YumeZone`;
+    document.title = pageTitle;
+
+    const cleanSynopsis = (work.synopsis || '').replace(/\s+/g, ' ').trim();
+    const metaDesc = cleanSynopsis
+        ? (cleanSynopsis.length > 155 ? cleanSynopsis.slice(0, 152) + '...' : cleanSynopsis)
+        : `Lee todos los capítulos de ${work.title} online en español gratis y en alta resolución en YumeZone.`;
+
+    const workSlug = work.slug || slug;
+    const workUrl = `https://yumezone.page/pages/obra.html?slug=${encodeURIComponent(workSlug)}`;
+    const imageUrl = work.cover_url || work.banner_url || 'https://yumezone.page/assets/icons/logo.png';
+
+    // Meta Description
+    let descMeta = document.querySelector('meta[name="description"]');
+    if (!descMeta) {
+        descMeta = document.createElement('meta');
+        descMeta.name = 'description';
+        document.head.appendChild(descMeta);
+    }
+    descMeta.content = metaDesc;
+
+    // Meta Keywords
+    const genreNames = (work.genres || []).map(g => g.name).join(', ');
+    const keywordsMeta = document.querySelector('meta[name="keywords"]');
+    if (keywordsMeta) {
+        keywordsMeta.content = `${work.title}, ${work.alternative_title || ''}, leer ${work.title} español, ${genreNames}, ${work.format_name || 'manga'}, manhwa español, yumezone`.replace(/,\s*,/g, ',');
+    }
+
+    // Canonical
+    const canonical = document.getElementById('canonical-link') || document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.href = workUrl;
+
+    // Open Graph
+    const ogTitle = document.getElementById('og-title') || document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.content = `${work.title} | YumeZone`;
+
+    const ogDesc = document.getElementById('og-desc') || document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.content = metaDesc;
+
+    const ogUrl = document.getElementById('og-url') || document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = workUrl;
+
+    const ogImage = document.getElementById('og-image') || document.querySelector('meta[property="og:image"]');
+    if (ogImage) ogImage.content = imageUrl;
+
+    // Twitter
+    const twTitle = document.getElementById('tw-title') || document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) twTitle.content = `${work.title} | YumeZone`;
+
+    const twDesc = document.getElementById('tw-desc') || document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) twDesc.content = metaDesc;
+
+    const twImage = document.getElementById('tw-image') || document.querySelector('meta[name="twitter:image"]');
+    if (twImage) twImage.content = imageUrl;
+
+    // Schema.org JSON-LD Structured Data
+    try {
+        let script = document.getElementById('work-schema-jsonld');
+        if (!script) {
+            script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.id = 'work-schema-jsonld';
+            document.head.appendChild(script);
+        }
+
+        const schemaData = {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        {
+                            "@type": "ListItem",
+                            "position": 1,
+                            "name": "Inicio",
+                            "item": "https://yumezone.page/"
+                        },
+                        {
+                            "@type": "ListItem",
+                            "position": 2,
+                            "name": "Catálogo",
+                            "item": "https://yumezone.page/pages/catalogo.html"
+                        },
+                        {
+                            "@type": "ListItem",
+                            "position": 3,
+                            "name": work.title,
+                            "item": workUrl
+                        }
+                    ]
+                },
+                {
+                    "@type": "ComicSeries",
+                    "@id": `${workUrl}#comic`,
+                    "name": work.title,
+                    "alternateName": work.alternative_title || undefined,
+                    "description": cleanSynopsis || undefined,
+                    "url": workUrl,
+                    "image": imageUrl,
+                    "inLanguage": "es",
+                    "author": work.author ? {
+                        "@type": "Person",
+                        "name": work.author
+                    } : undefined,
+                    "genre": (work.genres || []).map(g => g.name),
+                    "publisher": {
+                        "@type": "Organization",
+                        "name": "YumeZone",
+                        "url": "https://yumezone.page/"
+                    },
+                    "aggregateRating": Number(work.rating_average) > 0 ? {
+                        "@type": "AggregateRating",
+                        "ratingValue": Number(work.rating_average).toFixed(1),
+                        "bestRating": "10",
+                        "worstRating": "1",
+                        "ratingCount": Math.max(Number(work.followers_count) || 1, 1)
+                    } : undefined
+                }
+            ]
+        };
+
+        script.textContent = JSON.stringify(schemaData);
+    } catch (e) {
+        console.warn('Error al generar Schema JSON-LD para SEO:', e);
+    }
+}
+
 async function renderWork(work, chapters) {
     currentWork = work;
-    document.title = `${work.title} | YumeZone`;
+    updateWorkSEO(work);
 
     title.textContent = work.title || 'Obra sin título';
     author.textContent = work.author ? `Por ${work.author}` : 'Autor no especificado';
@@ -687,27 +817,39 @@ function renderCommentThreads(comments) {
 
 function renderCommentMainMarkup(c) {
     const username = c.username || 'Lector';
+    const safeUsername = escapeHTML(username);
+    const safeContent = escapeHTML(c.content || '');
     const initial = (username[0] || 'U').toUpperCase();
     const avatar = (c.avatar_url || '').trim();
+    const anilloUrl = (c.anillo_url || c.avatar_frame_url || '').trim();
     const timeAgo = formatTimeAgoCompact(c.created_at) || 'reciente';
     const isSpoiler = Boolean(c.contains_spoiler);
     const likes = Number(c.likes || 0);
 
     const avatarMarkup = avatar
-        ? `<img class="comment-avatar-img" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${username}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="comment-avatar-fallback" style="display:none;">${initial}</div>`
+        ? `<img class="comment-avatar-img" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="comment-avatar-fallback" style="display:none;">${initial}</div>`
         : `<div class="comment-avatar-fallback">${initial}</div>`;
+
+    const frameMarkup = anilloUrl
+        ? `<img class="comment-avatar-frame" src="${safeUrl(anilloUrl, '')}" alt="" aria-hidden="true">`
+        : '';
 
     return `
         <div class="comment-main">
-            <div class="comment-avatar-col">${avatarMarkup}</div>
+            <div class="comment-avatar-col">
+                <div class="comment-avatar-wrap">
+                    <div class="comment-avatar-inner">${avatarMarkup}</div>
+                    ${frameMarkup}
+                </div>
+            </div>
             <div class="comment-body-col">
                 <div class="comment-meta-row">
-                    <span class="comment-author-name">@${username}</span>
+                    <span class="comment-author-name">@${safeUsername}</span>
                     <span class="comment-time">${timeAgo}</span>
                     ${isSpoiler ? `<span class="comment-spoiler-tag">⚠️ Spoiler</span>` : ''}
                 </div>
-                <p class="comment-text ${isSpoiler ? 'is-spoiler-blurred' : ''}" data-text="${c.content}">
-                    ${isSpoiler ? '🙈 Contenido marcado con spoiler. Haz clic aquí para revelarlo.' : c.content}
+                <p class="comment-text ${isSpoiler ? 'is-spoiler-blurred' : ''}" data-text="${safeContent}">
+                    ${isSpoiler ? '🙈 Contenido marcado con spoiler. Haz clic aquí para revelarlo.' : safeContent}
                 </p>
                 <div class="comment-actions-row">
                     <button type="button" class="comment-action-btn like-btn" data-action="like" title="Me gusta">
@@ -726,26 +868,36 @@ function renderCommentMainMarkup(c) {
 
 function renderCommentReplyMarkup(r) {
     const username = r.username || 'Lector';
+    const safeUsername = escapeHTML(username);
+    const safeContent = escapeHTML(r.content || '');
     const initial = (username[0] || 'U').toUpperCase();
     const avatar = (r.avatar_url || '').trim();
+    const anilloUrl = (r.anillo_url || r.avatar_frame_url || '').trim();
     const timeAgo = formatTimeAgoCompact(r.created_at) || 'reciente';
     const isSpoiler = Boolean(r.contains_spoiler);
     const likes = Number(r.likes || 0);
 
     const avatarMarkup = avatar
-        ? `<img class="comment-reply-avatar" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${username}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="comment-reply-avatar-fallback" style="display:none;">${initial}</div>`
+        ? `<img class="comment-reply-avatar" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="comment-reply-avatar-fallback" style="display:none;">${initial}</div>`
         : `<div class="comment-reply-avatar-fallback">${initial}</div>`;
 
+    const frameMarkup = anilloUrl
+        ? `<img class="comment-reply-avatar-frame" src="${safeUrl(anilloUrl, '')}" alt="" aria-hidden="true">`
+        : '';
+
     return `
-        ${avatarMarkup}
+        <div class="comment-reply-avatar-wrap">
+            <div class="comment-reply-avatar-inner">${avatarMarkup}</div>
+            ${frameMarkup}
+        </div>
         <div class="comment-body-col">
             <div class="comment-meta-row">
-                <span class="comment-author-name">@${username}</span>
+                <span class="comment-author-name">@${safeUsername}</span>
                 <span class="comment-time">${timeAgo}</span>
                 ${isSpoiler ? `<span class="comment-spoiler-tag">⚠️ Spoiler</span>` : ''}
             </div>
-            <p class="comment-text ${isSpoiler ? 'is-spoiler-blurred' : ''}" data-text="${r.content}">
-                ${isSpoiler ? '🙈 Contenido con spoiler. Clic para ver.' : r.content}
+            <p class="comment-text ${isSpoiler ? 'is-spoiler-blurred' : ''}" data-text="${safeContent}">
+                ${isSpoiler ? '🙈 Contenido con spoiler. Clic para ver.' : safeContent}
             </p>
             <div class="comment-actions-row">
                 <button type="button" class="comment-action-btn like-btn" data-action="like">
@@ -758,7 +910,6 @@ function renderCommentReplyMarkup(r) {
             </div>
         </div>
     `;
-
 }
 
 function attachCommentItemListeners(containerEl, commentObj) {

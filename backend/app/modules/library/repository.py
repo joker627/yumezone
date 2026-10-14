@@ -51,17 +51,12 @@ class LibraryRepository:
                        rh_c.chapter_number AS last_chapter_number,
                        rh.last_page_read,
                        rh.read_at AS last_read_at,
-                       COALESCE(rh_ci.total_pages, 0) AS last_chapter_total_pages
+                       COALESCE((SELECT COUNT(*) FROM chapter_images WHERE chapter_id = rh.chapter_id), 0) AS last_chapter_total_pages
                 FROM user_library AS ul
                 JOIN works AS w ON w.id = ul.work_id
                 LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
                 LEFT JOIN reading_history AS rh ON rh.user_id = ul.user_id AND rh.work_id = ul.work_id
                 LEFT JOIN chapters AS rh_c ON rh_c.id = rh.chapter_id
-                LEFT JOIN (
-                    SELECT chapter_id, COUNT(*) AS total_pages
-                    FROM chapter_images
-                    GROUP BY chapter_id
-                ) AS rh_ci ON rh_ci.chapter_id = rh.chapter_id
                 WHERE ul.user_id = %s
                 {work_filter}
                 ORDER BY ul.added_at DESC, w.title ASC

@@ -35,13 +35,13 @@ function setMessage(text, kind = 'error') {
 
 function getReturnPath() {
     const requested = new URLSearchParams(window.location.search).get('next');
-    if (!requested) return '/index.html';
+    if (!requested) return '/';
     try {
         const url = new URL(requested, window.location.origin);
-        if (url.origin !== window.location.origin) return '/index.html';
+        if (url.origin !== window.location.origin) return '/';
         return `${url.pathname}${url.search}${url.hash}`;
     } catch {
-        return '/index.html';
+        return '/';
     }
 }
 
@@ -52,11 +52,19 @@ form?.addEventListener('submit', async (event) => {
     const password = String(values.get('password') || '');
     const username = String(values.get('username') || '').trim();
 
-    if (mode === 'register' && password !== values.get('password_confirm')) {
-        const msg = 'Las contraseñas no coinciden.';
-        setMessage(msg, 'error');
-        showToast(msg, 'warning');
-        return;
+    if (mode === 'register') {
+        if (username.length < 3) {
+            const msg = 'El nombre de usuario debe tener al menos 3 caracteres.';
+            setMessage(msg, 'error');
+            showToast(msg, 'warning');
+            return;
+        }
+        if (password !== values.get('password_confirm')) {
+            const msg = 'Las contraseñas no coinciden.';
+            setMessage(msg, 'error');
+            showToast(msg, 'warning');
+            return;
+        }
     }
 
     submit.disabled = true;

@@ -6,28 +6,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090d14">
   <meta name="description"
-    content="YumeZone: descubre y lee mangas, manhwas y manhuas con capítulos, tendencias y novedades actualizadas.">
-  <meta name="robots" content="index, follow">
+    content="YumeZone: Lee mangas, manhwas y manhuas online gratis en español. Capítulos en alta calidad, últimas tendencias, modo lectura vertical y comunidad de lectores.">
+  <meta name="keywords"
+    content="manga online, manhwa en español, manhua online, leer manga gratis, webtoon español, solo leveling, nano machine, scans español, yumezone">
+  <meta name="author" content="YumeZone">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  
+  <!-- Open Graph / Facebook / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="YumeZone">
   <meta property="og:url" content="https://yumezone.page/">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:title" content="YumeZone | Mangas, manhwas y manhuas">
+  <meta property="og:title" content="YumeZone | Leer Mangas, Manhwas y Manhuas Online en Español">
   <meta property="og:description"
-    content="Descubre tus próximas lecturas y sigue las novedades de mangas, manhwas y manhuas en YumeZone.">
-  <meta property="og:image" content="https://yumezone.page/assets/images/logo.png">
+    content="Descubre y lee mangas, manhwas y manhuas con capítulos actualizados a diario en alta definición, visor webtoon y comunidad activa.">
+  <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png">
   <meta property="og:image:alt" content="Logotipo de YumeZone">
-  <meta name="twitter:card" content="summary">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://yumezone.page/">
-  <meta name="twitter:title" content="YumeZone | Mangas, manhwas y manhuas">
+  <meta name="twitter:title" content="YumeZone | Leer Mangas, Manhwas y Manhuas Online en Español">
   <meta name="twitter:description"
-    content="Descubre tus próximas lecturas y sigue las novedades en YumeZone.">
-  <meta name="twitter:image" content="https://yumezone.page/assets/images/logo.png">
+    content="Descubre y lee mangas, manhwas y manhuas con capítulos actualizados a diario en alta definición.">
+  <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png">
   <meta name="twitter:image:alt" content="Logotipo de YumeZone">
+  
   <link rel="canonical" href="https://yumezone.page/">
-  <link rel="icon" type="image/png" href="assets/icons/logo.png">
-  <link rel="apple-touch-icon" href="assets/icons/logo.png">
-  <title>YumeZone | Mangas, manhwas y manhuas</title>
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <link rel="apple-touch-icon" href="/assets/icons/logo.png">
+  <link rel="manifest" href="/manifest.json">
+  <title>YumeZone | Leer Mangas, Manhwas y Manhuas Online en Español</title>
+  
+  <!-- Schema.org JSON-LD Structured Data for Google Rich Results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://yumezone.page/#website",
+        "url": "https://yumezone.page/",
+        "name": "YumeZone",
+        "description": "Plataforma digital para leer mangas, manhwas y manhuas en español.",
+        "inLanguage": "es",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://yumezone.page/pages/catalogo.html?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://yumezone.page/#organization",
+        "name": "YumeZone",
+        "url": "https://yumezone.page/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://yumezone.page/assets/icons/logo.png"
+        }
+      }
+    ]
+  }
+  </script>
+
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/layout.css">

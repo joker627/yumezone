@@ -2,12 +2,18 @@
 @import './components/toast.css';
 @import './components/loader.css';
 
+html,
 body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body:not(.reader-body) {
   padding-top: 4rem; /* compensación para el header fixed */
 }
 
 @media (max-width: 600px) {
-  body {
+  body:not(.reader-body) {
     padding-top: 3.5rem; /* header móvil es más pequeño */
   }
 }

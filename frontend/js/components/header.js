@@ -88,6 +88,7 @@ export function renderSiteHeader(container) {
               <div class="header-drawer-avatar-wrap">
                 <span id="drawer-avatar-initials" class="header-drawer-initials">Y</span>
                 <img id="drawer-avatar-img" class="header-drawer-avatar" alt="" hidden>
+                <img id="drawer-avatar-frame" class="header-avatar-frame" alt="" hidden>
               </div>
               <div class="header-drawer-user-info">
                 <div class="header-drawer-name-row">
@@ -105,11 +106,11 @@ export function renderSiteHeader(container) {
                 <span id="drawer-streak-val">0d</span>
               </div>
               <div class="header-drawer-stat-chip header-drawer-stat-chip--coins" title="Ghost Monedas">
-                <span>🪙</span>
+                <img src="/assets/icons/svg/coin.svg" alt="" width="14" height="14">
                 <span id="drawer-coins-val">0 G</span>
               </div>
               <div class="header-drawer-stat-chip header-drawer-stat-chip--level" title="Nivel">
-                <span>⭐</span>
+                <img src="/assets/icons/svg/star.svg" alt="" width="14" height="14">
                 <span id="drawer-level-val">Nv. 1</span>
               </div>
             </div>
@@ -158,7 +159,7 @@ export function renderSiteHeader(container) {
               </span>
               <span class="header-stat-sep">|</span>
               <span class="header-stat-chip header-stat-chip--coins" title="Ghost Monedas">
-                <span class="header-stat-coin-icon">🪙</span>
+                <img src="/assets/icons/svg/coin.svg" class="header-stat-icon" alt="" width="14" height="14">
                 <span id="header-coins">0 G</span>
               </span>
               <span class="header-stat-sep">|</span>
@@ -193,7 +194,7 @@ export function renderSiteHeader(container) {
               <div class="header-stats-dd-grid">
                 <div class="header-stats-dd-card">
                   <div class="header-stats-dd-card-top">
-                    <span>🔥</span>
+                    <img src="/assets/icons/svg/fire.svg" alt="" width="14" height="14">
                     <span class="header-stats-dd-card-label">Racha Activa</span>
                   </div>
                   <div class="header-stats-dd-card-val" id="stats-dd-streak-val">0 días</div>
@@ -202,7 +203,7 @@ export function renderSiteHeader(container) {
 
                 <div class="header-stats-dd-card">
                   <div class="header-stats-dd-card-top">
-                    <span>🪙</span>
+                    <img src="/assets/icons/svg/coin.svg" alt="" width="14" height="14">
                     <span class="header-stats-dd-card-label">Ghost Monedas</span>
                   </div>
                   <div class="header-stats-dd-card-val" id="stats-dd-coins-val">0 G</div>
@@ -214,7 +215,7 @@ export function renderSiteHeader(container) {
               <div class="header-stats-dd-missions-wrap">
                 <div class="header-stats-dd-missions-header">
                   <div class="header-stats-dd-missions-title">
-                    <span>⭐</span>
+                    <img src="/assets/icons/svg/star.svg" alt="" width="14" height="14">
                     <span>Misiones Diarias</span>
                   </div>
                   <span class="header-stats-dd-badge" id="stats-dd-missions-summary">Cargando...</span>
@@ -226,7 +227,10 @@ export function renderSiteHeader(container) {
 
               <!-- Footer con accesos -->
               <div class="header-stats-dd-footer">
-                <a href="/pages/catalogo.html" class="header-stats-dd-footer-link">📚 Explorar Catálogo</a>
+                <a href="/pages/catalogo.html" class="header-stats-dd-footer-link">
+                  <img src="/assets/icons/svg/book.svg" alt="" width="14" height="14">
+                  <span>Explorar Catálogo</span>
+                </a>
                 <a href="/#aside-mision-title" class="header-stats-dd-footer-link header-stats-dd-footer-link--accent" id="stats-dd-go-missions">Ver Misiones Diarias →</a>
               </div>
             </div>
@@ -257,6 +261,7 @@ export function renderSiteHeader(container) {
             <div class="header-avatar-ring">
               <span id="profile-initials" class="header-profile-initials" aria-hidden="true">Y</span>
               <img id="profile-avatar" class="header-profile-avatar" alt="" hidden>
+              <img id="profile-avatar-frame" class="header-avatar-frame" alt="" hidden>
               <span class="header-avatar-status"></span>
             </div>
           </button>
@@ -267,6 +272,7 @@ export function renderSiteHeader(container) {
                 <div class="header-profile-avatar-thumb">
                   <span id="profile-card-initials" class="header-profile-card-initials">Y</span>
                   <img id="profile-card-avatar" class="header-profile-card-avatar" alt="" hidden>
+                  <img id="profile-card-avatar-frame" class="header-avatar-frame" alt="" hidden>
                 </div>
                 <div class="header-profile-user-texts">
                   <div class="header-profile-name-row">
@@ -311,7 +317,7 @@ export function renderSiteHeader(container) {
                 <img src="/assets/icons/svg/library.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
                 <span>Mi biblioteca</span>
               </a>
-              <a href="/pages/perfil.html#profile-settings" class="header-profile-link" role="menuitem">
+              <a href="/pages/usuario.html?edit=1" class="header-profile-link" role="menuitem">
                 <img src="/assets/icons/svg/settings.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
                 <span>Ajustes de cuenta</span>
               </a>
@@ -423,6 +429,11 @@ export function renderSiteHeader(container) {
   const drawerLevelVal = document.getElementById('drawer-level-val');
   const drawerXpFill = document.getElementById('drawer-xp-fill');
   const drawerXpLabel = document.getElementById('drawer-xp-label');
+
+  // Referencias a los marcos del anillo (avatar frames)
+  const profileAvatarFrame = document.getElementById('profile-avatar-frame');
+  const profileCardAvatarFrame = document.getElementById('profile-card-avatar-frame');
+  const drawerAvatarFrame = document.getElementById('drawer-avatar-frame');
 
   if (!menuToggle || !navigationContent || !menuBackdrop ||
     !searchToggle || !searchPanel || !searchInput || !searchForm ||
@@ -1035,6 +1046,11 @@ export function renderSiteHeader(container) {
     if (drawerUserCard) drawerUserCard.hidden = true;
     if (drawerGuestBox) drawerGuestBox.hidden = false;
 
+    // Ocultar marcos de avatar
+    if (profileAvatarFrame) profileAvatarFrame.hidden = true;
+    if (profileCardAvatarFrame) profileCardAvatarFrame.hidden = true;
+    if (drawerAvatarFrame) drawerAvatarFrame.hidden = true;
+
     closeProfileMenu();
     try { localStorage.removeItem('user'); } catch {}
     /* Actualizar bottom nav */
@@ -1210,6 +1226,39 @@ export function renderSiteHeader(container) {
         drawerAvatarImg.removeAttribute('src');
         drawerAvatarImg.hidden = true;
         if (drawerAvatarInitials) drawerAvatarInitials.hidden = false;
+      }
+    }
+
+    // Marco del anillo del avatar (avatar frame)
+    const frameUrl = safeUrl(user.anillo_url || user.avatar_frame_url, '');
+    if (frameUrl) {
+      if (profileAvatarFrame) {
+        profileAvatarFrame.src = frameUrl;
+        profileAvatarFrame.hidden = false;
+        profileAvatarFrame.onerror = () => { profileAvatarFrame.hidden = true; };
+      }
+      if (profileCardAvatarFrame) {
+        profileCardAvatarFrame.src = frameUrl;
+        profileCardAvatarFrame.hidden = false;
+        profileCardAvatarFrame.onerror = () => { profileCardAvatarFrame.hidden = true; };
+      }
+      if (drawerAvatarFrame) {
+        drawerAvatarFrame.src = frameUrl;
+        drawerAvatarFrame.hidden = false;
+        drawerAvatarFrame.onerror = () => { drawerAvatarFrame.hidden = true; };
+      }
+    } else {
+      if (profileAvatarFrame) {
+        profileAvatarFrame.removeAttribute('src');
+        profileAvatarFrame.hidden = true;
+      }
+      if (profileCardAvatarFrame) {
+        profileCardAvatarFrame.removeAttribute('src');
+        profileCardAvatarFrame.hidden = true;
+      }
+      if (drawerAvatarFrame) {
+        drawerAvatarFrame.removeAttribute('src');
+        drawerAvatarFrame.hidden = true;
       }
     }
 
@@ -1749,8 +1798,27 @@ export function renderSiteHeader(container) {
     loadNotifications(true);
   }
 
+  function onCosmeticsUpdated(e) {
+    if (profileUser) {
+      if (e?.detail?.anillo_url !== undefined) {
+        profileUser.anillo_url = e.detail.anillo_url;
+        profileUser.avatar_frame_url = e.detail.anillo_url;
+      } else if (e?.detail?.avatar_frame_url !== undefined) {
+        profileUser.avatar_frame_url = e.detail.avatar_frame_url;
+        profileUser.anillo_url = e.detail.avatar_frame_url;
+      }
+      if (e?.detail?.banner_url !== undefined) {
+        profileUser.banner_url = e.detail.banner_url;
+      }
+      showProfile(profileUser);
+    } else {
+      loadProfile();
+    }
+  }
+
   window.addEventListener('yume:mutation', onNotificationTrigger);
   window.addEventListener('yume:notification-refresh', onNotificationTrigger);
+  window.addEventListener('yume:cosmetics-updated', onCosmeticsUpdated);
   window.addEventListener('visibilitychange', () => {
     if (!document.hidden && getAccessToken()) {
       onNotificationTrigger();
@@ -1769,6 +1837,7 @@ export function renderSiteHeader(container) {
   return () => {
     window.removeEventListener('yume:mutation', onNotificationTrigger);
     window.removeEventListener('yume:notification-refresh', onNotificationTrigger);
+    window.removeEventListener('yume:cosmetics-updated', onCosmeticsUpdated);
     menuToggle.removeEventListener('click', onMenuToggleClick);
     navigationLinks.forEach((link) => link.removeEventListener('click', onLinkClick));
     menuBackdrop.removeEventListener('click', onBackdropClick);

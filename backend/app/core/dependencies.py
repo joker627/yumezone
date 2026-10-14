@@ -79,9 +79,9 @@ async def get_current_active_user(
     return current_user
 
 
-# Obtener usuario administrador
+# Obtener usuario administrador activo
 async def get_current_admin_user(
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_active_user),
 ) -> CurrentUser:
     if current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]:
         raise HTTPException(

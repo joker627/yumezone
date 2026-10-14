@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from functools import lru_cache
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,6 +28,7 @@ class Settings:
     jwt_exp: int
 
 
+@lru_cache()
 def get_settings() -> Settings:
     return Settings(
         api_title=get_env_or_raise("API_TITLE"),

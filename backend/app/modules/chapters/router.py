@@ -1,5 +1,5 @@
 # imports standard
-from typing import List
+from typing import List, Optional
 
 # imports external
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 # imports internal
 from app.core.dependencies import (
     get_current_active_user,
+    get_optional_current_user,
     verify_upload_permission,
 )
 from app.modules.chapters.schemas import (
@@ -24,6 +25,24 @@ def get_chapter_service():
     return ChapterService()
 
 
+async def _assert_can_read_chapter(chapter, current_user: Optional[CurrentUser]):
+    if chapter.status.upper() == "PUBLISHED":
+        return
+    if current_user:
+        if current_user.platform_role.upper() in ["ADMIN", "SUPERADMIN"]:
+            return
+        if chapter.scan_group_id:
+            try:
+                await verify_upload_permission(current_user, chapter.scan_group_id)
+                return
+            except HTTPException:
+                pass
+    raise HTTPException(
+        status_code=404,
+        detail="Capítulo no encontrado",
+    )
+
+
 router = APIRouter()
 
 
@@ -34,10 +53,18 @@ router = APIRouter()
 )
 async def get_chapters(
     work_id: int,
-    published_only: bool = Query(False, description="Filtrar solo capítulos publicados"),
+    published_only: bool = Query(True, description="Filtrar solo capítulos publicados"),
     order: str = Query("asc", description="Orden de número de capítulo: asc o desc"),
     service: ChapterService = Depends(get_chapter_service),
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
 ):
+    if not published_only:
+        if not current_user or (
+            current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]
+            and not current_user.is_scan_member
+        ):
+            published_only = True
+
     return await service.get_chapters(
         work_id, published_only=published_only, order=order
     )
@@ -48,6 +75,7 @@ async def get_chapters(
 async def get_chapter_by_id(
     chapter_id: int,
     service: ChapterService = Depends(get_chapter_service),
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
 ):
     chapter = await service.get_chapter_by_id(chapter_id)
     if not chapter:
@@ -55,6 +83,7 @@ async def get_chapter_by_id(
             status_code=404,
             detail="Capítulo no encontrado",
         )
+    await _assert_can_read_chapter(chapter, current_user)
     return chapter
 
 
@@ -143,6 +172,7 @@ async def replace_chapter_pages(
 async def get_chapter_pages(
     chapter_id: int,
     service: ChapterService = Depends(get_chapter_service),
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
 ):
     chapter = await service.get_chapter_by_id(chapter_id)
     if not chapter:
@@ -150,5 +180,7 @@ async def get_chapter_pages(
             status_code=404,
             detail="Capítulo no encontrado",
         )
+    await _assert_can_read_chapter(chapter, current_user)
 
     return await service.get_chapter_images(chapter_id)
+

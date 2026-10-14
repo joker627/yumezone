@@ -539,6 +539,8 @@
               border-color 220ms ease,
               box-shadow 220ms ease;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
 }
 
 .catalog-card:hover {

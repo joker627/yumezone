@@ -1,9 +1,14 @@
+import time
 from typing import List, Optional, Tuple
 
 import aiomysql
 
 from app.core.database import get_db_pool
 from app.modules.works.models import Work
+
+_FILTERS_CACHE: Optional[dict[str, list[dict[str, object]]]] = None
+_FILTERS_CACHE_TIME: float = 0.0
+_FILTERS_TTL: float = 300.0  # 5 minutos
 
 
 class WorkRepository:
@@ -27,40 +32,29 @@ class WorkRepository:
         where_clauses: list[str] = []
         values: list[object] = []
         if search_term:
-            where_clauses.append("""
-                (
-                   INSTR(LOWER(COALESCE(w.title, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(w.alternative_title, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(w.slug, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(w.author, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(w.synopsis, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(sg.name, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(st.name, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(f.name, '')), LOWER(%s)) > 0
-                   OR INSTR(LOWER(COALESCE(d.name, '')), LOWER(%s)) > 0
-                   OR EXISTS (
-                       SELECT 1
-                       FROM work_genres AS wg
-                       JOIN genres AS g ON g.id = wg.genre_id
-                       WHERE wg.work_id = w.id
-                         AND INSTR(LOWER(g.name), LOWER(%s)) > 0
-                   )
-                   OR EXISTS (
-                       SELECT 1
-                       FROM work_tags AS wt
-                       JOIN tags AS t ON t.id = wt.tag_id
-                       WHERE wt.work_id = w.id
-                         AND INSTR(LOWER(t.name), LOWER(%s)) > 0
-                   )
-                   OR EXISTS (
-                       SELECT 1
-                       FROM chapters AS c
-                       WHERE c.work_id = w.id
-                         AND INSTR(LOWER(COALESCE(c.title, '')), LOWER(%s)) > 0
-                   )
-                )
-            """)
-            values.extend([search_term] * 12)
+            like_term = f"%{search_term}%"
+            if len(search_term) >= 3:
+                # Utiliza MATCH ... AGAINST si el término tiene longitud suficiente junto con LIKE sobre campos principales
+                where_clauses.append("""
+                    (
+                       MATCH(w.title, w.alternative_title, w.author, w.synopsis) AGAINST (%s IN BOOLEAN MODE)
+                       OR w.title LIKE %s
+                       OR w.alternative_title LIKE %s
+                       OR w.author LIKE %s
+                       OR sg.name LIKE %s
+                    )
+                """)
+                values.extend([f"+{search_term}*", like_term, like_term, like_term, like_term])
+            else:
+                where_clauses.append("""
+                    (
+                       w.title LIKE %s
+                       OR w.alternative_title LIKE %s
+                       OR w.author LIKE %s
+                       OR sg.name LIKE %s
+                    )
+                """)
+                values.extend([like_term, like_term, like_term, like_term])
 
         for column, selected_values in (
             ("w.format_id", format_id),
@@ -167,7 +161,12 @@ class WorkRepository:
             return works, total, current_page, last_visible_page
 
     async def get_filters(self) -> dict[str, list[dict[str, object]]]:
-        """Carga todos los filtros en una sola query con UNION ALL."""
+        """Carga todos los filtros en una sola query con UNION ALL (con caché en memoria de 5 min)."""
+        global _FILTERS_CACHE, _FILTERS_CACHE_TIME
+        now = time.time()
+        if _FILTERS_CACHE is not None and (now - _FILTERS_CACHE_TIME) < _FILTERS_TTL:
+            return _FILTERS_CACHE
+
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute("""
                 SELECT 'formats'      AS kind, id, name FROM formats
@@ -188,6 +187,9 @@ class WorkRepository:
         }
         for row in rows:
             filters[row["kind"]].append({"id": row["id"], "name": row["name"]})
+
+        _FILTERS_CACHE = filters
+        _FILTERS_CACHE_TIME = now
         return filters
 
     # get work by slug
@@ -267,8 +269,22 @@ class WorkRepository:
                     work.scan_group_id,
                 )
                 await cur.execute(query, values)
-                await conn.commit()
                 work.id = cur.lastrowid
+
+                # Inicializar estadísticas de la obra para evitar inconsistencias y valores nulos
+                await cur.execute(
+                    """
+                    INSERT INTO work_statistics (
+                        work_id, total_views, daily_views, weekly_views, monthly_views,
+                        rating_average, rating_count, trending_score, views_last_24h,
+                        followers_count, favorites_count
+                    )
+                    VALUES (%s, 0, 0, 0, 0, 0.00, 0, 0.00, 0, 0, 0)
+                    ON DUPLICATE KEY UPDATE work_id = VALUES(work_id)
+                    """,
+                    (work.id,),
+                )
+                await conn.commit()
                 return work
 
     # get work by id

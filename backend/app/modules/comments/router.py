@@ -47,6 +47,7 @@ async def list_comments(
             f"""
             SELECT c.id, c.work_id, c.chapter_id, c.parent_id, c.content, c.contains_spoiler,
                    c.created_at, c.updated_at, u.id AS user_id, u.username, u.avatar_url,
+                   u.anillo_url, u.anillo_url AS avatar_frame_url,
                    COALESCE(SUM(cr.reaction = 'LIKE'), 0) AS likes,
                    COALESCE(SUM(cr.reaction = 'DISLIKE'), 0) AS dislikes
             FROM comments c

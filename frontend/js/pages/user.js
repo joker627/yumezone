@@ -28,28 +28,80 @@ function showError(title, desc) {
   if (profileView) profileView.hidden = true;
 }
 
+// Diccionario de banderas emoji por código ISO de país
+const COUNTRY_FLAGS = {
+  'CO': '🇨🇴',
+  'MX': '🇲🇽',
+  'AR': '🇦🇷',
+  'ES': '🇪🇸',
+  'CL': '🇨🇱',
+  'PE': '🇵🇪',
+  'VE': '🇻🇪',
+  'EC': '🇪🇨',
+  'GT': '🇬🇹',
+  'CU': '🇨🇺',
+  'BO': '🇧🇴',
+  'DO': '🇩🇴',
+  'HN': '🇭🇳',
+  'PY': '🇵🇾',
+  'SV': '🇸🇻',
+  'NI': '🇳🇮',
+  'CR': '🇨🇷',
+  'PA': '🇵🇦',
+  'UY': '🇺🇾',
+  'PR': '🇵🇷',
+  'US': '🇺🇸',
+  'JP': '🇯🇵',
+  'KR': '🇰🇷',
+  'BR': '🇧🇷',
+  'FR': '🇫🇷',
+  'DE': '🇩🇪',
+  'IT': '🇮🇹',
+  'GB': '🇬🇧',
+  'CA': '🇨🇦'
+};
+
+const COUNTRY_SVGS = {
+  'CO': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="10" fill="#FCD116"/><rect y="10" width="28" height="5" fill="#003893"/><rect y="15" width="28" height="5" fill="#CE1126"/></svg>',
+  'MX': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="9.33" height="20" fill="#006847"/><rect x="9.33" width="9.33" height="20" fill="#FFFFFF"/><rect x="18.66" width="9.33" height="20" fill="#CE1126"/><circle cx="14" cy="10" r="2.2" fill="#8B5A2B"/></svg>',
+  'AR': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="6.66" fill="#74ACDF"/><rect y="6.66" width="28" height="6.66" fill="#FFFFFF"/><rect y="13.33" width="28" height="6.66" fill="#74ACDF"/><circle cx="14" cy="10" r="2" fill="#F6B40E"/></svg>',
+  'ES': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="5" fill="#AA151B"/><rect y="5" width="28" height="10" fill="#F1BF00"/><rect y="15" width="28" height="5" fill="#AA151B"/></svg>',
+  'CL': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="10" fill="#FFFFFF"/><rect y="10" width="28" height="10" fill="#D52B1E"/><rect width="10" height="10" fill="#0039A6"/><polygon points="5,2 6,4.5 8.5,4.5 6.5,6 7.2,8.5 5,7 2.8,8.5 3.5,6 1.5,4.5 4,4.5" fill="#FFFFFF"/></svg>',
+  'PE': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="9.33" height="20" fill="#D91023"/><rect x="9.33" width="9.33" height="20" fill="#FFFFFF"/><rect x="18.66" width="9.33" height="20" fill="#D91023"/></svg>',
+  'VE': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="6.66" fill="#FCE300"/><rect y="6.66" width="28" height="6.66" fill="#00247D"/><rect y="13.33" width="28" height="6.66" fill="#CF142B"/></svg>'
+};
+
 function formatMemberDate(dateStr) {
-  if (!dateStr) return 'Miembro registrado';
+  if (!dateStr) return 'MIEMBRO REGISTRADO';
   try {
     const d = new Date(dateStr);
-    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    return `Miembro desde ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+    return `MIEMBRO DESDE ${months[d.getMonth()]} DE ${d.getFullYear()}`;
   } catch {
-    return 'Miembro registrado';
+    return 'MIEMBRO REGISTRADO';
   }
 }
 
 
 function renderUser(user) {
+  displayedUser = user;
   if (errorContainer) errorContainer.hidden = true;
   if (profileView) profileView.hidden = false;
 
   const username = user.username || 'Lector';
   document.title = `${username} | Perfil en YumeZone`;
 
-  // Username y @handle
+  // Username en mayúsculas estilo Pro Gamer
   const usernameEl = document.getElementById('user-username');
-  if (usernameEl) usernameEl.textContent = username;
+  if (usernameEl) usernameEl.textContent = username.toUpperCase();
+
+  // Título cosmético activo equipado (o título de rango por nivel)
+  const activeTitleEl = document.getElementById('user-active-title');
+  if (activeTitleEl) {
+    const titleText = user.active_title || user.level_info?.current_title || 'Cazador Novato';
+    activeTitleEl.textContent = titleText;
+    activeTitleEl.style.display = 'inline-flex';
+  }
 
   const handleEl = document.getElementById('user-handle');
   if (handleEl) handleEl.textContent = `@${user.username?.toLowerCase() || 'lector'}`;
@@ -66,9 +118,11 @@ function renderUser(user) {
     createdValEl.textContent = formatMemberDate(user.created_at);
   }
 
-  // Avatar
+  // Avatar y marco cosmético
   const avatarImg = document.getElementById('user-avatar-img');
   const avatarFallback = document.getElementById('user-avatar-fallback');
+  const avatarFrame = document.getElementById('user-avatar-frame');
+
   if (user.avatar_url) {
     if (avatarImg) {
       avatarImg.src = user.avatar_url;
@@ -80,6 +134,16 @@ function renderUser(user) {
     if (avatarFallback) {
       avatarFallback.textContent = (username[0] || 'Y').toUpperCase();
       avatarFallback.classList.remove('hidden');
+    }
+  }
+
+  if (avatarFrame) {
+    const frameSrc = user.anillo_url || user.avatar_frame_url;
+    if (frameSrc) {
+      avatarFrame.src = frameSrc;
+      avatarFrame.style.display = 'block';
+    } else {
+      avatarFrame.style.display = 'none';
     }
   }
 
@@ -182,16 +246,29 @@ function renderUser(user) {
   if (xpNext) xpNext.textContent = `→ Siguiente: Nv. ${lvlInfo.level + 1} ${lvlInfo.next_title}`;
 
   const xpNumbers = document.getElementById('xp-numbers-label');
-  if (xpNumbers) xpNumbers.textContent = `${(lvlInfo.current_level_xp || 0).toLocaleString()} / 1,000 EXP`;
+  if (xpNumbers) xpNumbers.textContent = `${(lvlInfo.current_level_xp || 0).toLocaleString()} XP`;
 
   const xpPct = document.getElementById('xp-pct-label');
   if (xpPct) xpPct.textContent = `${lvlInfo.percentage || 0}% Completado`;
 
   const xpRemaining = document.getElementById('xp-remaining-label');
-  if (xpRemaining) xpRemaining.textContent = `Faltan ${(lvlInfo.remaining_xp || 0).toLocaleString()} EXP`;
+  if (xpRemaining) xpRemaining.textContent = `FALTAN ${(lvlInfo.remaining_xp || 0).toLocaleString()}`;
 
   const xpBar = document.getElementById('xp-progress-bar');
   if (xpBar) xpBar.style.width = `${lvlInfo.percentage || 0}%`;
+
+  // Bandera de País Pro (SVG Vectorial nativo + FlagCDN + fallback emoji)
+  const flagEl = document.getElementById('user-country-flag');
+  if (flagEl) {
+    const countryCode = (user.country || 'CO').toUpperCase();
+    if (COUNTRY_SVGS[countryCode]) {
+      flagEl.innerHTML = COUNTRY_SVGS[countryCode];
+    } else {
+      const codeLower = countryCode.toLowerCase();
+      flagEl.innerHTML = `<img src="https://flagcdn.com/32x24/${codeLower}.png" srcset="https://flagcdn.com/64x48/${codeLower}.png 2x" width="30" height="22" alt="${countryCode}" style="border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block; vertical-align: middle;" onerror="this.outerHTML='${COUNTRY_FLAGS[countryCode] || '🇨🇴'}'"/>`;
+    }
+    flagEl.title = `País: ${countryCode}`;
+  }
 
 
   // Estadísticas reales
@@ -240,7 +317,7 @@ function renderUser(user) {
   }
 
   // Enlaces directos a Consolas de administración en la barra lateral
-  const host = window.location.hostname || '192.168.1.43';
+  const host = window.location.hostname || 'localhost';
   const hasScanAccess = Boolean(role === 'SUPERADMIN' || role === 'ADMIN' || user.scan_group);
   const hasAdminAccess = Boolean(role === 'SUPERADMIN' || role === 'ADMIN');
 
@@ -277,6 +354,14 @@ function renderUser(user) {
 
   // 4. Desglose de Géneros Reales
   renderGenresBreakdown(user.genres_breakdown || [], stats.total_chapters_read || 0);
+
+  // 5. Acciones: Propietario (Editar Perfil)
+  const isOwner = Boolean(user.is_owner || (currentUser && currentUser.id === user.id));
+  const editBtn = document.getElementById('btn-edit-profile');
+
+  if (editBtn) {
+    editBtn.style.display = isOwner ? 'inline-flex' : 'none';
+  }
 
   // Perfil privado
   if (privateView) {
@@ -430,16 +515,16 @@ function renderActivityFeed(activities) {
           </div>
 
           <div class="profile-activity-chapter-box">
-            <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0; flex: 1; overflow: hidden;">
               ${act.work_cover_url ? `<img src="${escapeHTML(act.work_cover_url)}" class="profile-activity-cover" alt="" onerror="this.style.display='none'"/>` : ''}
-              <div style="min-width: 0;">
+              <div style="min-width: 0; flex: 1; overflow: hidden;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${escapeHTML(chapterLabel + chapterTitle)}
                 </div>
-                <div style="font-size: 0.72rem; color: var(--neutral-400);">${escapeHTML(act.work_title)}</div>
+                <div style="font-size: 0.72rem; color: var(--neutral-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(act.work_title)}</div>
               </div>
             </div>
-            <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-btn profile-btn--secondary" style="padding: 0.35rem 0.85rem; font-size: 0.75rem;">
+            <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-btn profile-btn--secondary" style="padding: 0.35rem 0.85rem; font-size: 0.75rem; flex-shrink: 0;">
               Leer
             </a>
           </div>
@@ -711,14 +796,7 @@ function initInteractiveFeatures() {
     });
   });
 
-  const bookmarkBtn = document.getElementById('btn-bookmark-profile');
-  if (bookmarkBtn) {
-    bookmarkBtn.addEventListener('click', () => {
-      showToast('Perfil guardado en tus favoritos', 'success');
-      if (menuDropdown) menuDropdown.hidden = true;
-    });
-  }
-
+  // Reportar perfil
   const reportBtn = document.getElementById('btn-report-profile');
   if (reportBtn) {
     reportBtn.addEventListener('click', () => {
@@ -727,17 +805,120 @@ function initInteractiveFeatures() {
     });
   }
 
+  // Modal de Edición de Perfil
+  const editBtn = document.getElementById('btn-edit-profile');
+  if (editBtn) {
+    editBtn.addEventListener('click', openEditModal);
+  }
+
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', closeEditModal);
+  }
+
+  const modalCancelBtn = document.getElementById('modal-cancel-btn');
+  if (modalCancelBtn) {
+    modalCancelBtn.addEventListener('click', closeEditModal);
+  }
+
+  const editModalOverlay = document.getElementById('edit-profile-modal');
+  if (editModalOverlay) {
+    editModalOverlay.addEventListener('click', (e) => {
+      if (e.target === editModalOverlay) {
+        closeEditModal();
+      }
+    });
+  }
+
+  const editForm = document.getElementById('edit-profile-form');
+  if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('modal-submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando...';
+      }
+
+      try {
+        const usernameVal = document.getElementById('edit-username')?.value?.trim();
+        const bioVal = document.getElementById('edit-bio')?.value?.trim();
+        const avatarVal = document.getElementById('edit-avatar-url')?.value?.trim() || null;
+        const countryVal = document.getElementById('edit-country')?.value?.trim() || 'CO';
+        const isPrivateVal = Boolean(document.getElementById('edit-is-private')?.checked);
+
+        const payload = {
+          username: usernameVal,
+          bio: bioVal,
+          avatar_url: avatarVal,
+          country: countryVal,
+          is_private: isPrivateVal
+        };
+
+        const updated = await authRequest('/users/me', {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+
+        showToast('¡Perfil actualizado exitosamente!', 'success');
+        closeEditModal();
+
+        if (updated && updated.username) {
+          window.history.replaceState({}, '', `/pages/usuario.html?id=${encodeURIComponent(updated.username)}`);
+          renderUser(updated);
+        }
+      } catch (err) {
+        console.error('Error al actualizar perfil:', err);
+        showToast(err.message || 'Error al guardar los cambios del perfil', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Guardar Cambios';
+        }
+      }
+    });
+  }
 }
 
-// Variable de usuario autenticado
+// Variables de estado
 let currentUser = null;
+let displayedUser = null;
 
+function openEditModal() {
+  if (!displayedUser) return;
+  const modal = document.getElementById('edit-profile-modal');
+  const usernameInput = document.getElementById('edit-username');
+  const bioInput = document.getElementById('edit-bio');
+  const avatarInput = document.getElementById('edit-avatar-url');
+  const countryInput = document.getElementById('edit-country');
+  const privateInput = document.getElementById('edit-is-private');
+
+  if (usernameInput) usernameInput.value = displayedUser.username || '';
+  if (bioInput) bioInput.value = displayedUser.bio || '';
+  if (avatarInput) avatarInput.value = displayedUser.avatar_url || '';
+  if (countryInput) countryInput.value = (displayedUser.country || 'CO').toUpperCase();
+  if (privateInput) privateInput.checked = Boolean(displayedUser.is_private);
+
+  if (modal) {
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeEditModal() {
+  const modal = document.getElementById('edit-profile-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
 
 async function loadUser(id) {
   try {
     const cleanId = id.trim().replace(/^@/, '');
     const user = await apiRequest(`/users/${encodeURIComponent(cleanId)}`);
     renderUser(user);
+    return user;
   } catch (error) {
     console.error('Error cargando usuario:', error);
     if (error.status === 404 || error.message?.toLowerCase().includes('no encontrado')) {
@@ -751,6 +932,7 @@ async function loadUser(id) {
         'No pudimos conectar con el servidor para obtener los datos de este lector. Por favor intenta más tarde.'
       );
     }
+    return null;
   }
 }
 
@@ -770,17 +952,26 @@ async function init() {
   let identifier = urlParams.get('id');
 
   // Si no hay ?id=, intentar resolver el usuario autenticado
+  let loaded = null;
   if (!identifier) {
     if (currentUser && (currentUser.username || currentUser.user_code)) {
       const myId = currentUser.username || currentUser.user_code;
       window.history.replaceState({}, '', `/pages/usuario.html?id=${encodeURIComponent(myId)}`);
-      await loadUser(myId);
+      loaded = await loadUser(myId);
     } else {
       window.history.replaceState({}, '', `/pages/usuario.html?id=YumeMaster`);
-      await loadUser('YumeMaster');
+      loaded = await loadUser('YumeMaster');
     }
   } else {
-    await loadUser(identifier);
+    loaded = await loadUser(identifier);
+  }
+
+  // Si se solicitó el parámetro edit=1 y el lector es dueño del perfil, abrir modal automáticamente
+  if (urlParams.get('edit') === '1' && loaded) {
+    const isOwner = Boolean(loaded.is_owner || (currentUser && currentUser.id === loaded.id));
+    if (isOwner) {
+      openEditModal();
+    }
   }
 }
 
@@ -797,13 +988,13 @@ window.addEventListener('yume:xp-updated', (e) => {
     if (levelBadge) levelBadge.textContent = `Nv. ${lvl}`;
 
     const xpNumbers = document.getElementById('xp-numbers-label');
-    if (xpNumbers) xpNumbers.textContent = `${currXp.toLocaleString()} / 1,000 EXP`;
+    if (xpNumbers) xpNumbers.textContent = `${currXp.toLocaleString()} XP`;
 
     const xpPct = document.getElementById('xp-pct-label');
     if (xpPct) xpPct.textContent = `${pct}% Completado`;
 
     const xpRemaining = document.getElementById('xp-remaining-label');
-    if (xpRemaining) xpRemaining.textContent = `Faltan ${remXp.toLocaleString()} EXP`;
+    if (xpRemaining) xpRemaining.textContent = `FALTAN ${remXp.toLocaleString()}`;
 
     const xpBar = document.getElementById('xp-progress-bar');
     if (xpBar) xpBar.style.width = `${pct}%`;

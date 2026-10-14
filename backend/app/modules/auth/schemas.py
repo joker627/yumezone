@@ -13,6 +13,10 @@ class UserBase(BaseModel):
     username: str
     email: str
     avatar_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    anillo_url: Optional[str] = None
+    avatar_frame_url: Optional[str] = None
+    active_title: Optional[str] = None
     bio: Optional[str] = None
     is_private: bool
     platform_role: str

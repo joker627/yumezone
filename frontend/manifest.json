@@ -1,0 +1,21 @@
+{
+  "name": "YumeZone - Mangas, Manhwas y Manhuas en Español",
+  "short_name": "YumeZone",
+  "description": "Lee mangas, manhwas y manhuas online gratis en español con la mejor calidad visual.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d14",
+  "theme_color": "#090d14",
+  "icons": [
+    {
+      "src": "/assets/icons/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
