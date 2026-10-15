@@ -69,10 +69,9 @@ async def get_continue_reading(
 @router.get("/chat/recent/")
 async def get_recent_chat(
     limit: Annotated[int, Query(ge=1, le=30)] = 10,
-    channel: Annotated[str, Query(max_length=50)] = "general",
     repo: HomeRepository = Depends(_repo),
 ):
-    items = await repo.get_recent_chat(limit=limit, channel=channel)
+    items = await repo.get_recent_chat(limit=limit)
     return {"results": items, "count": len(items)}
 
 

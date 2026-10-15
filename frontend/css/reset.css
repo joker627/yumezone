@@ -47,6 +47,7 @@ select {
   font: inherit;
 }
 
-[hidden] {
+[hidden],
+.hidden {
   display: none !important;
 }

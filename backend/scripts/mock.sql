@@ -608,7 +608,6 @@ INSERT IGNORE INTO hero_new_queue (work_id, status, queued_at, activated_at, exp
 -- 13. CHAT Y ANUNCIOS
 -- ==========================================
 INSERT IGNORE INTO home_chats (user_id, content) VALUES
-(2,'📌 Recordatorio: los spoilers de novelas van exclusivamente en #spoilers con tags activados.'),
 (2,'¡Nuevo cap de Solo Leveling disponible! Cap 178 está brutal 🔥'),
 (3,'Alguien más vio el cap 175 de TBATE? La batalla final estuvo épica'),
 (4,'¿Cuándo suben el cap 3600 de Martial Peak completo?'),

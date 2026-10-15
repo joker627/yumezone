@@ -5,14 +5,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
+# verifica variables de entorno
 def get_env_or_raise(key: str) -> str:
     value = os.getenv(key)
     if value is None:
         raise ValueError(f"Falta la variable de entorno obligatoria: {key}")
     return value
 
-
+# config class
 @dataclass()
 class Settings:
     api_title: str
@@ -27,7 +27,7 @@ class Settings:
     jwt_algo: str
     jwt_exp: int
 
-
+# caché de settings y carga de config desde .env
 @lru_cache()
 def get_settings() -> Settings:
     return Settings(

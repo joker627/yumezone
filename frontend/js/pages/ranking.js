@@ -1,6 +1,6 @@
 import { apiRequest } from '../shared/auth.js';
 import { renderRankCard } from '../components/cards.js';
-import { renderLoader } from '../components/loader.js';
+import { renderRankingSkeletons } from '../components/loader.js';
 import { renderSiteHeader } from '../components/header.js';
 
 const header = document.getElementById('header');
@@ -10,7 +10,7 @@ async function loadRanking(period = 'all') {
   const container = document.getElementById('ranking-results');
   if (!container) return;
   container.setAttribute('aria-busy', 'true');
-  container.innerHTML = renderLoader({ text: 'Cargando ranking global…' });
+  container.innerHTML = renderRankingSkeletons(8);
   try {
     const data = await apiRequest(`/home/ranking/?period=${encodeURIComponent(period)}`);
     const items = data.results ?? data ?? [];

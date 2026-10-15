@@ -14,9 +14,9 @@ Allow: /assets/
 Allow: /css/
 Allow: /js/
 
-# Rutas privadas o administrativas protegidas
-Disallow: /admin/
-Disallow: /scan/
+# Rutas privadas protegidas
+# (Los paneles de administracion y de grupos scan se despliegan en su propio
+#  dominio y llevan su propio robots.txt, ya no cuelgan de aqui.)
 Disallow: /pages/login.html
 Disallow: /pages/registro.html
 Disallow: /pages/perfil.html

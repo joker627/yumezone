@@ -1,6 +1,4 @@
-/**
- * Componentes unificados de tarjetas para Obras, Lanzamientos y Rankings.
- */
+/** Tarjetas unificadas de obras, lanzamientos y rankings. */
 import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl, makeReaderUrl, formatViews } from '../shared/ui-utils.js';
 
 export function renderLaunchItem(item, { isCompact = false } = {}) {
@@ -54,9 +52,7 @@ export function renderLaunchItem(item, { isCompact = false } = {}) {
       </div>
     </div>
     <div class="launch-item--action" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
+      <img src="/assets/icons/svg/arrow-right.svg" width="16" height="16" alt="" aria-hidden="true">
     </div>
   </a>`;
 }

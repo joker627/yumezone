@@ -1,9 +1,17 @@
 import { apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
 import { safeUrl, IMG_FALLBACK } from '../shared/url-utils.js';
 import { renderSiteHeader } from '../components/header.js';
+import { renderLibrarySkeletons } from '../components/loader.js';
 
 const header = document.getElementById('header');
 if (header) renderSiteHeader(header);
+
+// Esqueletos mientras llega la biblioteca
+const loadingSection = document.getElementById('library-loading');
+if (loadingSection) {
+    loadingSection.innerHTML = renderLibrarySkeletons(6);
+    loadingSection.hidden = false;
+}
 
 const page = document.getElementById('library-page');
 const summary = document.getElementById('library-summary');
@@ -261,6 +269,7 @@ function showSignedOut() {
     const returnPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     signInLink.href = `/pages/login.html?next=${encodeURIComponent(returnPath)}`;
     signUpLink.href = `/pages/registro.html?next=${encodeURIComponent(returnPath)}`;
+    if (loadingSection) loadingSection.hidden = true;
     authPrompt.hidden = false;
     errorPanel.hidden = true;
     content.hidden = true;
@@ -326,6 +335,7 @@ async function loadLibrary() {
     authPrompt.hidden = true;
     errorPanel.hidden = true;
     content.hidden = true;
+    if (loadingSection) loadingSection.hidden = false;
     clearFeedback();
 
     if (!getAccessToken()) {
@@ -374,6 +384,7 @@ async function loadLibrary() {
             });
         }
         content.hidden = false;
+        if (loadingSection) loadingSection.hidden = true;
         renderLibrary();
     } catch (error) {
         if (error.status === 401 || error.status === 400) {
@@ -382,6 +393,7 @@ async function loadLibrary() {
         } else {
             errorMessage.textContent = error.message || 'Comprueba tu conexión e inténtalo de nuevo.';
             errorPanel.hidden = false;
+            if (loadingSection) loadingSection.hidden = true;
             summary.textContent = 'No se pudo actualizar tu biblioteca.';
         }
     } finally {

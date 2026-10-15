@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="12" cy="12" r="10"></circle>
-  <line x1="12" y1="16" x2="12" y2="12"></line>
-  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="64" height="64" viewBox="0 0 24 24" style="color: rgb(16, 185, 129); opacity: 1; transform: rotate(0deg);"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path stroke-linecap="round" d="M12 7h.01"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10 11h2v5m-2 0h4"></path></g></svg>

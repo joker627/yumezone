@@ -4,12 +4,14 @@ import { renderSiteHeader } from '../components/header.js';
 import { apiRequest, getAccessToken, clearAccessToken } from '../shared/auth.js';
 import { safeUrl, IMG_FALLBACK, formatNumber, makeReaderUrl, formatTimeAgoCompact, escapeHTML } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
+import { renderCommentSkeletons } from '../components/loader.js';
 
 const header = document.getElementById('header');
 if (header) renderSiteHeader(header);
 
 const page = document.getElementById('work-detail');
 const content = document.getElementById('work-content');
+const workSkeleton = document.getElementById('work-skeleton');
 const errorPanel = document.getElementById('work-error');
 const errorTitle = document.getElementById('work-error-title');
 const errorCopy = document.getElementById('work-error-copy');
@@ -204,9 +206,7 @@ function renderChapterRows() {
 
     if (!list.length) {
         const emptyItem = document.createElement('li');
-        emptyItem.className = 'work-detail-empty';
-        emptyItem.style.padding = '1.5rem';
-        emptyItem.style.textAlign = 'center';
+        emptyItem.className = 'work-detail-empty work-detail-empty--padded';
         emptyItem.textContent = currentChapterSearchQuery
             ? `No se encontraron capítulos que coincidan con "${currentChapterSearchQuery}".`
             : 'No hay capítulos disponibles en este rango.';
@@ -244,10 +244,7 @@ function renderChapterRows() {
         dateSpan.className = 'work-chapter-date';
         dateSpan.title = fullDate;
         dateSpan.innerHTML = `
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
+            <img src="/assets/icons/svg/history.svg" width="13" height="13" alt="" aria-hidden="true">
             <span>${timeAgo}</span>
         `;
 
@@ -410,6 +407,7 @@ if (sortBtn) {
 }
 
 function showError(message, notFound = false) {
+    if (workSkeleton) workSkeleton.hidden = true;
     content.hidden = true;
     errorPanel.hidden = false;
     errorTitle.textContent = notFound ? 'No encontramos esta obra' : 'No pudimos cargar la obra';
@@ -654,6 +652,7 @@ async function renderWork(work, chapters) {
         setupCommentForm(work.id);
     }
 
+    if (workSkeleton) workSkeleton.hidden = true;
     errorPanel.hidden = true;
     content.hidden = false;
     page.setAttribute('aria-busy', 'false');
@@ -723,6 +722,7 @@ async function loadWorkComments(workId) {
 
     try {
         commentsList.setAttribute('aria-busy', 'true');
+        commentsList.innerHTML = renderCommentSkeletons(3);
 
         const res = await apiRequest(`/comments/?work_id=${workId}&limit=100`);
         const data = res?.data || [];
@@ -752,7 +752,7 @@ function renderCommentThreads(comments) {
         commentsList.innerHTML = `
             <div class="comment-empty-state">
                 <p>Aún no hay comentarios sobre esta obra.</p>
-                <p style="font-size:0.75rem;margin-top:0.25rem;">¡Sé el primero en compartir tu opinión o teoría!</p>
+                <p class="comment-empty-hint">¡Sé el primero en compartir tu opinión o teoría!</p>
             </div>`;
         return;
     }
@@ -827,7 +827,7 @@ function renderCommentMainMarkup(c) {
     const likes = Number(c.likes || 0);
 
     const avatarMarkup = avatar
-        ? `<img class="comment-avatar-img" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="comment-avatar-fallback" style="display:none;">${initial}</div>`
+        ? `<img class="comment-avatar-img" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden');"><div class="comment-avatar-fallback hidden">${initial}</div>`
         : `<div class="comment-avatar-fallback">${initial}</div>`;
 
     const frameMarkup = anilloUrl
@@ -878,7 +878,7 @@ function renderCommentReplyMarkup(r) {
     const likes = Number(r.likes || 0);
 
     const avatarMarkup = avatar
-        ? `<img class="comment-reply-avatar" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="comment-reply-avatar-fallback" style="display:none;">${initial}</div>`
+        ? `<img class="comment-reply-avatar" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden');"><div class="comment-reply-avatar-fallback hidden">${initial}</div>`
         : `<div class="comment-reply-avatar-fallback">${initial}</div>`;
 
     const frameMarkup = anilloUrl
@@ -1108,6 +1108,7 @@ async function loadWork() {
     }
 
     page.setAttribute('aria-busy', 'true');
+    if (workSkeleton) workSkeleton.hidden = false;
     errorPanel.hidden = true;
     content.hidden = true;
 

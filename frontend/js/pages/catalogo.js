@@ -1,7 +1,8 @@
 import { renderSiteHeader } from '../components/header.js';
 import { apiRequest } from '../shared/auth.js';
 import { renderCatalogCard } from '../components/cards.js';
-import { renderCardSkeletons } from '../components/loader.js';
+import { renderSkeletonCards } from '../components/loader.js';
+import { esc } from '../shared/ui-utils.js';
 
 const header = document.getElementById('header');
 if (header) renderSiteHeader(header);
@@ -197,7 +198,7 @@ async function loadResults() {
     const controller = new AbortController();
     resultController = controller;
     results.setAttribute('aria-busy', 'true');
-    results.innerHTML = renderCardSkeletons(6);
+    results.innerHTML = renderSkeletonCards(6);
     pagination.hidden = true;
 
     if (state.q.length === 1) {
@@ -207,7 +208,9 @@ async function loadResults() {
         return;
     }
 
-    summary.textContent = state.q ? `Buscando “${state.q}”…` : 'Cargando obras…';
+    summary.innerHTML = state.q
+        ? `Buscando “${esc(state.q)}”…`
+        : '<span class="is-loading is-loading--md"></span>';
 
     try {
         const result = await apiRequest(`/works/?${buildResultsQuery(state)}`, {
@@ -261,7 +264,7 @@ function setFilterPanelOpen(isOpen, { discard = false, restoreFocus = false } = 
     if (!isOpen && discard) syncDraftControls(getState());
     filterPanel.hidden = !isOpen;
     if (filterBackdrop) filterBackdrop.hidden = !isOpen;
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    document.body.classList.toggle('no-scroll', isOpen);
     filterToggle.setAttribute('aria-expanded', String(isOpen));
     if (restoreFocus) filterToggle.focus();
 }

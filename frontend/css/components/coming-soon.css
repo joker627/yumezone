@@ -43,28 +43,15 @@
 }
 
 .coming-soon-icon-wrap img {
-  filter: invert(72%) sepia(43%) saturate(454%) hue-rotate(120deg) brightness(1.1);
+  width: 40px;
+  height: 40px;
   opacity: 0.9;
-}
-
-.coming-soon-icon-wrap--gold {
-  background: rgb(240 199 94 / 0.08);
-  border-color: rgb(240 199 94 / 0.18);
-  box-shadow: 0 0 48px rgb(240 199 94 / 0.08);
-}
-
-.coming-soon-icon-wrap--gold img {
-  filter: invert(83%) sepia(35%) saturate(601%) hue-rotate(2deg) brightness(1.05);
 }
 
 .coming-soon-icon-wrap--rose {
   background: rgb(232 120 120 / 0.08);
   border-color: rgb(232 120 120 / 0.18);
   box-shadow: 0 0 48px rgb(232 120 120 / 0.08);
-}
-
-.coming-soon-icon-wrap--rose img {
-  filter: invert(60%) sepia(40%) saturate(800%) hue-rotate(310deg) brightness(1.1);
 }
 
 @keyframes cs-pulse {
@@ -114,8 +101,9 @@
 }
 
 .coming-soon-badge img {
+  width: 12px;
+  height: 12px;
   opacity: 0.7;
-  filter: invert(72%) sepia(43%) saturate(454%) hue-rotate(120deg) brightness(1.1);
 }
 
 /* Features */
@@ -150,6 +138,8 @@
 }
 
 .coming-soon-feature img {
+  width: 16px;
+  height: 16px;
   opacity: 0.55;
   flex-shrink: 0;
 }

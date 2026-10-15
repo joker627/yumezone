@@ -1,8 +1,10 @@
+// Cada panel se despliega aparte, asi que las URLs no pueden derivarse del propio hostname.
+// En local (http) se asume el backend en el puerto 8000 y el frontend en el 5500 del mismo host.
 const hostname = (typeof window !== 'undefined' && window.location.hostname) ? window.location.hostname : 'localhost';
-export const API_BASE_URL = `http://${hostname}:8000/api`;
-export const FRONTEND_URL = `http://${hostname}:5500`;
-export const ADMIN_URL = `http://${hostname}:4000`;
-export const SCAN_URL = `http://${hostname}:4400`;
+const isLocal = (typeof window !== 'undefined' && window.location.protocol === 'http:');
+
+export const API_BASE_URL = isLocal ? `http://${hostname}:8000/api` : 'https://yumezone.vercel.app/api';
+export const FRONTEND_URL = isLocal ? `http://${hostname}:5500` : 'https://yumezone.page';
 
 const TOKEN_KEY = 'yumezone.access_token';
 

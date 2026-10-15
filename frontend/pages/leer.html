@@ -42,25 +42,25 @@
   <main class="reader-container">
     <!-- Barra de progreso superior ultra delgada -->
     <div class="reader-progress-track" aria-hidden="true">
-      <div id="reader-progress-bar" class="reader-progress-bar" style="width: 0%"></div>
+      <div id="reader-progress-bar" class="reader-progress-bar"></div>
     </div>
 
     <!-- Barra de navegación del lector -->
     <nav class="reader-toolbar" id="reader-toolbar" aria-label="Controles del lector">
       <div class="reader-toolbar-left">
         <a id="reader-back" class="reader-btn reader-btn--ghost" href="/pages/catalogo.html" title="Volver al catálogo">
-          <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true" width="16" height="16">
+          <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true">
           <span id="reader-work-title" class="reader-work-title">Volver a la obra</span>
         </a>
         <a class="reader-icon-btn reader-icon-btn--home" href="/" title="Inicio de YumeZone" aria-label="Inicio">
-          <img src="/assets/icons/svg/home.svg" alt="" aria-hidden="true" width="16" height="16">
+          <img src="/assets/icons/svg/home.svg" alt="" aria-hidden="true">
         </a>
       </div>
 
       <div class="reader-toolbar-center">
-        <h1 id="reader-chapter-title" class="reader-chapter-title">Cargando capítulo...</h1>
+        <h1 id="reader-chapter-title" class="reader-chapter-title"><span class="is-loading is-loading--lg"></span></h1>
         <div class="reader-pill-wrapper">
-          <span id="reader-page-indicator" class="reader-page-indicator" aria-live="polite">Cargando...</span>
+          <span id="reader-page-indicator" class="reader-page-indicator" aria-live="polite"><span class="is-loading is-loading--sm"></span></span>
         </div>
       </div>
 
@@ -68,31 +68,23 @@
         <div class="reader-nav-group">
           <button id="reader-top-prev-btn" class="reader-icon-btn" type="button" title="Capítulo anterior"
             aria-label="Capítulo anterior" disabled>
-            <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true" width="16" height="16">
+            <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true">
           </button>
           <select id="reader-chapter-select" class="reader-chapter-select" aria-label="Seleccionar capítulo"></select>
           <button id="reader-top-next-btn" class="reader-icon-btn" type="button" title="Capítulo siguiente"
             aria-label="Capítulo siguiente" disabled>
-            <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true" width="16" height="16">
+            <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
           </button>
         </div>
 
         <div class="reader-actions-group">
           <button id="reader-settings-btn" class="reader-icon-btn" type="button" title="Ajustes de lectura"
             aria-label="Ajustes de lectura" aria-haspopup="dialog" aria-expanded="false">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
+            <img src="/assets/icons/svg/settings.svg" alt="" aria-hidden="true">
           </button>
           <button id="reader-fullscreen-btn" class="reader-icon-btn reader-fullscreen-btn" type="button"
             title="Alternar pantalla completa" aria-label="Pantalla completa">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-            </svg>
+            <img src="/assets/icons/svg/panel-expand.svg" alt="" aria-hidden="true">
           </button>
         </div>
       </div>
@@ -104,7 +96,7 @@
           <span>Ajustes del Lector</span>
           <button id="reader-settings-close" class="reader-icon-btn reader-icon-btn--sm" type="button"
             aria-label="Cerrar ajustes">
-            <img src="/assets/icons/svg/x.svg" alt="" width="14" height="14">
+            <img src="/assets/icons/svg/x.svg" alt="">
           </button>
         </div>
         <div class="reader-settings-group">
@@ -133,8 +125,11 @@
     <!-- Contenedor del Lector -->
     <div id="reader-viewport" class="reader-viewport reader-width--standard">
       <div id="reader-loading" class="reader-status">
-        <div class="reader-spinner"></div>
-        <p>Cargando páginas del capítulo...</p>
+        <div class="yz-skeleton-pages" role="status" aria-label="Cargando páginas del capítulo">
+          <div class="yz-skeleton yz-skeleton-page yz-skeleton-page--lg" aria-hidden="true"></div>
+          <div class="yz-skeleton yz-skeleton-page yz-skeleton-page--md" aria-hidden="true"></div>
+          <div class="yz-skeleton yz-skeleton-page yz-skeleton-page--sm" aria-hidden="true"></div>
+        </div>
       </div>
 
       <div id="reader-error" class="reader-status" hidden>
@@ -147,10 +142,7 @@
       <!-- Tarjeta de Fin de Capítulo -->
       <section id="reader-end-card" class="reader-end-card" hidden aria-label="Fin del capítulo">
         <div class="reader-end-badge">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <img src="/assets/icons/svg/check.svg" alt="" aria-hidden="true">
           <span>Capítulo completado</span>
         </div>
         <h2 id="reader-end-title" class="reader-end-title">Fin del capítulo</h2>
@@ -158,10 +150,10 @@
         <div class="reader-end-actions">
           <button id="reader-end-next-btn" class="reader-btn reader-btn--primary reader-btn--lg" type="button">
             <span>Siguiente capítulo</span>
-            <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true" width="16" height="16">
+            <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
           </button>
           <button id="reader-end-prev-btn" class="reader-btn reader-btn--ghost" type="button">
-            <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true" width="16" height="16">
+            <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true">
             <span>Capítulo anterior</span>
           </button>
           <a id="reader-end-work-link" class="reader-btn reader-btn--ghost" href="/pages/catalogo.html">
@@ -175,7 +167,7 @@
     <footer id="reader-footer" class="reader-footer" aria-label="Navegación inferior">
       <div class="reader-footer-dock">
         <button id="reader-prev-btn" class="reader-dock-btn" type="button" title="Capítulo anterior" disabled>
-          <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true" width="15" height="15">
+          <img src="/assets/icons/svg/arrow-left.svg" alt="" aria-hidden="true">
           <span class="reader-dock-btn-text">Anterior</span>
         </button>
 
@@ -188,7 +180,7 @@
 
         <button id="reader-next-btn" class="reader-dock-btn" type="button" title="Capítulo siguiente" disabled>
           <span class="reader-dock-btn-text">Siguiente</span>
-          <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true" width="15" height="15">
+          <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
         </button>
       </div>
     </footer>
@@ -196,10 +188,7 @@
     <!-- Botón flotante para subir arriba -->
     <button id="reader-scroll-top" class="reader-scroll-top" type="button" title="Ir al inicio"
       aria-label="Ir al inicio" hidden>
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"
-        stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="18 15 12 9 6 15" />
-      </svg>
+      <img src="/assets/icons/svg/arrow-up.svg" alt="" aria-hidden="true">
     </button>
 
     <!-- Modal de atajos de teclado -->
@@ -209,7 +198,7 @@
           <h3>Atajos de teclado</h3>
           <button id="reader-shortcuts-close" class="reader-icon-btn reader-icon-btn--sm" type="button"
             aria-label="Cerrar">
-            <img src="/assets/icons/svg/x.svg" alt="" width="14" height="14">
+            <img src="/assets/icons/svg/x.svg" alt="">
           </button>
         </div>
         <div class="reader-modal-body">

@@ -5,10 +5,7 @@ let presenceInterval = null;
 let lastPingTime = 0;
 let isPresenceInitialized = false;
 
-/**
- * Envía la señal de desconexión inmediata al backend usando keepalive.
- */
-export function sendOfflineBeacon() {
+function sendOfflineBeacon() {
   const token = getAccessToken();
   if (!token) return;
 
@@ -24,10 +21,7 @@ export function sendOfflineBeacon() {
   } catch {}
 }
 
-/**
- * Envía un pulso de presencia activa al backend.
- */
-export async function sendHeartbeat() {
+async function sendHeartbeat() {
   const token = getAccessToken();
   if (!token) return;
 

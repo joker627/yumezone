@@ -2,9 +2,11 @@
 from typing import List, Optional
 
 # imports external
+import aiomysql
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 # imports internal
+from app.core.database import get_db_connection
 from app.core.dependencies import (
     get_current_active_user,
     get_optional_current_user,
@@ -19,10 +21,18 @@ from app.modules.chapters.schemas import (
 )
 from app.modules.chapters.services import ChapterService
 from app.modules.users.models import CurrentUser
+from app.modules.works.repository import WorkRepository
+from app.modules.works.services import WorkService
 
 
 def get_chapter_service():
     return ChapterService()
+
+
+def get_work_service(
+    conn: aiomysql.Connection = Depends(get_db_connection),
+):
+    return WorkService(WorkRepository(conn))
 
 
 async def _assert_can_read_chapter(chapter, current_user: Optional[CurrentUser]):
@@ -56,14 +66,19 @@ async def get_chapters(
     published_only: bool = Query(True, description="Filtrar solo capítulos publicados"),
     order: str = Query("asc", description="Orden de número de capítulo: asc o desc"),
     service: ChapterService = Depends(get_chapter_service),
+    work_service: WorkService = Depends(get_work_service),
     current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
 ):
     if not published_only:
-        if not current_user or (
-            current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]
-            and not current_user.is_scan_member
-        ):
+        # Ver el borrador ajeno exige ser de la plataforma o del grupo dueño de la obra
+        if not current_user:
             published_only = True
+        elif current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]:
+            try:
+                work = await work_service.get_work_by_id(work_id)
+                await verify_upload_permission(current_user, work.scan_group_id)
+            except HTTPException:
+                published_only = True
 
     return await service.get_chapters(
         work_id, published_only=published_only, order=order
@@ -92,9 +107,13 @@ async def get_chapter_by_id(
 async def create_chapter(
     chapter: ChapterCreate,
     service: ChapterService = Depends(get_chapter_service),
+    work_service: WorkService = Depends(get_work_service),
     current_user: CurrentUser = Depends(get_current_active_user),
 ):
-    await verify_upload_permission(current_user, chapter.scan_group_id)
+    # 404 si la obra no existe; el permiso se evalúa sobre el grupo dueño de la obra,
+    # nunca sobre el scan_group_id que manda el cliente en el body.
+    work = await work_service.get_work_by_id(chapter.work_id)
+    await verify_upload_permission(current_user, work.scan_group_id)
     return await service.create_chapter(chapter)
 
 

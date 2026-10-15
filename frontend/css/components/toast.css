@@ -120,6 +120,10 @@
   }
 }
 
+.toast-progress-bar.is-paused {
+  animation-play-state: paused;
+}
+
 /* Variante Éxito */
 .toast-success {
   border-color: rgba(16, 185, 129, 0.35);

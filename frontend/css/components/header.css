@@ -54,10 +54,7 @@
 .header-brand-name span {
   margin-left: 2px;
   color: var(--teal-400);
-}
-
-.header-drawer-brand,
-.header-drawer-only,
+}.header-drawer-only,
 .header-drawer-user-section,
 .header-drawer-user-card,
 .header-drawer-guest-box {
@@ -504,11 +501,6 @@
   color: #facc15;
 }
 
-.header-stat-coin-icon {
-  font-size: 0.82rem;
-  line-height: 1;
-}
-
 .header-stat-chip--level {
   color: var(--neutral-100);
 }
@@ -516,7 +508,6 @@
 .header-stat-icon {
   width: 13px;
   height: 13px;
-  filter: brightness(0) saturate(100%) invert(83%) sepia(96%) saturate(882%) hue-rotate(324deg) brightness(107%) contrast(91%);
 }
 
 .header-stat-sep {
@@ -634,6 +625,7 @@
 }
 
 .header-stats-dd-bar-fill {
+  width: 0;
   height: 100%;
   background: linear-gradient(90deg, #38bdf8, #2dd4bf);
   border-radius: var(--radius-full);
@@ -798,6 +790,7 @@
 }
 
 .header-stats-dd-item-bar-fill {
+  width: 0;
   height: 100%;
   background: linear-gradient(90deg, #0d9488, #2dd4bf);
   border-radius: var(--radius-full);
@@ -845,8 +838,7 @@
   color: var(--teal-300);
 }
 
-.header-stats-dd-empty,
-.header-stats-dd-loading {
+.header-stats-dd-empty {
   font-size: 0.7rem;
   color: var(--neutral-500);
   text-align: center;
@@ -899,14 +891,10 @@
   width: 18px;
   height: 18px;
   opacity: 0.8;
-  filter: invert(70%) sepia(10%) saturate(100%) hue-rotate(200deg);
 }
 .header-bell:hover img {
   opacity: 1;
-}
-
-.header-bell-badge,
-.header-bell-dot {
+}.header-bell-badge {
   position: absolute;
   top: -2px;
   right: -2px;
@@ -926,15 +914,9 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.header-bell-badge[hidden],
-.header-bell-dot[hidden] {
+}.header-bell-badge[hidden] {
   display: none !important;
-}
-
-.header-bell-badge.pop-in,
-.header-bell-dot.pop-in {
+}.header-bell-badge.pop-in {
   animation: bellBadgePop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1684,68 +1666,6 @@
   opacity: 1;
 }
 
-.header-profile-link--scan {
-  background: rgba(240, 199, 94, 0.08);
-  border: 1px solid rgba(240, 199, 94, 0.22);
-  color: #f0c75e;
-  margin-top: 0.15rem;
-}
-
-.header-profile-link--scan .header-profile-link-icon {
-  color: #f0c75e;
-}
-
-.header-profile-link--scan:hover {
-  background: rgba(240, 199, 94, 0.16);
-  border-color: rgba(240, 199, 94, 0.45);
-  color: #fff;
-}
-
-.header-profile-link--scan:hover .header-profile-link-icon {
-  color: #ffdf95;
-}
-
-.header-profile-link--admin {
-  background: rgba(232, 120, 120, 0.08);
-  border: 1px solid rgba(232, 120, 120, 0.22);
-  color: #ff9e9c;
-  margin-top: 0.15rem;
-}
-
-.header-profile-link--admin .header-profile-link-icon {
-  color: #e87878;
-}
-
-.header-profile-link--admin:hover {
-  background: rgba(232, 120, 120, 0.16);
-  border-color: rgba(232, 120, 120, 0.45);
-  color: #fff;
-}
-
-.header-profile-link-content {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  line-height: 1.2;
-}
-
-.header-profile-link-title {
-  font-weight: 600;
-}
-
-.header-profile-link-sub {
-  font-size: 0.65rem;
-  opacity: 0.85;
-}
-
-.header-profile-link-sub--scan {
-  color: #f0c75e;
-}
-
-.header-profile-link-sub--admin {
-  color: #ffb3b1;
-}
-
 .header-profile-swap-icon-img {
   width: 13px;
   height: 13px;
@@ -2081,6 +2001,7 @@
   }
 
   .header-drawer-xp-fill {
+    width: 0;
     height: 100%;
     background: linear-gradient(90deg, var(--teal-400), #38bdf8);
     border-radius: var(--radius-full);
@@ -2262,31 +2183,12 @@
   }
 
   /* Marca dentro del menú lateral (drawer) */
-  .header-drawer-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0 0.5rem 1.25rem 0.5rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid var(--neutral-800);
-  }
-
-  .header-drawer-logo {
-    width: 2rem;
-    height: 2rem;
-    object-fit: contain;
-  }
 
   .header-drawer-name {
     color: var(--neutral-50);
     font-size: 1.25rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-  }
-
-  .header-drawer-name--accent {
-    margin-left: 2px;
-    color: var(--teal-400);
   }
 
   /* Buscador en mobile alineado a la derecha */
@@ -2472,4 +2374,11 @@ body.menu-open {
   .header-link::after {
     transition: none;
   }
+}
+
+.header-clipboard-helper {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  opacity: 0;
 }

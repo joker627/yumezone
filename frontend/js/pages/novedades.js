@@ -1,6 +1,6 @@
 import { apiRequest } from '../shared/auth.js';
 import { renderLaunchItem } from '../components/cards.js';
-import { renderLoader } from '../components/loader.js';
+import { renderNovedadesSkeletons } from '../components/loader.js';
 import { renderSiteHeader } from '../components/header.js';
 
 const header = document.getElementById('header');
@@ -10,7 +10,7 @@ async function loadNovedades() {
   const container = document.getElementById('novedades-results');
   if (!container) return;
   container.setAttribute('aria-busy', 'true');
-  container.innerHTML = renderLoader({ text: 'Cargando novedades y estrenos…' });
+  container.innerHTML = renderNovedadesSkeletons(8);
   try {
     const data = await apiRequest('/home/launches/');
     const items = data.results ?? data ?? [];

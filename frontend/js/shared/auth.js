@@ -20,18 +20,6 @@ export function clearAccessToken() {
     } catch {}
 }
 
-export async function logoutUser() {
-    try {
-        await apiRequest('/chat/heartbeat', { method: 'DELETE' }).catch(() => {});
-        await authRequest('/logout', { method: 'POST' }).catch(() => {});
-    } catch (e) {
-        console.error("Error al cerrar sesión", e);
-    } finally {
-        clearAccessToken();
-        window.location.href = '/pages/login.html';
-    }
-}
-
 export function authRequest(path, options = {}) {
     return apiRequest(`/auth${path}`, options);
 }

@@ -433,11 +433,9 @@ CREATE TABLE home_chats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     content TEXT NOT NULL,
-    channel VARCHAR(50) DEFAULT 'general',
-    is_pinned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_home_chats_channel_created (channel, is_pinned, created_at)
+    INDEX idx_home_chats_created (created_at)
 );
 
 -- Conserva solamente el chat de las ulltimas 24 horas.

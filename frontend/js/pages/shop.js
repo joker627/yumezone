@@ -2,14 +2,28 @@ import { apiRequest, authRequest, getAccessToken } from '../shared/auth.js';
 import { renderSiteHeader } from '../components/header.js';
 import { escapeHTML } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
+import { renderShopSkeletons } from '../components/loader.js';
 
 // Inicializar cabecera del sitio
 const header = document.getElementById('header');
 if (header) renderSiteHeader(header);
 
+// Esqueletos del catálogo mientras llega la respuesta
+const shopGrid = document.getElementById('shop-items-grid');
+if (shopGrid) shopGrid.innerHTML = renderShopSkeletons(8);
+
 let currentUser = null;
 let shopItemsCache = [];
 let currentFilter = 'all';
+
+function setWalletFallback() {
+  const walletCoinsVal = document.getElementById('wallet-coins-val');
+  const walletUserTag = document.getElementById('shop-wallet-user-tag');
+  const walletSubHint = document.getElementById('wallet-sub-hint');
+  if (walletCoinsVal) walletCoinsVal.textContent = '0';
+  if (walletUserTag) walletUserTag.textContent = 'Invitado';
+  if (walletSubHint) walletSubHint.textContent = 'Inicia sesión para canjear fondos';
+}
 
 async function initUser() {
   const token = getAccessToken();
@@ -28,14 +42,17 @@ async function initUser() {
         if (viewProfileBtn && currentUser.username) {
           viewProfileBtn.href = `/pages/usuario.html?id=${encodeURIComponent(currentUser.username)}`;
         }
+      } else {
+        setWalletFallback();
+        if (viewProfileBtn) viewProfileBtn.href = '/pages/login.html';
       }
     } catch (e) {
       console.warn('No se pudo autenticar usuario en la tienda:', e);
+      setWalletFallback();
+      if (viewProfileBtn) viewProfileBtn.href = '/pages/login.html';
     }
   } else {
-    if (walletCoinsVal) walletCoinsVal.textContent = '0';
-    if (walletUserTag) walletUserTag.textContent = 'Invitado';
-    if (walletSubHint) walletSubHint.textContent = 'Inicia sesión para canjear fondos';
+    setWalletFallback();
     if (viewProfileBtn) viewProfileBtn.href = '/pages/login.html';
   }
 }
@@ -47,11 +64,13 @@ async function loadShopItems() {
     renderGrid();
   } catch (err) {
     console.error('Error al cargar items de la tienda:', err);
+    const summaryLabel = document.getElementById('shop-summary-label');
+    if (summaryLabel) summaryLabel.textContent = 'No se pudo cargar el catálogo';
     if (grid) {
       grid.innerHTML = `
         <div class="shop-empty-state">
-          <h3 style="color: #fff; margin-bottom: 0.5rem;">Error al conectar con la tienda</h3>
-          <p style="color: var(--neutral-400); margin: 0;">No se pudo obtener el catálogo de fondos. Intenta nuevamente más tarde.</p>
+          <h3 class="shop-empty-title">Error al conectar con la tienda</h3>
+          <p class="shop-empty-desc">No se pudo obtener el catálogo de fondos. Intenta nuevamente más tarde.</p>
         </div>
       `;
     }
@@ -92,8 +111,8 @@ function renderGrid() {
   if (!itemsToDisplay.length) {
     grid.innerHTML = `
       <div class="shop-empty-state">
-        <h3 style="color: #fff; margin-bottom: 0.5rem;">${currentFilter === 'inventory' ? 'Tu inventario está vacío' : 'No hay artículos en esta categoría'}</h3>
-        <p style="color: var(--neutral-400); margin: 0;">${currentFilter === 'inventory' ? 'Explora la tienda y canjea tus Yume Coins para obtener objetos.' : 'Pronto añadiremos más cosméticos y objetos.'}</p>
+        <h3 class="shop-empty-title">${currentFilter === 'inventory' ? 'Tu inventario está vacío' : 'No hay artículos en esta categoría'}</h3>
+        <p class="shop-empty-desc">${currentFilter === 'inventory' ? 'Explora la tienda y canjea tus Yume Coins para obtener objetos.' : 'Pronto añadiremos más cosméticos y objetos.'}</p>
       </div>
     `;
     return;
@@ -112,7 +131,7 @@ function renderGrid() {
 
     if (!currentUser) {
       actionButtonHtml = `
-        <a href="/pages/login.html" class="shop-btn shop-btn--buy" style="text-decoration: none;">
+        <a href="/pages/login.html" class="shop-btn shop-btn--buy">
           <img src="/assets/icons/svg/login.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Iniciar sesión para canjear</span>
         </a>

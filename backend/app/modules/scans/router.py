@@ -115,6 +115,7 @@ async def delete_group(
 )
 async def get_group_members(
     group_id: int,
+    current_user: CurrentUser = Depends(get_current_group_admin),
     service: ScanGroupService = Depends(get_scan_group_service),
 ):
     return await service.get_group_members(group_id)
