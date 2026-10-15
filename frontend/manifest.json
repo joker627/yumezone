@@ -1,21 +1,84 @@
 {
+  "id": "/",
   "name": "YumeZone - Mangas, Manhwas y Manhuas en Español",
   "short_name": "YumeZone",
   "description": "Lee mangas, manhwas y manhuas online gratis en español con la mejor calidad visual.",
-  "start_url": "/",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["entertainment", "books"],
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "any",
   "background_color": "#090d14",
   "theme_color": "#090d14",
   "icons": [
     {
-      "src": "/assets/icons/logo.png",
+      "src": "/assets/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo.png",
+      "src": "/assets/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/icon-monochrome-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "monochrome"
+    },
+    {
+      "src": "/assets/icons/icon-monochrome-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Catálogo",
+      "short_name": "Catálogo",
+      "description": "Explora el catálogo completo de obras",
+      "url": "/pages/catalogo.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Novedades",
+      "short_name": "Novedades",
+      "description": "Los capítulos recién publicados",
+      "url": "/pages/novedades.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Ranking",
+      "short_name": "Ranking",
+      "description": "Las obras más leídas por la comunidad",
+      "url": "/pages/ranking.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mi biblioteca",
+      "short_name": "Biblioteca",
+      "description": "Tu seguimiento y favoritos",
+      "url": "/pages/biblioteca.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

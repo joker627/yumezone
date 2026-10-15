@@ -1,5 +1,10 @@
 # Robots.txt YumeZone - Plataforma de Mangas, Manhwas y Manhuas
 User-agent: *
+# Senales de contenido (https://contentsignals.org/), las lee Cloudflare AI Crawl Control:
+#   search=yes    -> permitido para busqueda e indexacion
+#   ai-input=yes  -> permitido que la IA lea la web para responder al usuario
+#   ai-train=no   -> prohibido entrenar modelos con el contenido
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Allow: /index.html
 Allow: /pages/catalogo.html
@@ -15,8 +20,6 @@ Allow: /css/
 Allow: /js/
 
 # Rutas privadas protegidas
-# (Los paneles de administracion y de grupos scan se despliegan en su propio
-#  dominio y llevan su propio robots.txt, ya no cuelgan de aqui.)
 Disallow: /pages/login.html
 Disallow: /pages/registro.html
 Disallow: /pages/perfil.html

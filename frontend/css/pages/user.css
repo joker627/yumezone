@@ -1849,14 +1849,6 @@
   justify-content: center;
 }
 
-#badge-verified-top,
-#badge-role-top,
-#user-avatar-frame,
-#user-verified-icon,
-#user-role-pill {
-  display: none;
-}
-
 .profile-chip img {
   width: 14px;
   height: 14px;
@@ -1906,6 +1898,12 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+/* Perfil privado: el visitante solo ve la cabecera, el resto queda bloqueado */
+.profile-content--locked .profile-metrics-strip,
+.profile-content--locked .profile-main-grid {
+  display: none;
 }
 
 #private-profile-view {

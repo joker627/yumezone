@@ -356,14 +356,11 @@ function renderUser(user) {
     editBtn.classList.toggle('hidden', !isOwner);
   }
 
-  // Perfil privado
-  if (privateView) {
-    if (user.is_private && user.is_hidden) {
-      privateView.hidden = false;
-    } else {
-      privateView.hidden = true;
-    }
-  }
+  // Perfil privado: bloquear métricas, biblioteca y actividad para quien no es el dueño
+  const isPrivateLocked = Boolean(user.is_private && user.is_hidden);
+  if (privateView) privateView.hidden = !isPrivateLocked;
+  const profileContent = document.getElementById('profile-content');
+  if (profileContent) profileContent.classList.toggle('profile-content--locked', isPrivateLocked);
 }
 
 function renderFavoriteWorks(works) {
@@ -848,7 +845,7 @@ function initInteractiveFeatures() {
           is_private: isPrivateVal
         };
 
-        const updated = await authRequest('/users/me', {
+        const updated = await apiRequest('/users/me', {
           method: 'PUT',
           body: JSON.stringify(payload)
         });
