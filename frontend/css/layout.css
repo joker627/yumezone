@@ -8,6 +8,10 @@ body {
   overflow-x: hidden;
 }
 
+body.no-scroll {
+  overflow: hidden;
+}
+
 body:not(.reader-body) {
   padding-top: 4rem; /* compensación para el header fixed */
 }

@@ -47,7 +47,7 @@ async def get_current_user(
     repository = AuthRepository()
     user = await repository.get_user_by_email(email)
 
-    # Un usuario autenticado SIEMPRE tiene id (viene de la BD)
+    # usuario autenticado id
     if user is None or user.id is None:
         raise credentials_exception
 
@@ -56,11 +56,11 @@ async def get_current_user(
     return CurrentUser(**user_dict)
 
 
+# validar usuario 
 async def get_optional_current_user(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
 ) -> Optional[CurrentUser]:
-    # Intentamos leer de cookie si no hay credentials
     token = credentials.credentials if credentials else request.cookies.get("access_token")
     if not token:
         return None

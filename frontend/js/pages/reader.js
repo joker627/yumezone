@@ -1,7 +1,7 @@
 import { renderSiteHeader } from '../components/header.js';
 import { apiRequest, getAccessToken } from '../shared/auth.js';
 import { API_BASE_URL } from '../api/api-config.js';
-import { makeWorkUrl, makeReaderUrl, safeUrl, IMG_FALLBACK } from '../shared/ui-utils.js';
+import { makeWorkUrl, safeUrl, IMG_FALLBACK } from '../shared/ui-utils.js';
 
 // Inicializar cabecera si existe (se oculta en reader.css para máxima inmersión)
 const headerEl = document.getElementById('header');
@@ -692,10 +692,7 @@ function renderPages(pages, chapter) {
     emptyBox.className = 'reader-empty-chapter-box';
     emptyBox.innerHTML = `
       <div class="reader-placeholder-icon">
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>
+        <img src="/assets/icons/svg/book.svg" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <h3>Capítulo en preparación</h3>
       <p>Este capítulo aún no tiene paneles o páginas subidas por el equipo de scanlation. ¡Vuelve pronto!</p>
@@ -799,11 +796,7 @@ function renderPagePlaceholder(container, pageNum, chapter, isError = false) {
   content.className = 'reader-placeholder-content';
   content.innerHTML = `
     <div class="reader-placeholder-icon">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
+      <img src="/assets/icons/svg/frame.svg" width="24" height="24" alt="" aria-hidden="true">
     </div>
     <span class="reader-placeholder-title">Página ${pageNum}</span>
     <span class="reader-placeholder-sub">

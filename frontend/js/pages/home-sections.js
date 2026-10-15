@@ -1,9 +1,6 @@
-/**
- * Secciones dinámicas del home: Continuar Leyendo, Lanzamientos, Ranking,
- * Populares de la Semana y el Sidebar (Tablón, Misión Diaria, Chat).
- */
+/** Secciones dinámicas del home: Continuar Leyendo, Lanzamientos, Ranking, Populares y Sidebar. */
 import { apiRequest, getAccessToken } from '../shared/auth.js';
-import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl } from '../shared/ui-utils.js';
+import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl, applyDataProgress } from '../shared/ui-utils.js';
 import { renderLaunchItem, renderRankCard, renderPopularCard } from '../components/cards.js';
 import { showToast } from '../shared/toast.js';
 
@@ -37,7 +34,7 @@ function renderContinueCard(item) {
       <h3 class="continue-card--title" title="${title}">${title}</h3>
       <div class="continue-card--progress-wrap">
         <div class="continue-card--progress-bar">
-          <div class="continue-card--progress-fill" style="width:${progress}%"></div>
+          <div class="continue-card--progress-fill" data-progress="${progress}"></div>
         </div>
         <span class="continue-card--pct">${progress}%</span>
       </div>
@@ -66,32 +63,8 @@ function renderAnuncio(item) {
   </div>`;
 }
 
-function parseChatText(rawText) {
-  if (!rawText) return '';
-  let text = esc(rawText);
-
-  // 1. Soporte de spoilers con #spoiler <texto> o ||texto||
-  // Comando #spoiler <resto del texto>
-  if (text.startsWith('#spoiler ') || text.startsWith('/spoiler ')) {
-    const spoilerContent = text.replace(/^[#/]spoiler\s+/, '');
-    return `<span class="chat-spoiler-box" title="Clic para revelar spoiler"><span class="chat-spoiler-tag">⚠️ SPOILER:</span> <span class="chat-spoiler-content">${spoilerContent}</span></span>`;
-  }
-  // Sintaxis ||spoiler|| en cualquier parte del mensaje
-  text = text.replace(/\|\|(.*?)\|\|/g, '<span class="chat-spoiler-box" title="Clic para revelar spoiler"><span class="chat-spoiler-tag">⚠️</span> <span class="chat-spoiler-content">$1</span></span>');
-
-  // 2. Menciones destacadas: @staff, @admin, @mod, @usuario
-  text = text.replace(/@([a-zA-Z0-9_-]{2,30})/g, (match, username) => {
-    const isStaffMention = ['staff', 'admin', 'mod', 'soporte'].includes(username.toLowerCase());
-    const badgeClass = isStaffMention ? 'chat-mention chat-mention--staff' : 'chat-mention';
-    return `<span class="${badgeClass}" data-username="${username}" title="Mención a @${username}">@${username}</span>`;
-  });
-
-  return text;
-}
-
 function renderChatMsg(msg) {
   const msgId = msg.id;
-  const isPinned = Boolean(msg.is_pinned);
   const name = esc(msg.username ?? msg.name ?? 'Usuario');
   const avatarUrl = (msg.avatar_url ?? msg.avatar ?? '').trim();
   const anilloUrl = (msg.anillo_url ?? msg.avatar_frame_url ?? '').trim();
@@ -100,51 +73,30 @@ function renderChatMsg(msg) {
   const roleLabel = esc(msg.role_label ?? msg.roleLabel ?? role.toUpperCase());
   const level = esc(msg.level ?? '');
   const time = esc(msg.created_text ?? msg.time ?? '');
-  const rawText = msg.content ?? msg.text ?? '';
-  const parsedContent = parseChatText(rawText);
-
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUsername = (currentUser.username || '').toLowerCase();
-  const isCurrentUserStaff = ['ADMIN', 'SUPERADMIN'].includes((currentUser.platform_role || '').toUpperCase());
-
-  // Resaltado de mensaje si te mencionan directamente a ti o al staff si eres admin
-  const isMentioned = Boolean(
-    (currentUsername && rawText.toLowerCase().includes(`@${currentUsername}`)) ||
-    (isCurrentUserStaff && /@(?:staff|admin|mod|soporte)\b/i.test(rawText))
-  );
+  const content = esc(msg.content ?? msg.text ?? '');
 
   const avatarMarkup = avatarUrl
-    ? `<img class="chat-msg--avatar-img" src="${esc(avatarUrl)}" alt="${name}" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling){this.nextElementSibling.style.display='flex';}"><span class="chat-msg--initial" style="display:none;" aria-hidden="true">${initial}</span>`
+    ? `<img class="chat-msg--avatar-img" src="${esc(avatarUrl)}" alt="${name}" loading="lazy" onerror="this.hidden=true;if(this.nextElementSibling){this.nextElementSibling.hidden=false;}"><span class="chat-msg--initial" hidden aria-hidden="true">${initial}</span>`
     : `<span class="chat-msg--initial">${initial}</span>`;
 
   const frameMarkup = anilloUrl
     ? `<img class="chat-msg--frame-img" src="${esc(anilloUrl)}" alt="" aria-hidden="true">`
     : '';
 
-  const pinBadgeMarkup = isPinned
-    ? `<span class="chat-msg--pin-badge" title="Mensaje fijado por la Administración">📌 Fijado</span>`
-    : '';
-
-  const pinBtnMarkup = (isCurrentUserStaff && msgId)
-    ? `<button type="button" class="chat-msg--pin-action-btn ${isPinned ? 'is-active' : ''}" data-msg-id="${msgId}" title="${isPinned ? 'Desfijar del chat' : 'Fijar mensaje en el chat general'}">${isPinned ? '📌 Fijado' : '📌 Fijar'}</button>`
-    : '';
-
   return `
-  <div class="chat-msg ${isPinned ? 'chat-msg--pinned' : ''} ${isMentioned ? 'chat-msg--mention' : ''}" data-author="${name}" data-msg-id="${msgId || ''}">
-    <div class="chat-msg--avatar" title="Mencionar a @${name}">
+  <div class="chat-msg" data-author="${name}" data-msg-id="${msgId || ''}">
+    <div class="chat-msg--avatar">
       <div class="chat-msg--avatar-inner">${avatarMarkup}</div>
       ${frameMarkup}
     </div>
     <div class="chat-msg--body">
       <div class="chat-msg--header">
-        <span class="chat-msg--name" title="Clic para mencionar">${name}</span>
-        ${pinBadgeMarkup}
+        <span class="chat-msg--name">${name}</span>
         ${role ? `<span class="chat-msg--role chat-msg--role--${role}">${roleLabel}</span>` : ''}
         ${level ? `<span class="chat-msg--level">${level}</span>` : ''}
-        ${pinBtnMarkup}
         <span class="chat-msg--time">${time}</span>
       </div>
-      <div class="chat-msg--text">${parsedContent}</div>
+      <div class="chat-msg--text">${content}</div>
     </div>
   </div>`;
 }
@@ -294,6 +246,7 @@ async function loadContinue(slot) {
     const items = data.results ?? data ?? [];
     if (items.length) {
       setContent(slot, items.slice(0, 3).map(renderContinueCard).join(''));
+      applyDataProgress(slot);
     } else {
       setContent(slot, renderEmptyContinue());
     }
@@ -358,8 +311,6 @@ async function loadAnuncios(slot, type = 'sistema') {
   }
 }
 
-let activeChatChannel = 'general';
-
 async function loadChatOnlineStats() {
   const onlineCountEl = document.getElementById('chat-online-count');
   const onlineListEl = document.getElementById('chat-online-list');
@@ -381,7 +332,7 @@ async function loadChatOnlineStats() {
         const uRole = esc(u.platform_role ?? 'USER');
         const isMod = ['ADMIN', 'SUPERADMIN'].includes(uRole.toUpperCase());
         const avatarEl = uAvatar
-          ? `<img class="chat-online-user-avatar" src="${esc(uAvatar)}" alt="${uName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><span class="chat-online-user-initial" style="display:none;">${uInitial}</span>`
+          ? `<img class="chat-online-user-avatar" src="${esc(uAvatar)}" alt="${uName}" onerror="this.hidden=true;this.nextElementSibling.hidden=false;"><span class="chat-online-user-initial" hidden>${uInitial}</span>`
           : `<span class="chat-online-user-initial">${uInitial}</span>`;
         const frameEl = uAnillo
           ? `<img class="chat-online-user-frame" src="${esc(uAnillo)}" alt="" aria-hidden="true">`
@@ -408,72 +359,30 @@ async function loadChatOnlineStats() {
 
 // Estado del chat para renderizado incremental (evita recargar todo el DOM)
 const chatState = {
-  channel: null,
   ids: new Set(),
-  pinnedKey: '',
   signature: '',
 };
 
-function renderPinnedBar(pinnedInput) {
-  const bar = document.getElementById('chat-pinned-bar');
-  if (!bar) return;
-  const pinnedList = Array.isArray(pinnedInput)
-    ? pinnedInput
-    : (pinnedInput ? [pinnedInput] : []);
-
-  const key = pinnedList.map(m => `${m.id}:${m.content}`).join('|');
-  if (key === chatState.pinnedKey) return;
-  chatState.pinnedKey = key;
-
-  if (!pinnedList.length) {
-    bar.hidden = true;
-    bar.innerHTML = '';
-    return;
-  }
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isStaff = ['ADMIN', 'SUPERADMIN'].includes((currentUser.platform_role || '').toUpperCase());
-
-  bar.innerHTML = pinnedList.map(pinned => `
-    <div class="chat-pinned-item" data-msg-id="${pinned.id}">
-      <span class="chat-pinned-bar--icon" aria-hidden="true">📌</span>
-      <div class="chat-pinned-bar--body">
-        <div class="chat-pinned-bar--header">
-          <span class="chat-pinned-bar--author">${esc(pinned.username ?? 'Staff')}</span>
-          <span class="chat-pinned-bar--badge">Fijado</span>
-        </div>
-        <div class="chat-pinned-bar--text">${parseChatText(pinned.content ?? '')}</div>
-      </div>
-      ${isStaff ? `<button type="button" class="chat-msg--pin-action-btn is-active" data-msg-id="${pinned.id}" title="Desfijar">✕</button>` : ''}
-    </div>
-  `).join('');
-  bar.hidden = false;
-}
-
-async function loadChat(slot, channel = activeChatChannel, { force = false } = {}) {
+async function loadChat(slot, { force = false } = {}) {
   if (!slot) return;
   try {
-    const data = await apiRequest(`/home/chat/recent/?channel=${encodeURIComponent(channel)}&limit=30`);
+    const data = await apiRequest('/home/chat/recent/?limit=30');
     const items = data.results ?? data ?? [];
 
-    // Mensajes fijados visibles arriba de forma limpia
-    const pinnedList = items.filter(m => m.is_pinned);
-    renderPinnedBar(pinnedList);
-
-    const normal = items.filter(m => !m.is_pinned).slice(0, 25).reverse(); // orden cronológico
-    const channelChanged = chatState.channel !== channel;
+    const normal = items.slice(0, 25).reverse(); // orden cronológico
     const signature = normal.map(m => m.id).join(',');
 
     // Sin cambios: no tocar el DOM
-    if (!force && !channelChanged && signature === chatState.signature) return;
+    if (!force && signature === chatState.signature) return;
 
     const nearBottom = slot.scrollHeight - slot.scrollTop - slot.clientHeight < 80;
     const newOnes = normal.filter(m => !chatState.ids.has(m.id));
-    const canAppend = !force && !channelChanged && chatState.ids.size > 0
+    const canAppend = !force && chatState.ids.size > 0
       && normal.every(m => chatState.ids.has(m.id) || newOnes.includes(m))
       && newOnes.length < normal.length;
 
     if (canAppend) {
-      // Quitar mensajes que ya no vienen (borrados/fijados) y añadir solo los nuevos
+      // Quitar mensajes que ya no vienen (borrados) y añadir solo los nuevos
       const keep = new Set(normal.map(m => String(m.id)));
       slot.querySelectorAll('.chat-msg[data-msg-id]').forEach(el => {
         if (!keep.has(el.dataset.msgId)) el.remove();
@@ -482,14 +391,13 @@ async function loadChat(slot, channel = activeChatChannel, { force = false } = {
     } else if (normal.length) {
       setContent(slot, normal.map(renderChatMsg).join(''));
     } else {
-      setContent(slot, emptyState('chat', `No hay mensajes en #${channel}. ¡Sé el primero en escribir!`));
+      setContent(slot, emptyState('chat', 'No hay mensajes en el chat. ¡Sé el primero en escribir!'));
     }
 
-    chatState.channel = channel;
     chatState.ids = new Set(normal.map(m => m.id));
     chatState.signature = signature;
 
-    if (nearBottom || channelChanged || force) {
+    if (nearBottom || force) {
       requestAnimationFrame(() => { slot.scrollTop = slot.scrollHeight; });
     }
   } catch (err) {
@@ -664,76 +572,12 @@ export function renderHomeSections(container) {
               <div>
                 <div class="chat-title-row">
                   <h2 id="aside-chat-title" class="aside-card--title">Chat en Vivo</h2>
-                  <span class="chat-current-channel-badge" id="chat-current-channel-badge" title="Canal activo">#general</span>
                 </div>
                 <div class="chat-online-indicator" id="chat-online-indicator" title="Ver lectores en línea">
                   <span class="hs-dot"></span>
                   <span id="chat-online-count">En línea</span>
                 </div>
               </div>
-            </div>
-            <div class="chat-head-actions">
-              <button class="chat-live-filter-btn" id="chat-filter-toggle" type="button" aria-expanded="false" title="Canales de Chat">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                <span id="chat-channel-btn-label">Canales</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Popover Guía de Comandos del Chat (#ayuda) -->
-          <div class="chat-help-popover" id="chat-help-popover" hidden>
-            <div class="chat-help-popover-head">
-              <span>💡 Comandos del Chat</span>
-              <button id="chat-help-popover-close" type="button" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="chat-help-list">
-              <div class="chat-help-item" data-cmd="#ayuda">
-                <div class="chat-help-item-title"><code>#ayuda</code></div>
-                <div class="chat-help-item-desc">Muestra esta guía de comandos rápidos.</div>
-              </div>
-              <div class="chat-help-item" data-cmd="#spoiler ">
-                <div class="chat-help-item-title"><code>#spoiler &lt;texto&gt;</code> o <code>||texto||</code></div>
-                <div class="chat-help-item-desc">Oculta spoilers bajo un filtro difuminado interactivo.</div>
-              </div>
-              <div class="chat-help-item" data-cmd="@staff ">
-                <div class="chat-help-item-title"><code>@staff</code> o <code>@admin</code></div>
-                <div class="chat-help-item-desc">Notifica al Staff directamente para dudas o reportes.</div>
-              </div>
-            </div>
-            <div class="chat-help-popover-foot">
-              <span>Clic en cualquier comando para insertarlo</span>
-            </div>
-          </div>
-
-          <!-- Dropdown Popup de Canales del Chat -->
-          <div class="chat-filter-dropdown" id="chat-filter-dropdown" hidden>
-            <div class="chat-filter-dropdown-head">
-              <span>Canales de Chat</span>
-              <button id="chat-filter-dropdown-close" type="button" aria-label="Cerrar">&times;</button>
-            </div>
-
-            <div class="chat-channel-options">
-              <label class="chat-filter-option">
-                <input type="radio" name="chat-channel-choice" value="general" checked>
-                <span class="chat-channel-choice-item">
-                  <strong>#general</strong>
-                  <small>Público para todos</small>
-                </span>
-              </label>
-              <label class="chat-filter-option">
-                <input type="radio" name="chat-channel-choice" value="scans">
-                <span class="chat-channel-choice-item">
-                  <strong>#scans</strong>
-                  <small>Solo Staff y Scans</small>
-                </span>
-              </label>
-              <label class="chat-filter-option">
-                <input type="radio" name="chat-channel-choice" value="staff">
-                <span class="chat-channel-choice-item">
-                  <strong>#staff</strong>
-                  <small>🔒 Exclusivo Staff/Admin</small>
-                </span>
-              </label>
             </div>
           </div>
 
@@ -748,18 +592,14 @@ export function renderHomeSections(container) {
             </div>
           </div>
 
-          <!-- Mensaje fijado por el Staff (siempre visible arriba) -->
-          <div class="chat-pinned-bar" id="chat-pinned-bar" hidden></div>
-
           <div class="chat-messages" role="log" aria-live="polite" id="slot-chat">
             ${skeletonCards('chat', 3, 1)}
           </div>
 
           <div class="chat-input-row">
-            <button class="chat-help-pill-btn" id="chat-help-btn" type="button" aria-expanded="false" title="Comandos del chat (#ayuda)">💡</button>
-            <input id="chat-input" name="chat_message" class="chat-input" type="text" placeholder="Escribe en #general… (usa @staff para dudas)" aria-label="Mensaje de chat" maxlength="500" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input id="chat-input" name="chat_message" class="chat-input" type="text" placeholder="Escribe un mensaje…" aria-label="Mensaje de chat" maxlength="500" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             <button class="chat-send-btn" id="chat-send-btn" type="button" aria-label="Enviar mensaje" title="Enviar mensaje">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              <img src="/assets/icons/svg/send.svg" width="15" height="15" alt="" aria-hidden="true">
             </button>
           </div>
         </section>
@@ -792,7 +632,7 @@ export function renderHomeSections(container) {
         <div class="hs-empty">
           <img src="/assets/icons/svg/star.svg" alt="" width="28" height="28" class="hs-empty--icon">
           <span>Inicia sesión para ganar XP y completar tus misiones diarias.</span>
-          <a href="/pages/login.html" class="mision-action-link" style="margin-top:6px;">Iniciar sesión →</a>
+          <a href="/pages/login.html" class="mision-action-link mision-action-link--spaced">Iniciar sesión →</a>
         </div>`;
       return;
     }
@@ -839,7 +679,7 @@ export function renderHomeSections(container) {
       if (m.is_claimed) {
         actionBtnHtml = `
           <span class="mision-claimed-status">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <img src="/assets/icons/svg/check.svg" width="11" height="11" alt="" aria-hidden="true">
             Reclamada
           </span>`;
       } else if (m.can_claim) {
@@ -872,7 +712,7 @@ export function renderHomeSections(container) {
           <div class="mision-card--bottom">
             <div class="mision-card--progress-group">
               <div class="mision-card--bar">
-                <div class="mision-card--bar-fill" style="width: ${m.progress_pct}%"></div>
+                <div class="mision-card--bar-fill" data-progress="${m.progress_pct}"></div>
               </div>
               <span class="mision-card--prog-text">${esc(m.progress_label)}</span>
             </div>
@@ -912,7 +752,7 @@ export function renderHomeSections(container) {
             </div>
           </div>
           <div class="mision-chest--bar">
-            <div class="mision-chest--bar-fill" style="width: ${chest.progress_pct}%"></div>
+            <div class="mision-chest--bar-fill" data-progress="${chest.progress_pct}"></div>
           </div>
           <div class="mision-chest--footer">
             <span class="mision-chest--reward-badge">✨ Bonus ${chest.progress_pct}%</span>
@@ -928,6 +768,7 @@ export function renderHomeSections(container) {
       </div>
       ${chestHtml}
     `;
+    applyDataProgress(body);
   }
 
   (async () => {
@@ -1059,13 +900,10 @@ export function renderHomeSections(container) {
     });
   }
 
-  // Canales, Filtros y Enviar mensajes en el Chat en Vivo
+  // Chat en Vivo: entrada de mensaje, envío y lista de conectados
   const chatInput = document.getElementById('chat-input');
   const chatSendBtn = document.getElementById('chat-send-btn');
   const chatSlot = document.getElementById('slot-chat');
-  const chatFilterToggle = document.getElementById('chat-filter-toggle');
-  const chatFilterDropdown = document.getElementById('chat-filter-dropdown');
-  const chatFilterDropdownClose = document.getElementById('chat-filter-dropdown-close');
   const chatOnlineIndicator = document.getElementById('chat-online-indicator');
   const chatOnlineDrawer = document.getElementById('chat-online-drawer');
   const chatOnlineDrawerClose = document.getElementById('chat-online-drawer-close');
@@ -1073,52 +911,10 @@ export function renderHomeSections(container) {
   // Inicializar carga de stats en línea
   loadChatOnlineStats();
 
-  // Permisos dinámicos y estado del canal activo
-  function applyChatChannelPermissions(channel) {
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const role = (currentUser.platform_role || '').toUpperCase();
-    const isStaff = ['ADMIN', 'SUPERADMIN'].includes(role);
-    const isScan = Boolean(currentUser.is_scan_member || isStaff);
-
-    const badgeEl = document.getElementById('chat-current-channel-badge');
-    if (badgeEl) badgeEl.textContent = `#${channel}`;
-
-    if (!chatInput) return;
-
-    if (channel === 'staff' && !isStaff) {
-      chatInput.disabled = true;
-      chatInput.value = '';
-      chatInput.placeholder = '🔒 Solo el Staff puede escribir en #staff';
-      chatInput.classList.add('is-restricted');
-      if (chatSendBtn) chatSendBtn.disabled = true;
-    } else if (channel === 'scans' && !isScan) {
-      chatInput.disabled = true;
-      chatInput.value = '';
-      chatInput.placeholder = '🔒 Solo Staff y Scans pueden publicar aquí';
-      chatInput.classList.add('is-restricted');
-      if (chatSendBtn) chatSendBtn.disabled = true;
-    } else {
-      chatInput.disabled = false;
-      chatInput.classList.remove('is-restricted');
-      chatInput.placeholder = channel === 'general'
-        ? 'Escribe en #general… (usa @staff para dudas)'
-        : `Escribe en #${channel}…`;
-      if (chatSendBtn) chatSendBtn.disabled = false;
-    }
-  }
-
-  // Inicializar permisos del canal general
-  applyChatChannelPermissions(activeChatChannel);
-
-  // Escuchar cuando el usuario se sincroniza desde el header o login
-  window.addEventListener('auth:user-synced', () => {
-    applyChatChannelPermissions(activeChatChannel);
-  });
   window.addEventListener('auth:profile-updated', (e) => {
     if (e.detail?.user) {
       try { localStorage.setItem('user', JSON.stringify(e.detail.user)); } catch { }
     }
-    applyChatChannelPermissions(activeChatChannel);
   });
 
   // Si hay token pero el objeto de usuario aún no está en memoria local, sincronizar al instante
@@ -1128,171 +924,9 @@ export function renderHomeSections(container) {
       apiRequest('/auth/me').then(u => {
         if (u) {
           try { localStorage.setItem('user', JSON.stringify(u)); } catch { }
-          applyChatChannelPermissions(activeChatChannel);
         }
       }).catch(() => { });
     }
-  }
-
-  // Cambio de Canal desde el Menú Desplegable
-  if (chatFilterDropdown) {
-    chatFilterDropdown.querySelectorAll('input[name="chat-channel-choice"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        const nextChannel = e.target.value;
-        if (!nextChannel || nextChannel === activeChatChannel) return;
-        activeChatChannel = nextChannel;
-        applyChatChannelPermissions(activeChatChannel);
-
-        if (chatSlot) {
-          chatSlot.innerHTML = skeletonCards('chat', 3, 1);
-          loadChat(chatSlot, activeChatChannel);
-        }
-        // Cerrar menú tras elegir canal para fluidez
-        chatFilterDropdown.hidden = true;
-        chatFilterToggle?.setAttribute('aria-expanded', 'false');
-      });
-    });
-  }
-
-  // Toggle del Selector de Canales del Chat
-  if (chatFilterToggle && chatFilterDropdown) {
-    chatFilterToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isHidden = chatFilterDropdown.hidden;
-      chatFilterDropdown.hidden = !isHidden;
-      chatFilterToggle.setAttribute('aria-expanded', String(isHidden));
-      if (chatOnlineDrawer) chatOnlineDrawer.hidden = true;
-    });
-
-    chatFilterDropdownClose?.addEventListener('click', () => {
-      chatFilterDropdown.hidden = true;
-      chatFilterToggle.setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  // Acción de fijar / desfijar para el Staff
-  async function handleTogglePin(pinBtn) {
-    const msgId = pinBtn.dataset.msgId;
-    if (!msgId) return;
-    pinBtn.disabled = true;
-    try {
-      const res = await apiRequest(`/chat/messages/${msgId}/pin`, { method: 'PATCH' });
-      if (res?.is_pinned) {
-        showToast('📌 Mensaje fijado en el chat general', 'success');
-      } else {
-        showToast('Mensaje desfijado del chat', 'info');
-      }
-      await loadChat(chatSlot, activeChatChannel);
-    } catch (err) {
-      showToast(err.message || 'Error al cambiar estado fijado', 'error');
-    } finally {
-      pinBtn.disabled = false;
-    }
-  }
-
-  const chatPinnedBarEl = document.getElementById('chat-pinned-bar');
-  if (chatPinnedBarEl) {
-    chatPinnedBarEl.addEventListener('click', (e) => {
-      const pinBtn = e.target.closest('.chat-msg--pin-action-btn');
-      if (pinBtn) {
-        e.stopPropagation();
-        handleTogglePin(pinBtn);
-      }
-    });
-  }
-
-  // Delegación de Clics en el Chat: Spoilers, Pin/Desfijar de Staff y Mención rápida
-  if (chatSlot) {
-    chatSlot.addEventListener('click', async (e) => {
-      // 1. Botón de fijar / desfijar para el Staff
-      const pinBtn = e.target.closest('.chat-msg--pin-action-btn');
-      if (pinBtn) {
-        e.stopPropagation();
-        await handleTogglePin(pinBtn);
-        return;
-      }
-
-      // 2. Spoilers interactivos
-      const spoilerBox = e.target.closest('.chat-spoiler-box');
-      if (spoilerBox) {
-        spoilerBox.classList.toggle('is-revealed');
-        return;
-      }
-
-      // 3. Mención rápida al hacer clic en el nombre, avatar o chip @mención
-      const targetUserEl = e.target.closest('.chat-mention, .chat-msg--name, .chat-msg--avatar');
-      if (targetUserEl && chatInput && !chatInput.disabled) {
-        let username = targetUserEl.dataset.username;
-        if (!username) {
-          const msgBox = targetUserEl.closest('.chat-msg');
-          username = msgBox?.dataset.author || targetUserEl.textContent?.replace(/^@/, '').trim();
-        }
-        if (username) {
-          username = username.trim();
-          const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-          const myUsername = (currentUser.username || '').toLowerCase();
-          // Impedir mencionarse a sí mismo
-          if (username.toLowerCase() === myUsername) {
-            showToast('No puedes mencionarte a ti mismo', 'info', 2500);
-            return;
-          }
-          const mentionTag = `@${username} `;
-          const currentVal = chatInput.value;
-          if (!currentVal.includes(mentionTag)) {
-            chatInput.value = currentVal ? `${currentVal.trim()} ${mentionTag}` : mentionTag;
-          }
-          chatInput.focus();
-        }
-      }
-    });
-  }
-
-  // Guía de Comandos (#ayuda)
-  const chatHelpBtn = document.getElementById('chat-help-btn');
-  const chatHelpPopover = document.getElementById('chat-help-popover');
-  const chatHelpPopoverClose = document.getElementById('chat-help-popover-close');
-
-  function toggleHelpPopover() {
-    if (!chatHelpPopover) return;
-    const isHidden = chatHelpPopover.hidden;
-    chatHelpPopover.hidden = !isHidden;
-    chatHelpBtn?.setAttribute('aria-expanded', String(isHidden));
-    if (chatFilterDropdown) chatFilterDropdown.hidden = true;
-    if (chatOnlineDrawer) chatOnlineDrawer.hidden = true;
-  }
-
-  if (chatHelpBtn) {
-    chatHelpBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleHelpPopover();
-    });
-  }
-
-  if (chatHelpPopoverClose) {
-    chatHelpPopoverClose.addEventListener('click', () => {
-      if (chatHelpPopover) chatHelpPopover.hidden = true;
-      chatHelpBtn?.setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  if (chatHelpPopover) {
-    chatHelpPopover.addEventListener('click', (e) => {
-      const item = e.target.closest('.chat-help-item');
-      if (item && chatInput && !chatInput.disabled) {
-        const cmd = item.dataset.cmd;
-        if (cmd) {
-          if (cmd === '#ayuda') {
-            showToast('💡 Escribe #spoiler <texto> o ||texto|| para spoilers, o @staff para dudas', 'info', 6000);
-          } else {
-            const val = chatInput.value;
-            chatInput.value = val ? `${val} ${cmd}` : cmd;
-            chatInput.focus();
-          }
-          chatHelpPopover.hidden = true;
-          chatHelpBtn?.setAttribute('aria-expanded', 'false');
-        }
-      }
-    });
   }
 
   // Toggle de Usuarios en Línea
@@ -1301,8 +935,6 @@ export function renderHomeSections(container) {
       e.stopPropagation();
       const isHidden = chatOnlineDrawer.hidden;
       chatOnlineDrawer.hidden = !isHidden;
-      if (chatFilterDropdown) chatFilterDropdown.hidden = true;
-      if (chatHelpPopover) chatHelpPopover.hidden = true;
       if (isHidden) loadChatOnlineStats();
     });
 
@@ -1311,16 +943,8 @@ export function renderHomeSections(container) {
     });
   }
 
-  // Cerrar popups de chat al hacer clic fuera
+  // Cerrar el cajón de usuarios en línea al hacer clic fuera
   document.addEventListener('click', (e) => {
-    if (chatFilterDropdown && !chatFilterDropdown.hidden && !e.target.closest('#chat-filter-dropdown') && !e.target.closest('#chat-filter-toggle')) {
-      chatFilterDropdown.hidden = true;
-      chatFilterToggle?.setAttribute('aria-expanded', 'false');
-    }
-    if (chatHelpPopover && !chatHelpPopover.hidden && !e.target.closest('#chat-help-popover') && !e.target.closest('#chat-help-btn') && !e.target.closest('#chat-hint-help')) {
-      chatHelpPopover.hidden = true;
-      chatHelpBtn?.setAttribute('aria-expanded', 'false');
-    }
     if (chatOnlineDrawer && !chatOnlineDrawer.hidden && !e.target.closest('#chat-online-drawer') && !e.target.closest('#chat-online-indicator')) {
       chatOnlineDrawer.hidden = true;
     }
@@ -1328,30 +952,11 @@ export function renderHomeSections(container) {
 
   async function handleSendChatMessage() {
     if (!chatInput || chatInput.disabled) return;
-    let content = chatInput.value.trim();
+    const content = chatInput.value.trim();
     if (!content) return;
 
     if (!getAccessToken()) {
       showToast('Debes iniciar sesión para participar en el chat en vivo', 'warning');
-      return;
-    }
-
-    // Evitar que el usuario se mencione a sí mismo
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const myUsername = (currentUser.username || '').toLowerCase();
-    if (myUsername && new RegExp(`@${myUsername}\\b`, 'i').test(content)) {
-      content = content.replace(new RegExp(`@${myUsername}\\b`, 'gi'), myUsername).trim();
-    }
-
-    // Comandos especiales de chat
-    if (/^[#/]ayuda$/i.test(content) || /^[#/]help$/i.test(content)) {
-      chatInput.value = '';
-      if (chatHelpPopover) {
-        chatHelpPopover.hidden = false;
-        chatHelpBtn?.setAttribute('aria-expanded', 'true');
-      } else {
-        showToast('💡 Comandos: @staff (preguntar al Staff), #spoiler <texto> o ||texto|| (ocultar spoiler)', 'info', 6000);
-      }
       return;
     }
 
@@ -1361,15 +966,16 @@ export function renderHomeSections(container) {
     try {
       await apiRequest('/chat/messages', {
         method: 'POST',
-        body: { content, channel: activeChatChannel },
+        body: { content },
       });
       chatInput.value = '';
-      await loadChat(chatSlot, activeChatChannel);
+      await loadChat(chatSlot, { force: true });
       loadChatOnlineStats();
     } catch (err) {
       showToast(err.message || 'No se pudo enviar el mensaje', 'error');
     } finally {
-      applyChatChannelPermissions(activeChatChannel);
+      chatInput.disabled = false;
+      if (chatSendBtn) chatSendBtn.disabled = false;
       chatInput.focus();
     }
   }
@@ -1392,7 +998,7 @@ export function renderHomeSections(container) {
     if (document.hidden) return;
     const currentChatSlot = document.getElementById('slot-chat');
     if (currentChatSlot) {
-      loadChat(currentChatSlot, activeChatChannel);
+      loadChat(currentChatSlot);
       loadChatOnlineStats();
     } else {
       clearInterval(chatInterval);

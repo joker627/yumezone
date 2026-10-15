@@ -63,11 +63,11 @@
         <div class="shop-wallet-card">
           <div class="shop-wallet-head">
             <span>Tus Yume Coins</span>
-            <span id="shop-wallet-user-tag">Lector</span>
+            <span id="shop-wallet-user-tag"><span class="is-loading is-loading--sm"></span></span>
           </div>
           <div class="shop-wallet-amount">
-            <img class="shop-wallet-coin-icon" src="/assets/icons/svg/coin.svg" alt="Monedas" width="24" height="24"/>
-            <span id="wallet-coins-val">0</span>
+            <img class="shop-wallet-coin-icon" src="/assets/icons/svg/coin.svg" alt="Monedas"/>
+            <span id="wallet-coins-val"><span class="is-loading is-loading--sm"></span></span>
           </div>
           <div class="shop-wallet-sub" id="wallet-sub-hint">Inicia sesión para canjear cosméticos</div>
           <div class="shop-wallet-actions">
@@ -97,19 +97,86 @@
           <button type="button" class="shop-tab-btn" data-tab="inventory">
             <img class="shop-tab-icon" src="/assets/icons/svg/inventory.svg" alt="" aria-hidden="true"/>
             <span>Mi Inventario</span>
-            <span class="shop-tab-count" id="inventory-count-badge">0</span>
+            <span class="shop-tab-count" id="inventory-count-badge"><span class="is-loading is-loading--xs"></span></span>
           </button>
         </div>
 
-        <div class="shop-summary-label" id="shop-summary-label">
-          Mostrando todos los objetos
-        </div>
+        <div class="shop-summary-label" id="shop-summary-label"><span class="is-loading is-loading--md"></span></div>
       </section>
 
       <!-- CUADRÍCULA DE ITEMS -->
       <section id="shop-items-grid" class="shop-grid">
-        <div class="shop-empty-state" style="color: var(--neutral-400);">
-          Cargando catálogo de artículos...
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
+        </div>
+        <div class="yz-skeleton-shop-card" aria-hidden="true">
+          <div class="yz-skeleton yz-skeleton-shop-preview"></div>
+          <div class="yz-skeleton-shop-info">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+            <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+          </div>
         </div>
       </section>
 

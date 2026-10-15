@@ -77,3 +77,9 @@ export function formatTimeAgoCompact(dateStr) {
   const years = Math.floor(months / 12);
   return `${years}y`;
 }
+
+export function applyDataProgress(root = document) {
+  root.querySelectorAll('[data-progress]').forEach((el) => {
+    el.style.width = `${el.dataset.progress}%`;
+  });
+}

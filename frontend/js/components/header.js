@@ -1,7 +1,8 @@
 import { authRequest, apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
-import { safeUrl, IMG_FALLBACK, escapeHTML, formatTimeAgo } from '../shared/ui-utils.js';
+import { safeUrl, IMG_FALLBACK, escapeHTML, formatTimeAgo, applyDataProgress } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
 import { initPresence, disconnectPresence } from '../shared/presence.js';
+import { renderSkeletonRows } from './loader.js';
 
 async function copyToClipboard(text) {
   if (navigator.clipboard?.writeText) {
@@ -15,11 +16,8 @@ async function copyToClipboard(text) {
 
   
   const textArea = document.createElement('textarea');
+  textArea.className = 'header-clipboard-helper';
   textArea.value = text;
-  textArea.style.position = 'fixed';
-  textArea.style.top = '-9999px';
-  textArea.style.left = '-9999px';
-  textArea.style.opacity = '0';
   textArea.setAttribute('readonly', '');
   document.body.appendChild(textArea);
   textArea.select();
@@ -117,7 +115,7 @@ export function renderSiteHeader(container) {
 
             <div class="header-drawer-xp-wrap">
               <div class="header-drawer-xp-bar">
-                <div id="drawer-xp-fill" class="header-drawer-xp-fill" style="width: 0%"></div>
+                <div id="drawer-xp-fill" class="header-drawer-xp-fill"></div>
               </div>
               <span id="drawer-xp-label" class="header-drawer-xp-text">0 / 1000 XP</span>
             </div>
@@ -167,9 +165,7 @@ export function renderSiteHeader(container) {
                 <span id="header-level">Nv. 1</span>
                 <span id="header-xp-pct" class="header-stat-pct">0%</span>
               </span>
-              <svg class="header-stat-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
+              <img class="header-stat-chevron" width="10" height="10" src="/assets/icons/svg/chevron-down.svg" alt="" aria-hidden="true">
             </button>
 
             <!-- Dropdown flotante de gamificación y misiones -->
@@ -185,7 +181,7 @@ export function renderSiteHeader(container) {
               
               <div class="header-stats-dd-bar-wrap">
                 <div class="header-stats-dd-bar">
-                  <div class="header-stats-dd-bar-fill" id="stats-dd-bar-fill" style="width: 0%"></div>
+                  <div class="header-stats-dd-bar-fill" id="stats-dd-bar-fill"></div>
                 </div>
                 <div class="header-stats-dd-bar-sub" id="stats-dd-xp-remaining">Faltan 1000 XP para el Nivel 2</div>
               </div>
@@ -218,10 +214,10 @@ export function renderSiteHeader(container) {
                     <img src="/assets/icons/svg/star.svg" alt="" width="14" height="14">
                     <span>Misiones Diarias</span>
                   </div>
-                  <span class="header-stats-dd-badge" id="stats-dd-missions-summary">Cargando...</span>
+                  <span class="header-stats-dd-badge" id="stats-dd-missions-summary"><span class="is-loading is-loading--xs"></span></span>
                 </div>
                 <div class="header-stats-dd-missions-list" id="stats-dd-missions-list">
-                  <div class="header-stats-dd-loading">Cargando misiones...</div>
+                  ${renderSkeletonRows(3)}
                 </div>
               </div>
 
@@ -321,22 +317,6 @@ export function renderSiteHeader(container) {
                 <img src="/assets/icons/svg/settings.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
                 <span>Ajustes de cuenta</span>
               </a>
-
-              <a href="#" id="header-scan-panel-link" class="header-profile-link header-profile-link--scan" role="menuitem" target="_blank" title="YumeScan Studio | Plataforma de Scanlation & Producción" hidden>
-                <img src="/assets/icons/svg/scan.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <div class="header-profile-link-content">
-                  <span id="header-scan-panel-text" class="header-profile-link-title">YumeScan Studio</span>
-                  <span class="header-profile-link-sub header-profile-link-sub--scan">Scanlation & Producción</span>
-                </div>
-              </a>
-
-              <a href="#" id="header-admin-panel-link" class="header-profile-link header-profile-link--admin" role="menuitem" target="_blank" title="YumeZone Cloud & Webmaster Console | Super Admin" hidden>
-                <img src="/assets/icons/svg/admin.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <div class="header-profile-link-content">
-                  <span id="header-admin-panel-text" class="header-profile-link-title">YumeZone Console</span>
-                  <span id="header-admin-panel-sub" class="header-profile-link-sub header-profile-link-sub--admin">Cloud & Super Admin</span>
-                </div>
-              </a>
             </div>
 
             <button id="logout-button" class="header-profile-logout" type="button" role="menuitem">
@@ -350,9 +330,7 @@ export function renderSiteHeader(container) {
   `;
   container.removeAttribute('aria-busy');
 
-  /* ----------------------------------------------------------
-     Referencias DOM
-     ---------------------------------------------------------- */
+  /* Referencias DOM */
   const menuToggle = document.getElementById('menu-toggle');
   const navigationContent = document.getElementById('navigation-content');
   const menuBackdrop = container.querySelector('[data-menu-backdrop]');
@@ -404,9 +382,6 @@ export function renderSiteHeader(container) {
   const copyProfileId = document.getElementById('copy-profile-id');
   const copyBtnText = document.getElementById('copy-btn-text');
   const publicProfileLink = document.getElementById('header-public-profile-link');
-  const scanPanelLink = document.getElementById('header-scan-panel-link');
-  const adminPanelLink = document.getElementById('header-admin-panel-link');
-  const adminPanelText = document.getElementById('header-admin-panel-text');
   const logoutButton = document.getElementById('logout-button');
   const bellToggle = document.getElementById('header-bell');
   const bellDot = document.getElementById('bell-dot');
@@ -445,9 +420,7 @@ export function renderSiteHeader(container) {
     throw new Error('Header: estructura del DOM incompleta.');
   }
 
-  /* ----------------------------------------------------------
-     Estado
-     ---------------------------------------------------------- */
+  /* Estado */
   let menuOpenScrollY = 0;
   let searchDebounceTimer = null;
   let searchController = null;
@@ -466,9 +439,7 @@ export function renderSiteHeader(container) {
     success: '/assets/icons/svg/check.svg',
   };
 
-  /* ----------------------------------------------------------
-     MENÚ MÓVIL
-     ---------------------------------------------------------- */
+  /* MENÚ MÓVIL */
   function isMenuOpen() {
     return navigationContent.classList.contains('header-content-open');
   }
@@ -500,9 +471,7 @@ export function renderSiteHeader(container) {
     isMenuOpen() ? closeMenu() : openMenu();
   }
 
-  /* ----------------------------------------------------------
-     BUSCADOR
-     ---------------------------------------------------------- */
+  /* BUSCADOR */
   function isSearchOpen() {
     return searchPanel.classList.contains('header-search-panel-open');
   }
@@ -759,9 +728,7 @@ export function renderSiteHeader(container) {
     updateIdentDisplay();
   }
 
-  /* ----------------------------------------------------------
-     NOTIFICACIONES
-     ---------------------------------------------------------- */
+  /* NOTIFICACIONES */
   let currentUnreadCount = 0;
 
   function updateBellBadge(count) {
@@ -784,61 +751,42 @@ export function renderSiteHeader(container) {
     if (normType === 'chapter' || normType === 'manga' || normType === 'obra') {
       return `
         <div class="header-notification-icon type-chapter" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
+          <img src="/assets/icons/svg/book.svg" width="16" height="16" alt="">
         </div>
       `;
     }
     if (normType === 'reward') {
       return `
         <div class="header-notification-icon type-reward" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 12 20 22 4 22 4 12"/>
-            <rect x="2" y="7" width="20" height="5"/>
-            <line x1="12" y1="22" x2="12" y2="7"/>
-            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-          </svg>
+          <img src="/assets/icons/svg/award.svg" width="16" height="16" alt="">
         </div>
       `;
     }
     if (normType === 'level') {
       return `
         <div class="header-notification-icon type-level" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
+          <img src="/assets/icons/svg/star.svg" width="16" height="16" alt="">
         </div>
       `;
     }
     if (normType === 'streak') {
       return `
         <div class="header-notification-icon type-streak" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-          </svg>
+          <img src="/assets/icons/svg/fire.svg" width="16" height="16" alt="">
         </div>
       `;
     }
     if (normType === 'comment' || normType === 'reply' || normType === 'chat' || normType.includes('chat_') || normType.includes('mention')) {
       return `
         <div class="header-notification-icon type-comment" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
+          <img src="/assets/icons/svg/comment.svg" width="16" height="16" alt="">
         </div>
       `;
     }
     // Default system / announcement
     return `
       <div class="header-notification-icon type-system" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="16" x2="12" y2="12"/>
-          <line x1="12" y1="8" x2="12.01" y2="8"/>
-        </svg>
+        <img src="/assets/icons/svg/info.svg" width="16" height="16" alt="">
       </div>
     `;
   }
@@ -847,10 +795,7 @@ export function renderSiteHeader(container) {
     return `
       <div class="header-notifications-empty">
         <div class="header-notifications-empty-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
+          <img src="/assets/icons/svg/bell.svg" width="22" height="22" alt="">
         </div>
         <p class="header-notifications-empty-title">¡Estás al día!</p>
         <p class="header-notifications-empty-desc">No tienes notificaciones pendientes.</p>
@@ -923,10 +868,7 @@ export function renderSiteHeader(container) {
             </span>
           </div>
           <button type="button" class="header-notification-dismiss" title="Descartar notificación" aria-label="Descartar notificación">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <img src="/assets/icons/svg/x.svg" width="14" height="14" alt="" aria-hidden="true">
           </button>
         `;
 
@@ -992,7 +934,7 @@ export function renderSiteHeader(container) {
       bellToggle.setAttribute('aria-expanded', 'true');
       closeProfileMenu();
       if (!notificationsLoaded) {
-        notificationsList.innerHTML = '<div class="header-notifications-empty">Cargando notificaciones...</div>';
+        notificationsList.innerHTML = renderSkeletonRows(4);
       }
       loadNotifications();
     }
@@ -1088,43 +1030,6 @@ export function renderSiteHeader(container) {
       const publicId = user.username || user.user_code;
       publicProfileLink.href = publicId ? `/pages/usuario.html?id=${encodeURIComponent(publicId)}` : '/pages/usuario.html';
     }
-
-    // Direct links to Admin / Scan panels based on user role
-    const host = window.location.hostname || 'localhost';
-    const role = (user.platform_role || '').toUpperCase();
-    const hasScanGroup = Boolean(
-      user.scan_group ||
-      user.scan_group_id ||
-      user.is_scan_member ||
-      user.is_scan_leader ||
-      role === 'SUPERADMIN' ||
-      role === 'ADMIN'
-    );
-
-    if (scanPanelLink) {
-      if (hasScanGroup) {
-        scanPanelLink.href = `http://${host}:4400/`;
-        scanPanelLink.setAttribute('title', 'YumeScan Studio | Plataforma de Scanlation & Producción');
-        scanPanelLink.style.display = 'flex';
-      } else {
-        scanPanelLink.style.display = 'none';
-      }
-    }
-
-    if (adminPanelLink) {
-      if (role === 'SUPERADMIN' || role === 'ADMIN') {
-        adminPanelLink.href = `http://${host}:4000/`;
-        adminPanelLink.setAttribute('title', 'YumeZone Cloud & Webmaster Console | Super Admin');
-        adminPanelLink.style.display = 'flex';
-        if (adminPanelText) {
-          adminPanelText.textContent = role === 'SUPERADMIN' ? 'YumeZone Console' : 'Panel de Administración';
-        }
-      } else {
-        adminPanelLink.style.display = 'none';
-      }
-    }
-
-
 
     // Stats
     const xp = user.xp || 0;
@@ -1270,9 +1175,7 @@ export function renderSiteHeader(container) {
     window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { user } }));
   }
 
-  /* ----------------------------------------------------------
-     STATS DROPDOWN Y MISIONES RÁPIDAS
-     ---------------------------------------------------------- */
+  /* STATS DROPDOWN Y MISIONES RÁPIDAS */
   let dropdownMissionsLoading = false;
   let cachedMissionsData = null;
 
@@ -1381,7 +1284,7 @@ export function renderSiteHeader(container) {
               <div class="header-stats-dd-item-title">${m.title}</div>
               <div class="header-stats-dd-item-bar-row">
                 <div class="header-stats-dd-item-bar">
-                  <div class="header-stats-dd-item-bar-fill" style="width: ${m.progress_pct}%"></div>
+                  <div class="header-stats-dd-item-bar-fill" data-progress="${m.progress_pct}"></div>
                 </div>
                 <span class="header-stats-dd-item-progress">${m.progress_label}</span>
               </div>
@@ -1395,6 +1298,7 @@ export function renderSiteHeader(container) {
     }).join('');
 
     statsDdMissionsList.innerHTML = itemsHtml || '<div class="header-stats-dd-empty">No hay misiones disponibles</div>';
+    applyDataProgress(statsDdMissionsList);
   }
 
   function checkStreakNotification(user) {
@@ -1465,9 +1369,7 @@ export function renderSiteHeader(container) {
     }
   }
 
-  /* ----------------------------------------------------------
-     HANDLERS
-     ---------------------------------------------------------- */
+  /* HANDLERS */
   function onMenuToggleClick() {
     if (!isMenuOpen()) {
       closeSearch();
@@ -1673,9 +1575,7 @@ export function renderSiteHeader(container) {
     }
   }
 
-  /* ----------------------------------------------------------
-     BIND
-     ---------------------------------------------------------- */
+  /* BIND */
   menuToggle.addEventListener('click', onMenuToggleClick);
   navigationLinks.forEach((link) => link.addEventListener('click', onLinkClick));
   menuBackdrop.addEventListener('click', onBackdropClick);

@@ -1,0 +1,3 @@
+# Panel de grupos scan: contenido privado, no indexable
+User-agent: *
+Disallow: /

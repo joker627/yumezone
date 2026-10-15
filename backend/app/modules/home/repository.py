@@ -670,27 +670,15 @@ class HomeRepository:
     # -----------------------------------------------------------------------
     # Chat reciente
     # -----------------------------------------------------------------------
-    async def get_recent_chat(self, limit: int = 10, channel: Optional[str] = "general") -> List[Dict[str, Any]]:
-        norm_channel = (channel or "general").strip().lower()
-        try:
-            rows = await self._fetch("""
-                SELECT hc.id, hc.content, hc.channel, COALESCE(hc.is_pinned, FALSE) AS is_pinned, hc.created_at,
-                       u.username, u.avatar_url, u.anillo_url, u.platform_role, u.xp
-                FROM home_chats AS hc
-                JOIN users AS u ON u.id = hc.user_id
-                WHERE hc.channel = %s OR (%s = 'general' AND (hc.channel IS NULL OR hc.channel = '' OR hc.channel = 'general'))
-                ORDER BY hc.is_pinned DESC, hc.created_at DESC
-                LIMIT %s
-                """, (norm_channel, norm_channel, limit))
-        except Exception:
-            rows = await self._fetch("""
-                SELECT hc.id, hc.content, COALESCE(hc.is_pinned, FALSE) AS is_pinned, hc.created_at,
-                       u.username, u.avatar_url, u.anillo_url, u.platform_role, u.xp
-                FROM home_chats AS hc
-                JOIN users AS u ON u.id = hc.user_id
-                ORDER BY hc.created_at DESC
-                LIMIT %s
-                """, (limit,))
+    async def get_recent_chat(self, limit: int = 10) -> List[Dict[str, Any]]:
+        rows = await self._fetch("""
+            SELECT hc.id, hc.content, hc.created_at,
+                   u.username, u.avatar_url, u.anillo_url, u.platform_role, u.xp
+            FROM home_chats AS hc
+            JOIN users AS u ON u.id = hc.user_id
+            ORDER BY hc.created_at DESC
+            LIMIT %s
+            """, (limit,))
 
         ROLE_MAP = {
             "SUPERADMIN": ("mod", "MOD"),
@@ -704,7 +692,6 @@ class HomeRepository:
             result.append(
                 {
                     "id": r.get("id"),
-                    "is_pinned": bool(r.get("is_pinned")),
                     "username": r["username"],
                     "avatar_url": r.get("avatar_url"),
                     "anillo_url": r.get("anillo_url"),

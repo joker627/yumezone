@@ -2,10 +2,26 @@ import { apiRequest, authRequest, getAccessToken } from '../shared/auth.js';
 import { renderSiteHeader } from '../components/header.js';
 import { escapeHTML, formatTimeAgo } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
+import {
+  renderProfileWorkSkeletons,
+  renderBadgeSkeletons,
+  renderGenresSkeleton,
+  renderSkeletonRows
+} from '../components/loader.js';
 
 // Inicializar cabecera del sitio
 const header = document.getElementById('header');
 if (header) renderSiteHeader(header);
+
+// Esqueletos iniciales mientras llega el perfil
+const favoritesSkeleton = document.getElementById('favorite-works-container');
+if (favoritesSkeleton) favoritesSkeleton.innerHTML = renderProfileWorkSkeletons(4);
+const activitySkeleton = document.getElementById('activity-feed-container');
+if (activitySkeleton) activitySkeleton.innerHTML = renderSkeletonRows(4);
+const badgesSkeleton = document.getElementById('badges-container');
+if (badgesSkeleton) badgesSkeleton.innerHTML = renderBadgeSkeletons(4);
+const genresSkeleton = document.getElementById('genres-content-wrap');
+if (genresSkeleton) genresSkeleton.innerHTML = renderGenresSkeleton();
 
 const profileView = document.getElementById('user-profile-view');
 const errorContainer = document.getElementById('user-error');
@@ -61,15 +77,6 @@ const COUNTRY_FLAGS = {
   'CA': '🇨🇦'
 };
 
-const COUNTRY_SVGS = {
-  'CO': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="10" fill="#FCD116"/><rect y="10" width="28" height="5" fill="#003893"/><rect y="15" width="28" height="5" fill="#CE1126"/></svg>',
-  'MX': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="9.33" height="20" fill="#006847"/><rect x="9.33" width="9.33" height="20" fill="#FFFFFF"/><rect x="18.66" width="9.33" height="20" fill="#CE1126"/><circle cx="14" cy="10" r="2.2" fill="#8B5A2B"/></svg>',
-  'AR': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="6.66" fill="#74ACDF"/><rect y="6.66" width="28" height="6.66" fill="#FFFFFF"/><rect y="13.33" width="28" height="6.66" fill="#74ACDF"/><circle cx="14" cy="10" r="2" fill="#F6B40E"/></svg>',
-  'ES': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="5" fill="#AA151B"/><rect y="5" width="28" height="10" fill="#F1BF00"/><rect y="15" width="28" height="5" fill="#AA151B"/></svg>',
-  'CL': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="10" fill="#FFFFFF"/><rect y="10" width="28" height="10" fill="#D52B1E"/><rect width="10" height="10" fill="#0039A6"/><polygon points="5,2 6,4.5 8.5,4.5 6.5,6 7.2,8.5 5,7 2.8,8.5 3.5,6 1.5,4.5 4,4.5" fill="#FFFFFF"/></svg>',
-  'PE': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="9.33" height="20" fill="#D91023"/><rect x="9.33" width="9.33" height="20" fill="#FFFFFF"/><rect x="18.66" width="9.33" height="20" fill="#D91023"/></svg>',
-  'VE': '<svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="6.66" fill="#FCE300"/><rect y="6.66" width="28" height="6.66" fill="#00247D"/><rect y="13.33" width="28" height="6.66" fill="#CF142B"/></svg>'
-};
 
 function formatMemberDate(dateStr) {
   if (!dateStr) return 'MIEMBRO REGISTRADO';
@@ -88,6 +95,10 @@ function renderUser(user) {
   if (errorContainer) errorContainer.hidden = true;
   if (profileView) profileView.hidden = false;
 
+  document.querySelectorAll('[class*="is-loading"]').forEach(el => {
+    el.classList.remove(...[...el.classList].filter(c => c.startsWith('is-loading')));
+  });
+
   const username = user.username || 'Lector';
   document.title = `${username} | Perfil en YumeZone`;
 
@@ -100,7 +111,6 @@ function renderUser(user) {
   if (activeTitleEl) {
     const titleText = user.active_title || user.level_info?.current_title || 'Cazador Novato';
     activeTitleEl.textContent = titleText;
-    activeTitleEl.style.display = 'inline-flex';
   }
 
   const handleEl = document.getElementById('user-handle');
@@ -122,17 +132,31 @@ function renderUser(user) {
   const avatarImg = document.getElementById('user-avatar-img');
   const avatarFallback = document.getElementById('user-avatar-fallback');
   const avatarFrame = document.getElementById('user-avatar-frame');
+  const avatarSkeleton = document.getElementById('user-avatar-skeleton');
+
+  if (avatarSkeleton) {
+    avatarSkeleton.hidden = true;
+    avatarSkeleton.classList.add('hidden');
+  }
 
   if (user.avatar_url) {
     if (avatarImg) {
       avatarImg.src = user.avatar_url;
+      avatarImg.hidden = false;
       avatarImg.classList.remove('hidden');
     }
-    if (avatarFallback) avatarFallback.classList.add('hidden');
+    if (avatarFallback) {
+      avatarFallback.hidden = true;
+      avatarFallback.classList.add('hidden');
+    }
   } else {
-    if (avatarImg) avatarImg.classList.add('hidden');
+    if (avatarImg) {
+      avatarImg.hidden = true;
+      avatarImg.classList.add('hidden');
+    }
     if (avatarFallback) {
       avatarFallback.textContent = (username[0] || 'Y').toUpperCase();
+      avatarFallback.hidden = false;
       avatarFallback.classList.remove('hidden');
     }
   }
@@ -141,20 +165,18 @@ function renderUser(user) {
     const frameSrc = user.anillo_url || user.avatar_frame_url;
     if (frameSrc) {
       avatarFrame.src = frameSrc;
-      avatarFrame.style.display = 'block';
+      avatarFrame.hidden = false;
+      avatarFrame.classList.remove('hidden');
     } else {
-      avatarFrame.style.display = 'none';
+      avatarFrame.hidden = true;
+      avatarFrame.classList.add('hidden');
     }
   }
 
   // Banner background real personalizado
   const bannerBg = document.getElementById('profile-banner-bg');
   if (bannerBg) {
-    if (user.banner_url) {
-      bannerBg.style.backgroundImage = `url('${escapeHTML(user.banner_url)}')`;
-    } else {
-      bannerBg.style.backgroundImage = `url('/assets/images/banner-default.jpg')`;
-    }
+    bannerBg.style.backgroundImage = `url('${escapeHTML(user.banner_url || '/assets/images/banner-default.jpg')}')`;
   }
 
   // Nivel y XP (provisto directamente por el backend de acuerdo a separación de responsabilidades)
@@ -185,50 +207,50 @@ function renderUser(user) {
     isVerified = true;
     if (topVerifiedBadge && topVerifiedText) {
       topVerifiedText.textContent = 'Staff Webmaster';
-      topVerifiedBadge.style.display = 'inline-flex';
+      topVerifiedBadge.classList.remove('hidden');
     }
-    if (topRoleBadge) topRoleBadge.style.display = 'none';
+    if (topRoleBadge) topRoleBadge.classList.add('hidden');
   } else if (role === 'ADMIN') {
     roleDisplay = 'Staff Administrador';
     isVerified = true;
     if (topVerifiedBadge && topVerifiedText) {
       topVerifiedText.textContent = 'Staff Oficial';
-      topVerifiedBadge.style.display = 'inline-flex';
+      topVerifiedBadge.classList.remove('hidden');
     }
-    if (topRoleBadge) topRoleBadge.style.display = 'none';
+    if (topRoleBadge) topRoleBadge.classList.add('hidden');
   } else if (role === 'MODERATOR') {
     roleDisplay = 'Moderador';
     isVerified = true;
     if (topVerifiedBadge && topVerifiedText) {
       topVerifiedText.textContent = 'Moderador Oficial';
-      topVerifiedBadge.style.display = 'inline-flex';
+      topVerifiedBadge.classList.remove('hidden');
     }
-    if (topRoleBadge) topRoleBadge.style.display = 'none';
+    if (topRoleBadge) topRoleBadge.classList.add('hidden');
   } else if (user.scan_group) {
     roleDisplay = `${user.scan_group.role || 'Scan'} • ${user.scan_group.name}`;
     isVerified = true;
     if (topVerifiedBadge && topVerifiedText) {
       topVerifiedText.textContent = `Scan • ${user.scan_group.name}`;
-      topVerifiedBadge.style.display = 'inline-flex';
+      topVerifiedBadge.classList.remove('hidden');
     }
-    if (topRoleBadge) topRoleBadge.style.display = 'none';
+    if (topRoleBadge) topRoleBadge.classList.add('hidden');
   } else {
     roleDisplay = 'Lector';
     isVerified = false;
-    if (topVerifiedBadge) topVerifiedBadge.style.display = 'none';
+    if (topVerifiedBadge) topVerifiedBadge.classList.add('hidden');
 
     if (lvlInfo.level >= 5) {
       if (topRoleBadge && topRoleText) {
         topRoleText.textContent = `${lvlInfo.current_title} (Nv. ${lvlInfo.level})`;
-        topRoleBadge.style.display = 'inline-flex';
+        topRoleBadge.classList.remove('hidden');
       }
     } else {
-      if (topRoleBadge) topRoleBadge.style.display = 'none';
+      if (topRoleBadge) topRoleBadge.classList.add('hidden');
     }
   }
 
   if (rolePill) rolePill.textContent = roleDisplay;
-  if (verifiedIcon) verifiedIcon.style.display = isVerified ? 'inline-flex' : 'none';
+  if (verifiedIcon) verifiedIcon.classList.toggle('hidden', !isVerified);
 
   // Biografía
   const bioEl = document.getElementById('user-bio');
@@ -257,16 +279,12 @@ function renderUser(user) {
   const xpBar = document.getElementById('xp-progress-bar');
   if (xpBar) xpBar.style.width = `${lvlInfo.percentage || 0}%`;
 
-  // Bandera de País Pro (SVG Vectorial nativo + FlagCDN + fallback emoji)
+  // Bandera de País (FlagCDN + fallback emoji)
   const flagEl = document.getElementById('user-country-flag');
   if (flagEl) {
     const countryCode = (user.country || 'CO').toUpperCase();
-    if (COUNTRY_SVGS[countryCode]) {
-      flagEl.innerHTML = COUNTRY_SVGS[countryCode];
-    } else {
-      const codeLower = countryCode.toLowerCase();
-      flagEl.innerHTML = `<img src="https://flagcdn.com/32x24/${codeLower}.png" srcset="https://flagcdn.com/64x48/${codeLower}.png 2x" width="30" height="22" alt="${countryCode}" style="border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block; vertical-align: middle;" onerror="this.outerHTML='${COUNTRY_FLAGS[countryCode] || '🇨🇴'}'"/>`;
-    }
+    const codeLower = countryCode.toLowerCase();
+    flagEl.innerHTML = `<img src="https://flagcdn.com/32x24/${codeLower}.png" srcset="https://flagcdn.com/64x48/${codeLower}.png 2x" class="profile-country-flag-img" alt="${countryCode}" onerror="this.outerHTML='${COUNTRY_FLAGS[countryCode] || '🇨🇴'}'"/>`;
     flagEl.title = `País: ${countryCode}`;
   }
 
@@ -316,31 +334,6 @@ function renderUser(user) {
     }
   }
 
-  // Enlaces directos a Consolas de administración en la barra lateral
-  const host = window.location.hostname || 'localhost';
-  const hasScanAccess = Boolean(role === 'SUPERADMIN' || role === 'ADMIN' || user.scan_group);
-  const hasAdminAccess = Boolean(role === 'SUPERADMIN' || role === 'ADMIN');
-
-  const scanQuickLink = document.getElementById('profile-scan-quicklink');
-  if (scanQuickLink) {
-    if (hasScanAccess) {
-      scanQuickLink.href = `http://${host}:4400/`;
-      scanQuickLink.style.display = 'flex';
-    } else {
-      scanQuickLink.style.display = 'none';
-    }
-  }
-
-  const adminQuickLink = document.getElementById('profile-admin-quicklink');
-  if (adminQuickLink) {
-    if (hasAdminAccess) {
-      adminQuickLink.href = `http://${host}:4000/`;
-      adminQuickLink.style.display = 'flex';
-    } else {
-      adminQuickLink.style.display = 'none';
-    }
-  }
-
   // 1. Obras Reales de Biblioteca / Favoritas
   renderFavoriteWorks(user.favorite_works || []);
   renderLibraryFeed(user.favorite_works || []);
@@ -360,7 +353,7 @@ function renderUser(user) {
   const editBtn = document.getElementById('btn-edit-profile');
 
   if (editBtn) {
-    editBtn.style.display = isOwner ? 'inline-flex' : 'none';
+    editBtn.classList.toggle('hidden', !isOwner);
   }
 
   // Perfil privado
@@ -382,11 +375,11 @@ function renderFavoriteWorks(works) {
 
   if (!works.length) {
     container.innerHTML = `
-      <div class="profile-empty-card" style="grid-column: 1 / -1;">
+      <div class="profile-empty-card profile-empty-card--span">
         ${getIconImg('book', 24)}
-        <h4 class="profile-title" style="font-size: 1rem; margin-bottom: 0.25rem;">Sin obras en biblioteca aún</h4>
-        <p class="profile-bio-text" style="margin: 0 auto 1.25rem;">Este lector todavía no ha agregado obras a sus favoritos o seguimiento.</p>
-        <a href="/pages/catalogo.html" class="profile-btn profile-btn--primary" style="display: inline-flex;">
+        <h4 class="profile-title profile-empty-title">Sin obras en biblioteca aún</h4>
+        <p class="profile-bio-text profile-empty-desc">Este lector todavía no ha agregado obras a sus favoritos o seguimiento.</p>
+        <a href="/pages/catalogo.html" class="profile-btn profile-btn--primary">
           Explorar Catálogo
         </a>
       </div>
@@ -416,7 +409,7 @@ function renderFavoriteWorks(works) {
             <div class="profile-work-rating">
               ${getIconImg('star', 12)}
               <span>${ratingVal}</span>
-              ${work.author ? `<span style="color: var(--neutral-500); margin-left: 0.35rem;">• ${escapeHTML(work.author)}</span>` : ''}
+              ${work.author ? `<span class="profile-work-author-text">• ${escapeHTML(work.author)}</span>` : ''}
             </div>
             ${work.genres ? `<div class="profile-work-genres">${escapeHTML(work.genres)}</div>` : ''}
           </div>
@@ -439,7 +432,7 @@ function renderBadges(badges) {
   if (ratioBadge) ratioBadge.textContent = `${unlockedCount}/${badges.length}`;
 
   if (!badges.length) {
-    container.innerHTML = `<p class="profile-bio-text" style="text-align: center; padding: 1rem 0;">No hay medallas disponibles.</p>`;
+    container.innerHTML = `<p class="profile-bio-text profile-bio-text--centered">No hay medallas disponibles.</p>`;
     return;
   }
 
@@ -480,7 +473,7 @@ function renderActivityFeed(activities) {
     container.innerHTML = `
       <div class="profile-empty-card">
         ${getIconImg('book', 24)}
-        <h4 class="profile-title" style="font-size: 1rem; margin-bottom: 0.25rem;">Sin actividad reciente</h4>
+        <h4 class="profile-title profile-empty-title">Sin actividad reciente</h4>
         <p class="profile-bio-text">El lector aún no ha registrado lecturas o comentarios públicos.</p>
       </div>
     `;
@@ -502,9 +495,9 @@ function renderActivityFeed(activities) {
                 ${getIconImg('book', 18)}
               </div>
               <div>
-                <div style="font-size: 0.85rem;">
-                  <span style="color: var(--neutral-400);">Leyó</span>
-                  <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link" style="margin-left: 0.25rem;">
+                <div class="profile-activity-header">
+                  <span class="profile-activity-verb">Leyó</span>
+                  <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link profile-activity-link-margin">
                     ${escapeHTML(act.work_title)}
                   </a>
                 </div>
@@ -515,16 +508,16 @@ function renderActivityFeed(activities) {
           </div>
 
           <div class="profile-activity-chapter-box">
-            <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0; flex: 1; overflow: hidden;">
-              ${act.work_cover_url ? `<img src="${escapeHTML(act.work_cover_url)}" class="profile-activity-cover" alt="" onerror="this.style.display='none'"/>` : ''}
-              <div style="min-width: 0; flex: 1; overflow: hidden;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <div class="profile-activity-row-content">
+              ${act.work_cover_url ? `<img src="${escapeHTML(act.work_cover_url)}" class="profile-activity-cover" alt="" onerror="this.classList.add('hidden')"/>` : ''}
+              <div class="profile-work-info">
+                <div class="profile-activity-title-trunc">
                   ${escapeHTML(chapterLabel + chapterTitle)}
                 </div>
-                <div style="font-size: 0.72rem; color: var(--neutral-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(act.work_title)}</div>
+                <div class="profile-activity-sub-trunc">${escapeHTML(act.work_title)}</div>
               </div>
             </div>
-            <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-btn profile-btn--secondary" style="padding: 0.35rem 0.85rem; font-size: 0.75rem; flex-shrink: 0;">
+            <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-btn profile-btn--secondary profile-activity-btn">
               Leer
             </a>
           </div>
@@ -540,9 +533,9 @@ function renderActivityFeed(activities) {
                 ${getIconImg('comment', 18)}
               </div>
               <div>
-                <div style="font-size: 0.85rem;">
-                  <span style="color: var(--neutral-400);">Comentó en</span>
-                  <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link" style="margin-left: 0.25rem;">
+                <div class="profile-activity-header">
+                  <span class="profile-activity-verb">Comentó en</span>
+                  <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link profile-activity-link-margin">
                     ${escapeHTML(act.work_title)}
                   </a>
                 </div>
@@ -566,11 +559,11 @@ function renderLibraryFeed(works) {
 
   if (!works.length) {
     container.innerHTML = `
-      <div class="profile-empty-card" style="grid-column: 1 / -1;">
+      <div class="profile-empty-card profile-empty-card--span">
         ${getIconImg('book', 24)}
-        <h4 class="profile-title" style="font-size: 1rem; margin-bottom: 0.25rem;">Biblioteca vacía</h4>
-        <p class="profile-bio-text" style="margin: 0 auto 1.25rem;">El lector no tiene obras guardadas en su biblioteca actualmente.</p>
-        <a href="/pages/catalogo.html" class="profile-btn profile-btn--primary" style="display: inline-flex;">
+        <h4 class="profile-title profile-empty-title">Biblioteca vacía</h4>
+        <p class="profile-bio-text profile-empty-desc">El lector no tiene obras guardadas en su biblioteca actualmente.</p>
+        <a href="/pages/catalogo.html" class="profile-btn profile-btn--primary">
           Explorar Catálogo
         </a>
       </div>
@@ -600,7 +593,7 @@ function renderLibraryFeed(works) {
             <div class="profile-work-rating">
               ${getIconImg('star', 12)}
               <span>${ratingVal}</span>
-              ${work.author ? `<span style="color: var(--neutral-500); margin-left: 0.35rem;">• ${escapeHTML(work.author)}</span>` : ''}
+              ${work.author ? `<span class="profile-work-author-text">• ${escapeHTML(work.author)}</span>` : ''}
             </div>
             ${work.genres ? `<div class="profile-work-genres">${escapeHTML(work.genres)}</div>` : ''}
           </div>
@@ -624,7 +617,7 @@ function renderCommentsFeed(activities) {
     container.innerHTML = `
       <div class="profile-empty-card">
         ${getIconImg('comment', 24)}
-        <h4 class="profile-title" style="font-size: 1rem; margin-bottom: 0.25rem;">Sin comentarios públicos</h4>
+        <h4 class="profile-title profile-empty-title">Sin comentarios públicos</h4>
         <p class="profile-bio-text">Este lector aún no ha realizado comentarios en los capítulos u obras.</p>
       </div>
     `;
@@ -642,9 +635,9 @@ function renderCommentsFeed(activities) {
             </div>
 
             <div>
-              <div style="font-size: 0.85rem;">
-                <span style="color: var(--neutral-400);">Comentó en</span>
-                <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link" style="margin-left: 0.25rem;">
+              <div class="profile-activity-work-text">
+                <span class="profile-activity-work-meta">Comentó en</span>
+                <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link">
                   ${escapeHTML(act.work_title || 'Obra')}
                 </a>
               </div>
@@ -669,7 +662,7 @@ function renderGenresBreakdown(genres, totalCaps) {
   if (!wrap) return;
 
   if (!genres.length) {
-    wrap.innerHTML = `<p class="profile-bio-text" style="text-align: center; padding: 1rem 0;">Sin suficientes lecturas para generar gráfico de géneros.</p>`;
+    wrap.innerHTML = `<p class="profile-bio-text profile-genres-empty">Sin suficientes lecturas para generar gráfico de géneros.</p>`;
     return;
   }
 
@@ -687,14 +680,14 @@ function renderGenresBreakdown(genres, totalCaps) {
   }).join('');
 
   const legendItems = genres.map((g, idx) => {
-    const color = colors[idx % colors.length];
+    const colorIdx = idx % colors.length;
     return `
       <div class="profile-legend-item">
-        <span style="display: flex; align-items: center; color: var(--neutral-300);">
-          <span class="profile-legend-dot" style="background-color: ${color};"></span>
+        <span class="profile-legend-label">
+          <span class="profile-legend-dot profile-legend-dot--${colorIdx}"></span>
           ${escapeHTML(g.name)}
         </span>
-        <span style="font-weight: 700; color: #fff;">${g.percentage}%</span>
+        <span class="profile-legend-pct">${g.percentage}%</span>
       </div>
     `;
   }).join('');

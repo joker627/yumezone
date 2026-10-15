@@ -43,6 +43,71 @@
       <p id="work-error-copy"></p>
       <button id="work-retry" type="button">Reintentar</button>
     </section>
+    <div id="work-skeleton" class="work-skeleton" aria-hidden="true">
+      <section class="work-detail-hero">
+        <div class="work-detail-hero-shade"></div>
+        <div class="work-detail-main">
+          <div class="work-detail-cover-wrap yz-skeleton"></div>
+          <div class="work-detail-copy">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--hero-title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--sub"></div>
+            <div class="work-detail-genres">
+              <div class="yz-skeleton yz-skeleton-pill"></div>
+              <div class="yz-skeleton yz-skeleton-pill"></div>
+              <div class="yz-skeleton yz-skeleton-pill"></div>
+            </div>
+            <div class="work-detail-taxonomy">
+              <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w50"></div>
+            </div>
+            <div class="work-detail-actions">
+              <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--w50"></div>
+              <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--w50"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="work-detail-columns">
+        <section class="work-detail-panel">
+          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+          <div class="work-skeleton-lines">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w80"></div>
+          </div>
+        </section>
+        <section class="work-detail-panel">
+          <div class="work-detail-chapters-heading">
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+          </div>
+          <div class="yz-skeleton-rows">
+            <div class="yz-skeleton-chapter">
+              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
+            </div>
+            <div class="yz-skeleton-chapter">
+              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
+            </div>
+            <div class="yz-skeleton-chapter">
+              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
+            </div>
+            <div class="yz-skeleton-chapter">
+              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
+              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
     <div id="work-content" class="work-content" hidden>
       <section class="work-detail-hero" aria-labelledby="work-title">
         <img id="work-banner" class="work-detail-banner" alt="" hidden>
@@ -93,14 +158,14 @@
           <!-- Barra de herramientas de capítulos: Búsqueda, rangos y marcar todo -->
           <div class="work-chapters-toolbar" id="work-chapters-toolbar" hidden>
             <div class="work-chapters-search-wrap">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <img src="/assets/icons/svg/search.svg" alt="" aria-hidden="true">
               <input type="text" id="work-chapter-search" placeholder="Buscar capítulo (ej. 1, 10, prólogo)..." aria-label="Buscar capítulo">
               <button type="button" id="work-chapter-search-clear" class="work-chapter-search-clear" hidden title="Limpiar búsqueda">&times;</button>
             </div>
             <div class="work-chapters-actions-bar">
               <div class="work-chapter-ranges" id="work-chapter-ranges" role="tablist" aria-label="Rangos de capítulos"></div>
               <button type="button" class="work-chapter-mark-all-btn" id="work-mark-all-btn" title="Marcar todos los capítulos">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <img src="/assets/icons/svg/check.svg" alt="" aria-hidden="true">
                 <span>Marcar leídos</span>
               </button>
             </div>
@@ -110,9 +175,7 @@
           <div id="work-chapters-table" class="work-chapters-table" hidden>
             <div class="work-chapters-table-header">
               <button id="work-sort-btn" class="work-chapters-sort-btn" type="button" aria-label="Cambiar orden de capítulos" title="Cambiar orden">
-                <svg class="sort-icon-arrow" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 5v14M19 12l-7 7-7-7"/>
-                </svg>
+                <img class="sort-icon-arrow" src="/assets/icons/svg/swap.svg" alt="" aria-hidden="true">
                 <span id="work-sort-label">Capítulos (Recientes primero)</span>
               </button>
               <span class="work-chapters-date-th">FECHA</span>
@@ -127,7 +190,7 @@
         <div class="work-comments-header">
           <div class="work-comments-header-left">
             <div class="work-comments-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <img src="/assets/icons/svg/comment.svg" alt="" aria-hidden="true">
             </div>
             <div>
               <h2 id="work-comments-title" class="work-comments-title">Comentarios de la Obra</h2>
@@ -150,7 +213,7 @@
           <div class="work-comment-form-footer">
             <span class="work-comment-hint">Respeta las normas de la comunidad. Usa la casilla spoiler para giros de trama.</span>
             <button type="button" class="work-comment-submit-btn" id="work-comment-submit-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              <img src="/assets/icons/svg/send.svg" alt="" aria-hidden="true">
               <span>Publicar comentario</span>
             </button>
           </div>

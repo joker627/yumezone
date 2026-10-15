@@ -485,6 +485,7 @@
   gap: 0.45rem;
   transition: all 0.18s ease;
   border: none;
+  text-decoration: none;
 }
 
 .shop-btn--buy {
@@ -530,6 +531,18 @@
   border-radius: var(--radius-xl);
   background: rgba(22, 27, 34, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shop-empty-title {
+  color: #fff;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.15rem;
+}
+
+.shop-empty-desc {
+  color: var(--neutral-400);
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .shop-card-coin-icon {

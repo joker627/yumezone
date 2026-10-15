@@ -142,7 +142,7 @@ function badgeIconName(icon) {
         case 'star':
             return 'star';
         case 'sparkles':
-            return 'sparkles';
+            return 'bolt';
         default:
             return 'info';
     }
@@ -471,17 +471,13 @@ const HeroComponent = {
                 img.width = 20;
                 img.height = 20;
                 img.dataset.score = String(i);
-                img.style.cursor = 'pointer';
                 const fillRatio = Math.max(0, Math.min(1, effective - (i - 1)));
                 if (fillRatio >= 0.75) {
-                    img.style.filter = 'drop-shadow(0 0 5px #f59e0b)';
-                    img.style.opacity = '1';
+                    img.classList.add('is-full');
                 } else if (fillRatio >= 0.25) {
-                    img.style.filter = 'drop-shadow(0 0 3px #f59e0b)';
-                    img.style.opacity = '0.65';
+                    img.classList.add('is-half');
                 } else {
-                    img.style.opacity = '0.22';
-                    img.style.filter = 'grayscale(1)';
+                    img.classList.add('is-empty');
                 }
                 ratingStarsPreview.append(img);
             }
@@ -513,10 +509,10 @@ const HeroComponent = {
                 ratingStatusPill.className = 'rating-status-pill is-unrated';
             }
             if (ratingStatusText) {
-                ratingStatusText.textContent = 'Consultando tu calificación…';
+                ratingStatusText.innerHTML = '<span class="is-loading is-loading--md"></span>';
             }
             if (ratingScoreNum) ratingScoreNum.textContent = '—';
-            if (ratingScoreLabel) ratingScoreLabel.textContent = 'Cargando datos…';
+            if (ratingScoreLabel) ratingScoreLabel.innerHTML = '<span class="is-loading is-loading--md"></span>';
             if (ratingSubmitBtn) {
                 ratingSubmitBtn.textContent = 'Guardar calificación';
                 ratingSubmitBtn.disabled = false;
@@ -741,13 +737,10 @@ const HeroComponent = {
     },
 };
 
-// API pública.
-export function renderSiteHero(container, options = {}) {
+function renderSiteHero(container, options = {}) {
     container.removeAttribute('aria-busy');
     return HeroComponent.mount(container, options);
 }
-
-export { HeroComponent };
 
 const headerEl = document.getElementById('header');
 if (headerEl) renderSiteHeader(headerEl);

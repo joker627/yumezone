@@ -82,6 +82,8 @@
 }
 
 .works-filter-btn-icon {
+  width: 16px;
+  height: 16px;
   color: var(--teal-400);
   transition: transform 180ms ease;
 }
@@ -262,6 +264,11 @@
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.25);
   transform: rotate(90deg);
+}
+
+.works-filter-panel-close img {
+  width: 18px;
+  height: 18px;
 }
 
 /* Cuerpo con Scroll Dedicado e Independiente */
@@ -777,7 +784,8 @@ a.catalog-card-title:hover {
 }
 
 .catalog-card-read img {
-  filter: brightness(0);
+  width: 14px;
+  height: 14px;
 }
 
 .catalog-card-detail-btn {
@@ -806,12 +814,9 @@ a.catalog-card-title:hover {
   color: var(--neutral-500);
   font-size: 0.72rem;
   font-style: italic;
-}
-
-.catalog-page-message,
+}.catalog-page-message,
 .ranking-page-message,
-.novedades-page-message,
-.search-page-message {
+.novedades-page-message {
   grid-column: 1 / -1;
   margin: 0;
   padding: 1.4rem;
@@ -820,10 +825,7 @@ a.catalog-card-title:hover {
   background: var(--neutral-900);
   border: 1px solid var(--neutral-800);
   border-radius: var(--radius-lg);
-}
-
-.catalog-page-retry,
-.search-page-retry {
+}.catalog-page-retry {
   margin-left: 0.4rem;
   padding: 0;
   color: var(--teal-300);
@@ -832,36 +834,23 @@ a.catalog-card-title:hover {
   cursor: pointer;
   font: inherit;
   font-weight: 700;
-}
-
-.catalog-pagination,
-.search-pagination {
+}.catalog-pagination {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
   margin-top: 1.75rem;
-}
-
-.catalog-pagination[hidden],
-.search-pagination[hidden] {
+}.catalog-pagination[hidden] {
   display: none;
-}
-
-.catalog-pagination a,
-.catalog-pagination span,
-.search-pagination a,
-.search-pagination span {
+}.catalog-pagination a,
+.catalog-pagination span {
   padding: 0.55rem 0.8rem;
   color: var(--neutral-300);
   font-size: 0.78rem;
   background: var(--neutral-900);
   border: 1px solid var(--neutral-800);
   border-radius: var(--radius-md);
-}
-
-.catalog-pagination a:hover,
-.search-pagination a:hover {
+}.catalog-pagination a:hover {
   border-color: var(--teal-500);
 }
 

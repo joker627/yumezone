@@ -152,10 +152,19 @@ async def update_user_status(
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="No puedes cambiar tu propio estado")
     async with conn.cursor(aiomysql.DictCursor) as cur:
-        await cur.execute("SELECT status FROM users WHERE id = %s", (user_id,))
+        await cur.execute("SELECT status, platform_role FROM users WHERE id = %s", (user_id,))
         row = await cur.fetchone()
         if row is None:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        # Jerarquia: un ADMIN no puede suspender ni bloquear cuentas de otro ADMIN o del SUPERADMIN
+        if (
+            row["platform_role"].upper() in ("ADMIN", "SUPERADMIN")
+            and current_user.platform_role.upper() != "SUPERADMIN"
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Solo el Superadmin puede cambiar el estado de una cuenta de Staff",
+            )
         await cur.execute("UPDATE users SET status = %s WHERE id = %s", (payload.status, user_id))
     await audit(conn, current_user.id, "user.status.update", "user", str(user_id), row, {"status": payload.status})
     await conn.commit()

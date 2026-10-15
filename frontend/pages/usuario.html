@@ -45,14 +45,10 @@
     <!-- Contenedor de Error / Usuario No Encontrado -->
     <div class="profile-container">
       <div id="user-error" class="profile-empty-card" hidden>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <h2 class="profile-title" style="font-size: 1.35rem; margin-bottom: 0.5rem;" id="user-error-title">Lector no encontrado</h2>
-        <p class="profile-bio-text" style="margin: 0 auto 1.5rem;" id="user-error-desc">No pudimos encontrar el perfil que buscas.</p>
-        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+        <img src="/assets/icons/svg/warning.svg" alt="" aria-hidden="true">
+        <h2 class="profile-title profile-error-title" id="user-error-title">Lector no encontrado</h2>
+        <p class="profile-bio-text profile-error-desc" id="user-error-desc">No pudimos encontrar el perfil que buscas.</p>
+        <div class="profile-error-actions">
           <a href="/" class="profile-btn profile-btn--primary">Volver al Inicio</a>
           <a href="/pages/catalogo.html" class="profile-btn profile-btn--secondary">Explorar Catálogo</a>
         </div>
@@ -65,7 +61,7 @@
       <!-- HERO UNIFICADO INMERSIVO A PANTALLA COMPLETA (Banner atrás de fondo + Info en la mitad, sin tarjeta gris) -->
       <section class="profile-hero-immersive">
         <!-- Imagen de Banner a pantalla completa atrás -->
-        <div id="profile-banner-bg" class="profile-hero-bg" style="background-image: url('/assets/images/banner-default.jpg');"></div>
+        <div id="profile-banner-bg" class="profile-hero-bg"></div>
         <div class="profile-hero-scrim-radial"></div>
         <div class="profile-hero-scrim-bottom"></div>
 
@@ -73,12 +69,12 @@
           <!-- Barra Superior (Badges a la izquierda, Acciones a la derecha) -->
           <div class="profile-hero-top-bar">
             <div class="profile-banner-badges">
-              <span id="badge-verified-top" class="profile-chip profile-chip--verified" style="display: none;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span id="badge-verified-top" class="profile-chip profile-chip--verified">
+                <img src="/assets/icons/svg/verified.svg" alt="" aria-hidden="true">
                 <span id="badge-verified-text">Staff Verificado</span>
               </span>
-              <span id="badge-role-top" class="profile-chip profile-chip--role" style="display: none;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              <span id="badge-role-top" class="profile-chip profile-chip--role">
+                <img src="/assets/icons/svg/award.svg" alt="" aria-hidden="true">
                 <span id="badge-role-text">Lector Veterano</span>
               </span>
             </div>
@@ -108,15 +104,16 @@
             <!-- 1. Avatar Circular Centrado con Marco y Nivel -->
             <div class="profile-pro-avatar-wrap">
               <div class="profile-avatar-wrapper profile-avatar-wrapper--circle">
-                <div class="profile-avatar-inner profile-avatar-inner--circle">
-                  <img id="user-avatar-img" class="profile-avatar-img hidden" src="" alt="Avatar"/>
-                  <span id="user-avatar-fallback" class="profile-avatar-fallback">Y</span>
+                <div class="profile-avatar-inner profile-avatar-inner--circle" id="user-avatar-inner">
+                  <div id="user-avatar-skeleton" class="yz-skeleton profile-avatar-skeleton" aria-hidden="true"></div>
+                  <img id="user-avatar-img" class="profile-avatar-img hidden" src="" alt="" hidden/>
+                  <span id="user-avatar-fallback" class="profile-avatar-fallback hidden" hidden>Y</span>
                 </div>
                 <!-- Marco Cosmético de Avatar -->
-                <img id="user-avatar-frame" class="profile-avatar-frame profile-avatar-frame--circle" src="" alt="Marco de Avatar" style="display: none;"/>
+                <img id="user-avatar-frame" class="profile-avatar-frame profile-avatar-frame--circle hidden" src="" alt="" hidden/>
                 <div class="profile-level-badge" id="user-level-badge-wrap">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                  <span id="user-level-badge">Nv. 1</span>
+                  <img src="/assets/icons/svg/star.svg" alt="" aria-hidden="true">
+                  <span id="user-level-badge" class="is-loading is-loading--xs"></span>
                 </div>
               </div>
             </div>
@@ -125,51 +122,51 @@
             <div class="profile-pro-action-center">
               <button class="profile-pro-btn-edit" id="btn-edit-profile" type="button">
                 <span>Personalizar perfil</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <img src="/assets/icons/svg/settings.svg" alt="" aria-hidden="true">
               </button>
             </div>
 
             <!-- 3. Nombre de Usuario Pro en Mayúsculas Centrado -->
             <div class="profile-pro-name-row">
-              <h1 class="profile-pro-title" id="user-username">LECTOR</h1>
-              <span class="profile-verified-badge" id="user-verified-icon" style="display: none;" title="Lector Verificado / Staff">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <h1 class="profile-pro-title" id="user-username"><span class="is-loading is-loading--lg"></span></h1>
+              <span class="profile-verified-badge" id="user-verified-icon" title="Lector Verificado / Staff">
+                <img src="/assets/icons/svg/verified.svg" alt="" aria-hidden="true">
               </span>
             </div>
 
             <!-- 4. Insignia de Rango / Título Centrada (ej. Cazador Rango E) -->
             <div class="profile-pro-rank-wrap">
-              <span class="profile-pro-rank-badge" id="user-active-title">Cazador Rango E</span>
-              <span class="profile-role-pill" id="user-role-pill" style="display: none;">Lector</span>
+              <span class="profile-pro-rank-badge" id="user-active-title"><span class="is-loading is-loading--pill"></span></span>
+              <span class="profile-role-pill" id="user-role-pill">Lector</span>
             </div>
 
             <!-- 5. Barra de EXP Gamer con Brillo Ámbar y Etiquetas Simétricas -->
             <div class="profile-pro-xp-container">
               <div class="profile-pro-xp-bar-bg">
-                <div class="profile-pro-xp-bar-fill" id="xp-progress-bar" style="width: 35%;"></div>
+                <div class="profile-pro-xp-bar-fill" id="xp-progress-bar"></div>
               </div>
               <div class="profile-pro-xp-labels">
-                <span class="profile-pro-xp-left" id="xp-numbers-label">188 XP</span>
-                <span class="profile-pro-xp-right" id="xp-remaining-label">FALTAN 312</span>
+                <span class="profile-pro-xp-left" id="xp-numbers-label"><span class="is-loading is-loading--sm"></span></span>
+                <span class="profile-pro-xp-right" id="xp-remaining-label"><span class="is-loading is-loading--sm"></span></span>
               </div>
             </div>
 
             <!-- 6. Bandera Nacional Centrada (SVG Vectorial Nativo) -->
             <div class="profile-pro-flag" id="user-country-flag" title="País">
-              <svg width="28" height="20" viewBox="0 0 28 20" style="border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); overflow: hidden; display: inline-block; vertical-align: middle;"><rect width="28" height="10" fill="#FCD116"/><rect y="10" width="28" height="5" fill="#003893"/><rect y="15" width="28" height="5" fill="#CE1126"/></svg>
+              <span class="is-loading"></span>
             </div>
 
             <!-- 7. Fecha de Miembro en Mayúsculas -->
             <div class="profile-pro-member-date">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              <span id="user-created-val">MIEMBRO DESDE JULIO DE 2026</span>
+              <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true">
+              <span id="user-created-val"><span class="is-loading is-loading--md"></span></span>
             </div>
 
             <!-- 8. Biografía Centrada -->
-            <p class="profile-pro-bio" id="user-bio">Sin biografía disponible aún.</p>
+            <p class="profile-pro-bio" id="user-bio"><span class="is-loading is-loading--lg"></span></p>
 
             <!-- 9. Tarjeta de Scanlation (si pertenece a un scan) -->
-            <div class="profile-scan-card" id="user-scan-card" hidden style="margin-top: 1.25rem;">
+            <div class="profile-scan-card" id="user-scan-card" hidden>
               <div class="profile-scan-info">
                 <img id="user-scan-logo" class="profile-scan-logo" src="" alt="Scan Logo" onerror="this.src='/assets/icons/logo.png'"/>
                 <div>
@@ -179,7 +176,7 @@
               </div>
               <a id="user-scan-link" href="#" class="profile-scan-link">
                 <span>Ver obras del scan</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
               </a>
             </div>
 
@@ -195,54 +192,54 @@
           <div class="profile-stat-box">
             <div class="profile-stat-head">
               <span>Caps Leídos</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+              <img src="/assets/icons/svg/book.svg" alt="" aria-hidden="true">
             </div>
-            <div class="profile-stat-value" id="stat-chapters">0</div>
+            <div class="profile-stat-value" id="stat-chapters"><span class="is-loading is-loading--sm"></span></div>
             <div class="profile-stat-sub">Historial activo</div>
           </div>
 
           <div class="profile-stat-box">
             <div class="profile-stat-head">
               <span>En Biblioteca</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              <img src="/assets/icons/svg/library.svg" alt="" aria-hidden="true">
             </div>
-            <div class="profile-stat-value" id="stat-following">0</div>
+            <div class="profile-stat-value" id="stat-following"><span class="is-loading is-loading--sm"></span></div>
             <div class="profile-stat-sub">Siguiendo</div>
           </div>
 
           <div class="profile-stat-box">
             <div class="profile-stat-head">
-              <span style="color: var(--amber-400);">Racha</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--amber-400);"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+              <span class="profile-stat-head-amber">Racha</span>
+              <img src="/assets/icons/svg/fire.svg" alt="" aria-hidden="true">
             </div>
-            <div class="profile-stat-value profile-stat-value--accent" id="stat-streak">0 Días</div>
+            <div class="profile-stat-value profile-stat-value--accent" id="stat-streak"><span class="is-loading is-loading--sm"></span></div>
             <div class="profile-stat-sub">Lectura diaria</div>
           </div>
 
           <div class="profile-stat-box">
             <div class="profile-stat-head">
-              <span style="color: var(--amber-400);">Yume Coins</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--amber-400);"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M15 9.5a3.5 3.5 0 0 0-6 0c0 2 2 3 3 3s3 1 3 3a3.5 3.5 0 0 1-6 0"></path></svg>
+              <span class="profile-stat-head-amber">Yume Coins</span>
+              <img src="/assets/icons/svg/coin.svg" alt="" aria-hidden="true">
             </div>
-            <div class="profile-stat-value" id="stat-coins">0</div>
+            <div class="profile-stat-value" id="stat-coins"><span class="is-loading is-loading--sm"></span></div>
             <div class="profile-stat-sub">Billetera</div>
           </div>
 
           <div class="profile-stat-box">
             <div class="profile-stat-head">
               <span>Comentarios</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <img src="/assets/icons/svg/comment.svg" alt="" aria-hidden="true">
             </div>
-            <div class="profile-stat-value" id="stat-comments">0</div>
+            <div class="profile-stat-value" id="stat-comments"><span class="is-loading is-loading--sm"></span></div>
             <div class="profile-stat-sub">Comunidad</div>
           </div>
 
           <div class="profile-stat-box">
             <div class="profile-stat-head">
               <span>Completadas</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <img src="/assets/icons/svg/check.svg" alt="" aria-hidden="true">
             </div>
-            <div class="profile-stat-value" id="stat-completed">0</div>
+            <div class="profile-stat-value" id="stat-completed"><span class="is-loading is-loading--sm"></span></div>
             <div class="profile-stat-sub">Obras al 100%</div>
           </div>
         </section>
@@ -257,40 +254,82 @@
             <div>
               <div class="profile-section-header">
                 <div class="profile-section-title-wrap">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--teal-400);"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  <img src="/assets/icons/svg/book.svg" alt="" aria-hidden="true">
                   <h2 class="profile-section-title">Obras en Biblioteca / Favoritas</h2>
-                  <span class="profile-chip profile-chip--verified" style="padding: 0.15rem 0.5rem; font-size: 0.65rem;" id="fav-count-badge">0</span>
+                  <span class="profile-chip profile-chip--verified" id="fav-count-badge"><span class="is-loading is-loading--xs"></span></span>
                 </div>
                 <a href="/pages/catalogo.html" class="profile-section-link">
                   <span>Explorar Catálogo</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
                 </a>
               </div>
 
               <!-- Contenedor dinámico de obras -->
-              <div class="profile-works-grid" id="favorite-works-container"></div>
+              <div class="profile-works-grid" id="favorite-works-container">
+                <div class="yz-skeleton-profile-work" aria-hidden="true">
+                  <div class="yz-skeleton yz-skeleton-profile-thumb"></div>
+                  <div class="yz-skeleton-profile-work-info">
+                    <div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
+                    </div>
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full yz-skeleton-line--auto"></div>
+                  </div>
+                </div>
+                <div class="yz-skeleton-profile-work" aria-hidden="true">
+                  <div class="yz-skeleton yz-skeleton-profile-thumb"></div>
+                  <div class="yz-skeleton-profile-work-info">
+                    <div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
+                    </div>
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full yz-skeleton-line--auto"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Feed Pestañas (Actividad / Biblioteca / Comentarios) -->
             <div>
               <div class="profile-tabs-header" id="profile-tabs">
                 <button class="profile-tab-btn active" data-tab="activity" type="button">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true">
                   <span>Actividad Reciente</span>
                 </button>
                 <button class="profile-tab-btn" data-tab="library" type="button">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  <img src="/assets/icons/svg/library.svg" alt="" aria-hidden="true">
                   <span>Biblioteca Completa</span>
                 </button>
                 <button class="profile-tab-btn" data-tab="comments" type="button">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  <img src="/assets/icons/svg/comment.svg" alt="" aria-hidden="true">
                   <span>Comentarios</span>
                 </button>
               </div>
 
               <div class="feed-panes">
                 <div class="tab-pane" id="pane-activity">
-                  <div id="activity-feed-container"></div>
+                  <div id="activity-feed-container">
+                    <div class="yz-skeleton-rows">
+                      <div class="yz-skeleton-row" aria-hidden="true">
+                        <div class="yz-skeleton yz-skeleton-avatar"></div>
+                        <div class="yz-skeleton-row-lines">
+                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
+                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+                        </div>
+                      </div>
+                      <div class="yz-skeleton-row" aria-hidden="true">
+                        <div class="yz-skeleton yz-skeleton-avatar"></div>
+                        <div class="yz-skeleton-row-lines">
+                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
+                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="tab-pane" id="pane-library" hidden>
@@ -312,76 +351,94 @@
             <div>
               <div class="profile-section-header">
                 <div class="profile-section-title-wrap">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--amber-400);"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                  <img src="/assets/icons/svg/award.svg" alt="" aria-hidden="true">
                   <h2 class="profile-section-title">Logros & Medallas</h2>
                 </div>
-                <span style="font-size: 0.75rem; font-weight: 700; color: var(--amber-400);" id="badges-unlocked-ratio">0/0</span>
+                <span id="badges-unlocked-ratio"><span class="is-loading is-loading--xs"></span></span>
               </div>
 
-              <div class="profile-badges-card" id="badges-container"></div>
+              <div class="profile-badges-card" id="badges-container">
+                <div class="yz-skeleton-badge" aria-hidden="true">
+                  <div class="yz-skeleton yz-skeleton-badge-icon"></div>
+                  <div class="yz-skeleton-badge-body">
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                  </div>
+                </div>
+                <div class="yz-skeleton-badge" aria-hidden="true">
+                  <div class="yz-skeleton yz-skeleton-badge-icon"></div>
+                  <div class="yz-skeleton-badge-body">
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
+                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Géneros Más Leídos (Donut SVG Propio) -->
             <div class="profile-sidebar-card">
               <div class="profile-sidebar-head">
                 <div class="profile-sidebar-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--teal-400);"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                  <img src="/assets/icons/svg/explore.svg" alt="" aria-hidden="true">
                   <span>Géneros Más Leídos</span>
                 </div>
-                <span style="font-size: 0.72rem; color: var(--neutral-400);" id="sidebar-total-caps">0 Caps</span>
+                <span id="sidebar-total-caps"><span class="is-loading is-loading--xs"></span></span>
               </div>
-              <div id="genres-content-wrap"></div>
+              <div id="genres-content-wrap">
+                <div class="yz-skeleton-genres-wrap" aria-hidden="true">
+                  <div class="yz-skeleton-genre-bar">
+                    <div class="yz-skeleton-genre-bar-head">
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                    </div>
+                    <div class="yz-skeleton yz-skeleton-genre-track"></div>
+                  </div>
+                  <div class="yz-skeleton-genre-bar">
+                    <div class="yz-skeleton-genre-bar-head">
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+                    </div>
+                    <div class="yz-skeleton-genre-track"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Accesos a Consolas & Plataforma -->
             <div class="profile-sidebar-card">
               <div class="profile-sidebar-head">
                 <div class="profile-sidebar-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--teal-400);"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                  <img src="/assets/icons/svg/grid.svg" alt="" aria-hidden="true">
                   <span>Plataforma & Accesos</span>
                 </div>
               </div>
 
               <div class="profile-quick-nav">
-                <!-- Enlaces directos a las plataformas del ecosistema -->
-                <a href="#" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--scan" id="profile-scan-quicklink" style="display: none;" title="YumeScan Studio | Plataforma de Scanlation & Producción">
-                  <span style="display: flex; align-items: center; gap: 0.45rem;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                    YumeScan Studio
-                  </span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                </a>
-
-                <a href="#" target="_blank" class="profile-quick-nav-link profile-quick-nav-link--admin" id="profile-admin-quicklink" style="display: none;" title="YumeZone Cloud & Webmaster Console | Super Admin">
-                  <span style="display: flex; align-items: center; gap: 0.45rem;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    YumeZone Console
-                  </span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                </a>
-
+                <!-- Enlaces directos de navegación frontend -->
                 <a href="/pages/catalogo.html" class="profile-quick-nav-link">
-                  <span style="display: flex; align-items: center; gap: 0.45rem;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                  <span class="profile-quick-nav-label">
+                    <img src="/assets/icons/svg/grid.svg" alt="" aria-hidden="true">
                     Catálogo de Obras
                   </span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
                 </a>
 
                 <a href="/pages/ranking.html" class="profile-quick-nav-link">
-                  <span style="display: flex; align-items: center; gap: 0.45rem;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                  <span class="profile-quick-nav-label">
+                    <img src="/assets/icons/svg/trending.svg" alt="" aria-hidden="true">
                     Ranking de Lectores
                   </span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
                 </a>
 
                 <a href="/pages/comunidad.html" class="profile-quick-nav-link">
-                  <span style="display: flex; align-items: center; gap: 0.45rem;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  <span class="profile-quick-nav-label">
+                    <img src="/assets/icons/svg/community.svg" alt="" aria-hidden="true">
                     Foros & Comunidad
                   </span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
                 </a>
               </div>
             </div>
@@ -391,13 +448,10 @@
         </section>
 
         <!-- Mensaje de Perfil Privado -->
-        <section class="profile-empty-card" id="private-profile-view" style="margin-top: 2rem;" hidden>
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          <h3 class="profile-title" style="font-size: 1.25rem;">Este perfil es privado</h3>
-          <p class="profile-bio-text" style="margin: 0.5rem auto 0;">El lector ha protegido su cuenta y mantiene sus estadísticas e historial en modo privado.</p>
+        <section class="profile-empty-card" id="private-profile-view" hidden>
+          <img src="/assets/icons/svg/lock.svg" alt="" aria-hidden="true">
+          <h3 class="profile-title">Este perfil es privado</h3>
+          <p class="profile-bio-text">El lector ha protegido su cuenta y mantiene sus estadísticas e historial en modo privado.</p>
         </section>
 
       </div>
@@ -408,11 +462,11 @@
       <div class="profile-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
         <div class="profile-modal-header">
           <h3 class="profile-modal-title" id="modal-edit-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <img src="/assets/icons/svg/settings.svg" alt="" aria-hidden="true">
             <span>Editar Mi Perfil</span>
           </h3>
           <button type="button" class="profile-modal-close" id="modal-close-btn" aria-label="Cerrar modal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <img src="/assets/icons/svg/x.svg" alt="" aria-hidden="true">
           </button>
         </div>
 
@@ -466,7 +520,7 @@
                 <span class="profile-form-switch-title">Perfil Privado</span>
                 <span class="profile-form-switch-desc">Si lo activas, otros lectores no podrán ver tu biblioteca, estadísticas ni lecturas.</span>
               </div>
-              <input type="checkbox" id="edit-is-private" name="is_private" style="width: 1.25rem; height: 1.25rem; accent-color: var(--teal-500); cursor: pointer;" />
+              <input type="checkbox" id="edit-is-private" name="is_private" />
             </label>
           </div>
 
