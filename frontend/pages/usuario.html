@@ -23,8 +23,12 @@
   <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png"/>
 
   <link rel="canonical" href="https://yumezone.page/pages/usuario.html"/>
-  <link rel="icon" type="image/png" href="/assets/icons/logo.png"/>
-  <link rel="apple-touch-icon" href="/assets/icons/logo.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="YumeZone"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <link rel="manifest" href="/manifest.json"/>
   <title>Perfil de Usuario | YumeZone</title>
 
@@ -69,11 +73,11 @@
           <!-- Barra Superior (Badges a la izquierda, Acciones a la derecha) -->
           <div class="profile-hero-top-bar">
             <div class="profile-banner-badges">
-              <span id="badge-verified-top" class="profile-chip profile-chip--verified">
+              <span id="badge-verified-top" class="profile-chip profile-chip--verified hidden">
                 <img src="/assets/icons/svg/verified.svg" alt="" aria-hidden="true">
                 <span id="badge-verified-text">Staff Verificado</span>
               </span>
-              <span id="badge-role-top" class="profile-chip profile-chip--role">
+              <span id="badge-role-top" class="profile-chip profile-chip--role hidden">
                 <img src="/assets/icons/svg/award.svg" alt="" aria-hidden="true">
                 <span id="badge-role-text">Lector Veterano</span>
               </span>
@@ -129,7 +133,7 @@
             <!-- 3. Nombre de Usuario Pro en Mayúsculas Centrado -->
             <div class="profile-pro-name-row">
               <h1 class="profile-pro-title" id="user-username"><span class="is-loading is-loading--lg"></span></h1>
-              <span class="profile-verified-badge" id="user-verified-icon" title="Lector Verificado / Staff">
+              <span class="profile-verified-badge hidden" id="user-verified-icon" title="Lector Verificado / Staff">
                 <img src="/assets/icons/svg/verified.svg" alt="" aria-hidden="true">
               </span>
             </div>
@@ -185,7 +189,7 @@
       </section>
 
       <!-- CONTENEDOR PARA LAS MÉTRICAS Y EL RESTO DE LA PÁGINA -->
-      <div class="profile-container">
+      <div class="profile-container" id="profile-content">
 
         <!-- TIRA DE 6 MÉTRICAS CLAVE REALES -->
         <section class="profile-metrics-strip">

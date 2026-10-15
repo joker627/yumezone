@@ -54,9 +54,12 @@ class UserService:
         if user_data["is_private"] and not is_owner:
             is_hidden = True
             user_data["bio"] = "Este perfil es privado."
+            stats = {}
             favorite_works = []
             recent_activity = []
             genres_breakdown = []
+            user_data["streak_days"] = 0
+            user_data["coins"] = 0
 
         # Cálculo dinámico de nivel, logros y medallas basado en actividad real
         xp = user_data.get("xp") or 0
