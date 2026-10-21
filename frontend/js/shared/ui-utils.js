@@ -1,9 +1,37 @@
 /**
- * Utilidades compartidas para formateo, URLs y escape de HTML.
+ * Utilidades compartidas para formateo, URLs, escape de HTML y fallbacks de imágenes.
  */
-import { safeUrl, IMG_FALLBACK } from './url-utils.js';
 
-export { safeUrl, IMG_FALLBACK };
+export function sanitizeHtmlAttr(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+const SAFE_URL_PATTERN = /^(?:https?:\/\/[^\s"'<>]+|\/(?!\/)[^\s"'<>]*|#[^\s"'<>]*|\.[^\s"'<>]*)$/i;
+
+export const IMG_FALLBACK = '/assets/up-image.webp';
+
+export function safeUrl(value, fallback = '#') {
+  const url = String(value ?? '').trim();
+  if (!url || !SAFE_URL_PATTERN.test(url)) {
+    return fallback;
+  }
+  // Evitar romper URLs con & convirtiéndolas en &amp; para contextos JS DOM
+  return url.replace(/["'<>]/g, '');
+}
+
+// Fallback global automático para imágenes rotas
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (e) => {
+    if (e.target?.tagName === 'IMG' && !e.target.src.includes(IMG_FALLBACK)) {
+      e.target.src = IMG_FALLBACK;
+    }
+  }, true);
+}
 
 export function escapeHTML(str) {
   return String(str ?? '').replace(/[&<>'"]/g, tag => ({
@@ -17,6 +45,7 @@ export function escapeHTML(str) {
 
 export const esc = escapeHTML;
 
+
 export function makeWorkUrl(slugOrWork) {
   let slug = slugOrWork;
   if (typeof slugOrWork === 'object' && slugOrWork !== null) {
@@ -26,17 +55,19 @@ export function makeWorkUrl(slugOrWork) {
   return `/pages/obra.html?slug=${encodeURIComponent(slug)}`;
 }
 
-export function makeReaderUrl(slugOrWork, chapterId, page = null) {
+export function makeReaderUrl(slugOrWork, chapterOrId, page = null) {
   let slug = slugOrWork;
-  let chId = chapterId;
-  let targetPage = page;
+  let ch = chapterOrId;
   if (typeof slugOrWork === 'object' && slugOrWork !== null) {
     slug = slugOrWork.slug || slugOrWork.work_slug;
-    chId = chId ?? slugOrWork.first_chapter_id ?? slugOrWork.chapter_id;
-    targetPage = targetPage ?? slugOrWork.last_page_read ?? slugOrWork.page ?? slugOrWork.reading_progress?.last_page_read;
+    ch = ch ?? slugOrWork.chapter_number ?? slugOrWork.first_chapter_number ?? slugOrWork.chapter_id ?? slugOrWork.first_chapter_id;
   }
-  if (!slug || slug === '[object Object]' || !chId) return null;
-  return `/pages/leer.html?slug=${encodeURIComponent(slug)}&chapter_id=${encodeURIComponent(chId)}`;
+  let capVal = ch;
+  if (typeof ch === 'object' && ch !== null) {
+    capVal = ch.chapter_number ?? ch.id;
+  }
+  if (!slug || slug === '[object Object]' || capVal == null) return null;
+  return `/pages/leer.html?obra=${encodeURIComponent(slug)}&capitulo=${encodeURIComponent(capVal)}`;
 }
 
 export function formatNumber(value, maxDigits = 1) {

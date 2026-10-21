@@ -21,7 +21,7 @@ export function renderLaunchItem(item, { isCompact = false } = {}) {
   if (isCompact) {
     return `
     <a class="novedad-list-item" href="${esc(chapterHref)}">
-      <img class="novedad-cover" src="${coverUrl}" alt="${title}" loading="lazy">
+      <img class="novedad-cover" src="${coverUrl}" alt="${title}" loading="lazy" decoding="async">
       <div class="novedad-info-col">
         <div class="novedad-tag-studio"><span class="novedad-tag-label">${tagLabel}</span> <span>${studio}</span></div>
         <p class="novedad-title">${title}</p>
@@ -37,7 +37,7 @@ export function renderLaunchItem(item, { isCompact = false } = {}) {
   return `
   <a class="launch-item" href="${esc(chapterHref)}">
     <div class="launch-item--cover-wrap">
-      <img class="launch-item--cover" src="${coverUrl}" alt="${title}" loading="lazy">
+      <img class="launch-item--cover" src="${coverUrl}" alt="${title}" loading="lazy" decoding="async">
       <span class="launch-item--chapter-badge">${chapter}</span>
     </div>
     <div class="launch-item--info">
@@ -75,7 +75,7 @@ export function renderRankCard(item, index, { isList = false } = {}) {
     return `
     <a class="ranking-list-item" href="${href}">
       <div class="ranking-num ${pos <= 3 ? 'ranking-num-top' : ''}">${pos}</div>
-      <img class="ranking-cover" src="${coverUrl}" alt="${title}" loading="lazy">
+      <img class="ranking-cover" src="${coverUrl}" alt="${title}" loading="lazy" decoding="async">
       <div class="item-info-col">
         <p class="item-title">${title}</p>
         ${author ? `<p class="item-author">${author}</p>` : ''}
@@ -92,7 +92,7 @@ export function renderRankCard(item, index, { isList = false } = {}) {
   <a class="rank-card" href="${href}">
     <div class="rank-card--num ${posClass}">${pos}</div>
     <div class="rank-card--cover-wrap">
-      <img class="rank-card--cover" src="${coverUrl}" alt="${title}" loading="lazy">
+      <img class="rank-card--cover" src="${coverUrl}" alt="${title}" loading="lazy" decoding="async">
     </div>
     <div class="rank-card--info">
       <div class="rank-card--head">
@@ -102,7 +102,7 @@ export function renderRankCard(item, index, { isList = false } = {}) {
       ${author ? `<p class="rank-card--author">${author}</p>` : ''}
       <div class="rank-card--meta">
         ${ratingFmt ? `<span class="rank-card--rating">★ ${ratingFmt}</span>` : ''}
-        ${reads ? `<span class="rank-card--reads">· ${reads} lecturas</span>` : ''}
+        ${reads ? `<span class="rank-card--reads">· ${reads.includes('lecturas') ? reads : `${reads} lecturas`}</span>` : ''}
       </div>
     </div>
   </a>`;
@@ -131,7 +131,7 @@ export function renderPopularCard(item) {
   return `
   <a class="popular-card" href="${href}">
     <div class="popular-card--cover-wrap">
-      <img class="popular-card--cover" src="${coverUrl}" alt="${title}" loading="lazy">
+      <img class="popular-card--cover" src="${coverUrl}" alt="${title}" loading="lazy" decoding="async">
       ${formatBadge ? `<span class="popular-card--format-badge">${formatBadge}</span>` : ''}
       <div class="popular-card--cover-bottom">
         ${ratingFmt ? `<span class="popular-card--rating">★ ${ratingFmt}${ratingCount ? ` <small class="popular-card--rating-votes">(${ratingCount})</small>` : ''}</span>` : ''}

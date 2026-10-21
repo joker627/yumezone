@@ -7,33 +7,36 @@
   gap: 0.5rem;
   min-height: 2rem;
   padding: 0.35rem 1rem;
-  color: var(--neutral-200);
+  color: var(--neutral-200, #e2e8f0);
   font-size: 0.72rem;
   font-weight: 600;
   background: #24172f;
   border-bottom: 1px solid #a238bf;
+  position: relative;
+  z-index: 40;
 }
 
 .notice-icon {
   width: 0.45rem;
   height: 0.45rem;
   background: #d35ef0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-full, 9999px);
   box-shadow: 0 0 0 0 rgb(211 94 240 / 60%);
   animation: notice-pulse 1.8s ease-out infinite;
 }
 
 .notice-label {
   padding: 0.15rem 0.5rem;
-  color: var(--neutral-50);
+  color: var(--neutral-50, #f8fafc);
   font-size: 0.65rem;
   font-weight: 800;
   background: #a51bb5;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-full, 9999px);
+  letter-spacing: 0.05em;
 }
 
 .notice-message {
-  color: var(--neutral-200);
+  color: var(--neutral-200, #e2e8f0);
 }
 
 @keyframes notice-pulse {

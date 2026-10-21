@@ -3,6 +3,7 @@ import { safeUrl, IMG_FALLBACK, escapeHTML, formatTimeAgo, applyDataProgress } f
 import { showToast } from '../shared/toast.js';
 import { initPresence, disconnectPresence } from '../shared/presence.js';
 import { renderSkeletonRows } from './loader.js';
+import { getHeaderTemplate } from './header-template.js';
 
 async function copyToClipboard(text) {
   if (navigator.clipboard?.writeText) {
@@ -10,11 +11,11 @@ async function copyToClipboard(text) {
       await navigator.clipboard.writeText(text);
       return;
     } catch {
-      // Fallback si la API moderna es bloqueada o rechazada
+
     }
   }
 
-  
+
   const textArea = document.createElement('textarea');
   textArea.className = 'header-clipboard-helper';
   textArea.value = text;
@@ -39,295 +40,7 @@ async function copyToClipboard(text) {
 export function renderSiteHeader(container) {
   if (!container) throw new Error('renderSiteHeader: container requerido.');
 
-  container.innerHTML = `
-    <nav id="navigation" class="header" aria-label="Navegación principal">
-      <a id="brand" class="header-brand" href="/index.html">
-        <img id="logo" class="header-logo" src="/assets/icons/logo.png" alt="YumeZone">
-        <span class="header-brand-name">Yume<span>Zone</span></span>
-      </a>
-
-      <div id="search-container" class="header-search">
-        <button id="search-toggle" class="header-search-toggle" type="button"
-          aria-label="Abrir buscador" aria-expanded="false" aria-controls="search-panel">
-          <img class="header-icon" src="/assets/icons/svg/search.svg" alt="" aria-hidden="true">
-        </button>
-        <div id="search-panel" class="header-search-panel" role="dialog"
-          aria-label="Buscar obras" aria-hidden="true">
-          <form id="search-form" class="header-search-form" action="/pages/catalogo.html" method="get" role="search">
-            <input id="search-input" name="q" class="header-search-input" type="text"
-              placeholder="Buscar obras o autores..." aria-label="Buscar obras o autores"
-              aria-controls="search-suggestions" aria-expanded="false"
-              aria-autocomplete="list" role="combobox"
-              autocomplete="off" spellcheck="false">
-            <button id="search-button" class="header-search-button" type="submit" aria-label="Ver obras">
-              <img class="header-icon" src="/assets/icons/svg/search.svg" alt="" aria-hidden="true">
-            </button>
-            <button id="search-clear" class="header-search-clear" type="button"
-              aria-label="Limpiar búsqueda" title="Limpiar búsqueda" hidden>
-              <img src="/assets/icons/svg/clear.svg" alt="" aria-hidden="true">
-            </button>
-          </form>
-          <div id="search-suggestions" class="header-search-suggestions"
-            role="listbox" aria-label="Sugerencias de obras" hidden></div>
-        </div>
-      </div>
-
-      <button id="menu-toggle" class="header-menu-toggle" type="button"
-        aria-label="Abrir menú" aria-expanded="false" aria-controls="navigation-content">
-        <img class="header-icon" src="/assets/icons/svg/menu.svg" alt="" aria-hidden="true">
-      </button>
-
-      <div class="header-menu-backdrop" data-menu-backdrop aria-hidden="true"></div>
-      <div id="navigation-content" class="header-content">
-        <!-- Panel de usuario y stats móviles (reemplaza logo redundante) -->
-        <div id="drawer-user-section" class="header-drawer-user-section header-drawer-only">
-          <div id="drawer-user-card" class="header-drawer-user-card" hidden>
-            <div class="header-drawer-user-top">
-              <div class="header-drawer-avatar-wrap">
-                <span id="drawer-avatar-initials" class="header-drawer-initials">Y</span>
-                <img id="drawer-avatar-img" class="header-drawer-avatar" alt="" hidden>
-                <img id="drawer-avatar-frame" class="header-avatar-frame" alt="" hidden>
-              </div>
-              <div class="header-drawer-user-info">
-                <div class="header-drawer-name-row">
-                  <strong id="drawer-user-name" class="header-drawer-name-text">Usuario</strong>
-                  <span id="drawer-user-role" class="header-drawer-role-badge">USER</span>
-                </div>
-                <span id="drawer-user-handle" class="header-drawer-handle">@usuario</span>
-              </div>
-            </div>
-
-            <!-- Stats reales del usuario (Racha, Monedas, Nivel) visibles en móvil -->
-            <div class="header-drawer-stats-row">
-              <div class="header-drawer-stat-chip header-drawer-stat-chip--streak" title="Racha activa">
-                <img src="/assets/icons/svg/fire.svg" alt="" width="14" height="14">
-                <span id="drawer-streak-val">0d</span>
-              </div>
-              <div class="header-drawer-stat-chip header-drawer-stat-chip--coins" title="Ghost Monedas">
-                <img src="/assets/icons/svg/coin.svg" alt="" width="14" height="14">
-                <span id="drawer-coins-val">0 G</span>
-              </div>
-              <div class="header-drawer-stat-chip header-drawer-stat-chip--level" title="Nivel">
-                <img src="/assets/icons/svg/star.svg" alt="" width="14" height="14">
-                <span id="drawer-level-val">Nv. 1</span>
-              </div>
-            </div>
-
-            <div class="header-drawer-xp-wrap">
-              <div class="header-drawer-xp-bar">
-                <div id="drawer-xp-fill" class="header-drawer-xp-fill"></div>
-              </div>
-              <span id="drawer-xp-label" class="header-drawer-xp-text">0 / 1000 XP</span>
-            </div>
-          </div>
-
-          <div id="drawer-guest-box" class="header-drawer-guest-box" hidden>
-            <p class="header-drawer-guest-title">Únete a YumeZone</p>
-            <p class="header-drawer-guest-desc">Sincroniza tus lecturas y racha diaria.</p>
-            <div class="header-drawer-guest-btns">
-              <a href="/pages/login.html" class="header-drawer-btn header-drawer-btn--primary">Iniciar sesión</a>
-              <a href="/pages/registro.html" class="header-drawer-btn header-drawer-btn--ghost">Registro</a>
-            </div>
-          </div>
-        </div>
-
-        <div id="navigation-links" class="header-links">
-          <a id="home-link" class="header-link" href="/index.html">Inicio</a>
-          <a id="explore-link" class="header-link" href="/pages/catalogo.html">Catálogo</a>
-          <a id="novedades-link" class="header-link" href="/pages/novedades.html">Novedades</a>
-          <a id="ranking-link" class="header-link" href="/pages/ranking.html">Ranking</a>
-          <a id="comunidad-link" class="header-link" href="/pages/comunidad.html">Comunidad</a>
-        </div>
-      </div>
-
-      <div id="guest-actions" class="header-guest-actions" data-auth-state="pending" hidden>
-        <a id="login-link" class="header-action" href="/pages/login.html">Entrar</a>
-        <a id="signup-link" class="header-action header-action-primary" href="/pages/registro.html">
-          Registro
-        </a>
-      </div>
-
-      <div id="user-actions" class="header-actions" data-auth-state="pending" hidden>
-        <div class="header-user-stats" id="header-user-stats" hidden>
-          <div class="header-stat-wrapper" id="header-stat-wrapper">
-            <button type="button" class="header-stat-pill" id="header-stat-pill" aria-label="Abrir panel de progreso y misiones" aria-expanded="false" aria-controls="stats-dropdown-menu">
-              <span class="header-stat-chip header-stat-chip--streak" title="Racha activa">
-                <img src="/assets/icons/svg/fire.svg" class="header-stat-icon" alt="">
-                <span id="header-streak">0d</span>
-              </span>
-              <span class="header-stat-sep">|</span>
-              <span class="header-stat-chip header-stat-chip--coins" title="Ghost Monedas">
-                <img src="/assets/icons/svg/coin.svg" class="header-stat-icon" alt="" width="14" height="14">
-                <span id="header-coins">0 G</span>
-              </span>
-              <span class="header-stat-sep">|</span>
-              <span class="header-stat-chip header-stat-chip--level" title="Nivel y progreso">
-                <span id="header-level">Nv. 1</span>
-                <span id="header-xp-pct" class="header-stat-pct">0%</span>
-              </span>
-              <img class="header-stat-chevron" width="10" height="10" src="/assets/icons/svg/chevron-down.svg" alt="" aria-hidden="true">
-            </button>
-
-            <!-- Dropdown flotante de gamificación y misiones -->
-            <div id="stats-dropdown-menu" class="header-stats-dropdown" role="menu" aria-label="Panel de Progreso y Misiones" hidden>
-              <!-- Cabecera de Nivel -->
-              <div class="header-stats-dd-head">
-                <div class="header-stats-dd-level-badge" id="stats-dd-level-badge">Nv. 1</div>
-                <div class="header-stats-dd-level-info">
-                  <div class="header-stats-dd-level-title" id="stats-dd-level-title">Lector Novato</div>
-                  <div class="header-stats-dd-xp-label" id="stats-dd-xp-label">0 / 1000 XP</div>
-                </div>
-              </div>
-              
-              <div class="header-stats-dd-bar-wrap">
-                <div class="header-stats-dd-bar">
-                  <div class="header-stats-dd-bar-fill" id="stats-dd-bar-fill"></div>
-                </div>
-                <div class="header-stats-dd-bar-sub" id="stats-dd-xp-remaining">Faltan 1000 XP para el Nivel 2</div>
-              </div>
-
-              <!-- Cuadrícula Racha & Monedas -->
-              <div class="header-stats-dd-grid">
-                <div class="header-stats-dd-card">
-                  <div class="header-stats-dd-card-top">
-                    <img src="/assets/icons/svg/fire.svg" alt="" width="14" height="14">
-                    <span class="header-stats-dd-card-label">Racha Activa</span>
-                  </div>
-                  <div class="header-stats-dd-card-val" id="stats-dd-streak-val">0 días</div>
-                  <div class="header-stats-dd-card-hint" id="stats-dd-streak-hint">Lee diario para mantenerla</div>
-                </div>
-
-                <div class="header-stats-dd-card">
-                  <div class="header-stats-dd-card-top">
-                    <img src="/assets/icons/svg/coin.svg" alt="" width="14" height="14">
-                    <span class="header-stats-dd-card-label">Ghost Monedas</span>
-                  </div>
-                  <div class="header-stats-dd-card-val" id="stats-dd-coins-val">0 G</div>
-                  <div class="header-stats-dd-card-hint">Gana completando misiones</div>
-                </div>
-              </div>
-
-              <!-- Sección Misiones Diarias del Dropdown -->
-              <div class="header-stats-dd-missions-wrap">
-                <div class="header-stats-dd-missions-header">
-                  <div class="header-stats-dd-missions-title">
-                    <img src="/assets/icons/svg/star.svg" alt="" width="14" height="14">
-                    <span>Misiones Diarias</span>
-                  </div>
-                  <span class="header-stats-dd-badge" id="stats-dd-missions-summary"><span class="is-loading is-loading--xs"></span></span>
-                </div>
-                <div class="header-stats-dd-missions-list" id="stats-dd-missions-list">
-                  ${renderSkeletonRows(3)}
-                </div>
-              </div>
-
-              <!-- Footer con accesos -->
-              <div class="header-stats-dd-footer">
-                <a href="/pages/catalogo.html" class="header-stats-dd-footer-link">
-                  <img src="/assets/icons/svg/book.svg" alt="" width="14" height="14">
-                  <span>Explorar Catálogo</span>
-                </a>
-                <a href="/#aside-mision-title" class="header-stats-dd-footer-link header-stats-dd-footer-link--accent" id="stats-dd-go-missions">Ver Misiones Diarias →</a>
-              </div>
-            </div>
-          </div>
-          <div class="header-bell-wrapper">
-            <button id="header-bell" class="header-bell" aria-label="Notificaciones" aria-expanded="false" aria-controls="notifications-menu">
-              <img src="/assets/icons/svg/bell.svg" alt="" aria-hidden="true">
-              <span id="bell-dot" class="header-bell-badge" hidden>0</span>
-            </button>
-            <div id="notifications-menu" class="header-notifications-menu" role="menu" aria-label="Notificaciones" hidden>
-              <div class="header-notifications-header">
-                <h3>Notificaciones</h3>
-                <div class="header-notifications-actions">
-                  <button type="button" id="notifications-read-all" class="header-notifications-readall" hidden>Marcar todo leído</button>
-                  <button type="button" id="notifications-clear-all" class="header-notifications-clearall" hidden>Limpiar</button>
-                </div>
-              </div>
-              <div id="notifications-list" class="header-notifications-list">
-                <div class="header-notifications-empty">No hay notificaciones</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="header-profile" class="header-profile" hidden>
-          <button id="profile-toggle" class="header-profile-toggle" type="button"
-            aria-label="Abrir menú de perfil" aria-expanded="false" aria-controls="profile-menu">
-            <div class="header-avatar-ring">
-              <span id="profile-initials" class="header-profile-initials" aria-hidden="true">Y</span>
-              <img id="profile-avatar" class="header-profile-avatar" alt="" hidden>
-              <img id="profile-avatar-frame" class="header-avatar-frame" alt="" hidden>
-              <span class="header-avatar-status"></span>
-            </div>
-          </button>
-          <div id="profile-menu" class="header-profile-menu" role="menu"
-            aria-label="Menú de perfil" hidden>
-            <div class="header-profile-card">
-              <div class="header-profile-card-top">
-                <div class="header-profile-avatar-thumb">
-                  <span id="profile-card-initials" class="header-profile-card-initials">Y</span>
-                  <img id="profile-card-avatar" class="header-profile-card-avatar" alt="" hidden>
-                  <img id="profile-card-avatar-frame" class="header-avatar-frame" alt="" hidden>
-                </div>
-                <div class="header-profile-user-texts">
-                  <div class="header-profile-name-row">
-                    <strong id="profile-menu-name" class="header-profile-name"></strong>
-                    <span id="profile-menu-role" class="header-profile-badge">USER</span>
-                  </div>
-                  <span id="profile-menu-email" class="header-profile-email"></span>
-                </div>
-              </div>
-
-              <!-- Selector interactivo de Identificador: Alterna entre @Usuario e ID + botón de Copiar -->
-              <div class="header-profile-id-box">
-                <button id="toggle-ident-mode" class="header-profile-ident-pill" type="button"
-                  title="Clic para alternar entre @Usuario e ID de usuario" aria-label="Modo actual: @Usuario. Clic para cambiar a ID">
-                  <span id="ident-badge" class="header-profile-ident-tag">@USER</span>
-                  <span id="profile-menu-id" class="header-profile-id-val">@usuario</span>
-                  <span class="header-profile-swap-icon" aria-hidden="true" title="Alternar">
-                    <img src="/assets/icons/svg/swap.svg" class="header-profile-swap-icon-img" alt="" aria-hidden="true">
-                  </span>
-                </button>
-                <button id="copy-profile-id" class="header-profile-copy-btn" type="button"
-                  aria-label="Copiar identificador al portapapeles" title="Copiar al portapapeles">
-                  <span class="header-profile-copy-icon-wrap" aria-hidden="true">
-                    <img src="/assets/icons/svg/copy.svg" class="header-copy-icon-default" alt="" aria-hidden="true">
-                    <img src="/assets/icons/svg/check.svg" class="header-copy-icon-check" alt="" aria-hidden="true">
-                  </span>
-                  <span id="copy-btn-text" class="header-profile-copy-text">Copiar</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="header-profile-links">
-              <a href="/pages/usuario.html" id="header-public-profile-link" class="header-profile-link" role="menuitem">
-                <img src="/assets/icons/svg/user.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <span>Mi perfil público</span>
-              </a>
-              <a href="/pages/tienda.html" class="header-profile-link" role="menuitem">
-                <img src="/assets/icons/svg/shop.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <span>Tienda</span>
-              </a>
-              <a href="/pages/biblioteca.html" class="header-profile-link" role="menuitem">
-                <img src="/assets/icons/svg/library.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <span>Mi biblioteca</span>
-              </a>
-              <a href="/pages/usuario.html?edit=1" class="header-profile-link" role="menuitem">
-                <img src="/assets/icons/svg/settings.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <span>Ajustes de cuenta</span>
-              </a>
-            </div>
-
-            <button id="logout-button" class="header-profile-logout" type="button" role="menuitem">
-              <img src="/assets/icons/svg/logout.svg" alt="" aria-hidden="true">
-              <span>Cerrar sesión</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
-  `;
+  container.innerHTML = getHeaderTemplate();
   container.removeAttribute('aria-busy');
 
   /* Referencias DOM */
@@ -348,10 +61,7 @@ export function renderSiteHeader(container) {
   const userActions = document.getElementById('user-actions');
   const headerUserStats = document.getElementById('header-user-stats');
   const headerStreak = document.getElementById('header-streak');
-  const headerCoins = document.getElementById('header-coins');
   const headerLevel = document.getElementById('header-level');
-  const headerXpBar = document.getElementById('header-xp-bar');
-  const headerXpPct = document.getElementById('header-xp-pct');
   const headerStatWrapper = document.getElementById('header-stat-wrapper');
   const headerStatPill = document.getElementById('header-stat-pill');
   const statsDropdownMenu = document.getElementById('stats-dropdown-menu');
@@ -362,8 +72,6 @@ export function renderSiteHeader(container) {
   const statsDdXpRemaining = document.getElementById('stats-dd-xp-remaining');
   const statsDdStreakVal = document.getElementById('stats-dd-streak-val');
   const statsDdCoinsVal = document.getElementById('stats-dd-coins-val');
-  const statsDdMissionsSummary = document.getElementById('stats-dd-missions-summary');
-  const statsDdMissionsList = document.getElementById('stats-dd-missions-list');
   const profileRoot = document.getElementById('header-profile');
   const profileToggle = document.getElementById('profile-toggle');
   const avatarRing = container.querySelector('.header-avatar-ring');
@@ -391,24 +99,9 @@ export function renderSiteHeader(container) {
   const notificationsClearAll = document.getElementById('notifications-clear-all');
   const bellWrapper = container.querySelector('.header-bell-wrapper');
 
-  // Drawer referencias DOM (móvil)
-  const drawerUserCard = document.getElementById('drawer-user-card');
-  const drawerGuestBox = document.getElementById('drawer-guest-box');
-  const drawerAvatarImg = document.getElementById('drawer-avatar-img');
-  const drawerAvatarInitials = document.getElementById('drawer-avatar-initials');
-  const drawerUserName = document.getElementById('drawer-user-name');
-  const drawerUserHandle = document.getElementById('drawer-user-handle');
-  const drawerUserRole = document.getElementById('drawer-user-role');
-  const drawerStreakVal = document.getElementById('drawer-streak-val');
-  const drawerCoinsVal = document.getElementById('drawer-coins-val');
-  const drawerLevelVal = document.getElementById('drawer-level-val');
-  const drawerXpFill = document.getElementById('drawer-xp-fill');
-  const drawerXpLabel = document.getElementById('drawer-xp-label');
-
   // Referencias a los marcos del anillo (avatar frames)
   const profileAvatarFrame = document.getElementById('profile-avatar-frame');
   const profileCardAvatarFrame = document.getElementById('profile-card-avatar-frame');
-  const drawerAvatarFrame = document.getElementById('drawer-avatar-frame');
 
   if (!menuToggle || !navigationContent || !menuBackdrop ||
     !searchToggle || !searchPanel || !searchInput || !searchForm ||
@@ -581,17 +274,17 @@ export function renderSiteHeader(container) {
     link.setAttribute('aria-selected', 'false');
 
     if (isUser && !item.avatar_url) {
-       const initial = document.createElement('span');
-       initial.className = 'header-search-suggestion-initials';
-       initial.textContent = (item.username || 'U').substring(0, 2).toUpperCase();
-       link.append(initial);
+      const initial = document.createElement('span');
+      initial.className = 'header-search-suggestion-initials';
+      initial.textContent = (item.username || 'U').substring(0, 2).toUpperCase();
+      link.append(initial);
     } else {
-       const cover = document.createElement('img');
-       cover.className = isUser ? 'header-search-suggestion-avatar' : 'header-search-suggestion-cover';
-       cover.src = safeUrl(isUser ? item.avatar_url : item.cover_url, IMG_FALLBACK);
-       cover.alt = '';
-       cover.loading = 'lazy';
-       link.append(cover);
+      const cover = document.createElement('img');
+      cover.className = isUser ? 'header-search-suggestion-avatar' : 'header-search-suggestion-cover';
+      cover.src = safeUrl(isUser ? item.avatar_url : item.cover_url, IMG_FALLBACK);
+      cover.alt = '';
+      cover.loading = 'lazy';
+      link.append(cover);
     }
 
     const copy = document.createElement('span');
@@ -601,10 +294,10 @@ export function renderSiteHeader(container) {
     title.textContent = isUser ? (item.username || 'Usuario') : (item.title || 'Obra sin título');
     copy.append(title);
 
-    const details = isUser 
-       ? [(item.user_code ? `ID: ${item.user_code}` : null)] 
-       : [item.alternative_title, item.author];
-       
+    const details = isUser
+      ? [(item.user_code ? `ID: ${item.user_code}` : null)]
+      : [item.alternative_title, item.author];
+
     const filteredDetails = details.filter((value, idx, values) => value && values.indexOf(value) === idx).slice(0, 2);
     if (filteredDetails.length) {
       const subtitle = document.createElement('span');
@@ -634,8 +327,8 @@ export function renderSiteHeader(container) {
     const isUserSearch = query.startsWith('@');
     const actualQuery = isUserSearch ? query.substring(1).trim() : query;
     if (isUserSearch && actualQuery.length < 1) {
-       setSuggestionStatus('Escribe el nombre del usuario después de @.');
-       return;
+      setSuggestionStatus('Escribe el nombre del usuario después de @.');
+      return;
     }
 
     const requestId = ++searchRequestId;
@@ -643,9 +336,9 @@ export function renderSiteHeader(container) {
     searchDebounceTimer = window.setTimeout(async () => {
       const controller = new AbortController();
       searchController = controller;
-      
-      const endpoint = isUserSearch 
-        ? `/users/search?q=${encodeURIComponent(actualQuery)}` 
+
+      const endpoint = isUserSearch
+        ? `/users/search?q=${encodeURIComponent(actualQuery)}`
         : `/works/?q=${encodeURIComponent(actualQuery)}&per_page=7`;
 
       try {
@@ -661,22 +354,22 @@ export function renderSiteHeader(container) {
         }
 
         const options = items.map((item, index) => createSuggestion(item, index, isUserSearch));
-        
+
         let footer = null;
         if (!isUserSearch) {
-            footer = document.createElement('a');
-            footer.className = 'header-search-all';
-            footer.href = buildSearchUrl(actualQuery).href;
-            const total = Number(result.pagination?.items?.total ?? items.length);
-            footer.textContent = `Ver ${total} ${total === 1 ? 'obra' : 'obras'}`;
-            footer.setAttribute('role', 'option');
-            footer.setAttribute('aria-selected', 'false');
+          footer = document.createElement('a');
+          footer.className = 'header-search-all';
+          footer.href = buildSearchUrl(actualQuery).href;
+          const total = Number(result.pagination?.items?.total ?? items.length);
+          footer.textContent = `Ver ${total} ${total === 1 ? 'obra' : 'obras'}`;
+          footer.setAttribute('role', 'option');
+          footer.setAttribute('aria-selected', 'false');
         }
-        
+
         if (footer) {
-           searchSuggestions.replaceChildren(...options, footer);
+          searchSuggestions.replaceChildren(...options, footer);
         } else {
-           searchSuggestions.replaceChildren(...options);
+          searchSuggestions.replaceChildren(...options);
         }
         showSuggestions();
       } catch (error) {
@@ -808,16 +501,21 @@ export function renderSiteHeader(container) {
     bellToggle.setAttribute('aria-expanded', 'false');
   }
 
-  async function loadNotifications() {
+  async function loadNotifications(silent = false) {
     try {
       const response = await apiRequest('/notifications/?unread_only=true');
       const items = response?.data || [];
       const count = response?.unread_count ?? items.length;
-      
+
       updateBellBadge(count);
 
       if (notificationsReadAll) notificationsReadAll.hidden = items.length === 0;
       if (notificationsClearAll) notificationsClearAll.hidden = items.length === 0;
+
+      // Si es actualización en segundo plano y el menú está cerrado, no redibujar el DOM
+      if (silent && notificationsMenu.hidden) {
+        return;
+      }
 
       if (items.length === 0) {
         notificationsList.innerHTML = getEmptyNotificationsHtml();
@@ -845,7 +543,7 @@ export function renderSiteHeader(container) {
         if (!targetUrl && payload.work_slug) {
           targetUrl = `/pages/obra.html?slug=${encodeURIComponent(payload.work_slug)}`;
         } else if (!targetUrl && payload.chapter_id) {
-          targetUrl = `/pages/lector.html?id=${encodeURIComponent(payload.chapter_id)}`;
+          targetUrl = `/pages/leer.html?capitulo=${encodeURIComponent(payload.chapter_id)}`;
         }
 
         const itemEl = document.createElement('div');
@@ -873,9 +571,16 @@ export function renderSiteHeader(container) {
         `;
 
         const dismissBtn = itemEl.querySelector('.header-notification-dismiss');
-        const removeWithAnimation = () => {
+        const removeWithAnimation = async () => {
           itemEl.classList.add('removing');
-          updateBellBadge(currentUnreadCount - 1);
+          updateBellBadge(Math.max(0, currentUnreadCount - 1));
+
+          try {
+            await apiRequest(`/notifications/${item.id}`, { method: 'DELETE' });
+          } catch {
+            await apiRequest(`/notifications/${item.id}/read`, { method: 'PATCH' }).catch(() => { });
+          }
+
           window.setTimeout(() => {
             itemEl.remove();
             const remaining = notificationsList.querySelectorAll('.header-notification-item');
@@ -885,30 +590,20 @@ export function renderSiteHeader(container) {
               if (notificationsClearAll) notificationsClearAll.hidden = true;
               notificationsList.innerHTML = getEmptyNotificationsHtml();
             }
-          }, 200);
+          }, 180);
         };
 
         // Al hacer clic en la X de descartar: se elimina directamente
-        dismissBtn.addEventListener('click', async (e) => {
+        dismissBtn?.addEventListener('click', (e) => {
           e.stopPropagation();
           removeWithAnimation();
-          try {
-            await apiRequest(`/notifications/${item.id}`, { method: 'DELETE' });
-          } catch {
-            await apiRequest(`/notifications/${item.id}/read`, { method: 'PATCH' }).catch(() => {});
-          }
         });
 
         // Al hacer clic en el cuerpo de la notificación: se elimina y navega al contenido
-        itemEl.addEventListener('click', async (e) => {
+        itemEl.addEventListener('click', (e) => {
           if (e.target.closest('.header-notification-dismiss')) return;
 
           removeWithAnimation();
-          try {
-            await apiRequest(`/notifications/${item.id}`, { method: 'DELETE' });
-          } catch {
-            await apiRequest(`/notifications/${item.id}/read`, { method: 'PATCH' }).catch(() => {});
-          }
 
           if (targetUrl) {
             closeNotificationsMenu();
@@ -970,7 +665,7 @@ export function renderSiteHeader(container) {
     try {
       await apiRequest('/notifications/', { method: 'DELETE' });
     } catch {
-      await apiRequest('/notifications/read-all', { method: 'PATCH' }).catch(() => {});
+      await apiRequest('/notifications/read-all', { method: 'PATCH' }).catch(() => { });
     }
   }
 
@@ -984,17 +679,12 @@ export function renderSiteHeader(container) {
     userActions.dataset.authState = 'guest';
     userActions.hidden = true;
 
-    // Actualizar Drawer móvil para invitado
-    if (drawerUserCard) drawerUserCard.hidden = true;
-    if (drawerGuestBox) drawerGuestBox.hidden = false;
-
     // Ocultar marcos de avatar
     if (profileAvatarFrame) profileAvatarFrame.hidden = true;
     if (profileCardAvatarFrame) profileCardAvatarFrame.hidden = true;
-    if (drawerAvatarFrame) drawerAvatarFrame.hidden = true;
 
     closeProfileMenu();
-    try { localStorage.removeItem('user'); } catch {}
+    try { localStorage.removeItem('user'); } catch { }
     /* Actualizar bottom nav */
     window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { user: null } }));
   }
@@ -1006,10 +696,6 @@ export function renderSiteHeader(container) {
     headerUserStats.hidden = false;
     userActions.hidden = false;
     userActions.dataset.authState = 'ready';
-
-    // Actualizar Drawer móvil para usuario logueado
-    if (drawerGuestBox) drawerGuestBox.hidden = true;
-    if (drawerUserCard) drawerUserCard.hidden = false;
 
     const name = user.username || user.email || 'Lector';
     profileName.textContent = name;
@@ -1031,7 +717,7 @@ export function renderSiteHeader(container) {
       publicProfileLink.href = publicId ? `/pages/usuario.html?id=${encodeURIComponent(publicId)}` : '/pages/usuario.html';
     }
 
-    // Stats
+    // Stats principales
     const xp = user.xp || 0;
     const coins = user.coins || 0;
     const streak = user.streak_days || 0;
@@ -1040,24 +726,9 @@ export function renderSiteHeader(container) {
     const pct = Math.floor((levelXp / 1000) * 100);
 
     if (headerStreak) headerStreak.textContent = `${streak}d`;
-    if (headerCoins) headerCoins.textContent = `${coins.toLocaleString()} G`;
     if (headerLevel) headerLevel.textContent = `Nv. ${currentLevel}`;
-    if (headerXpBar) headerXpBar.style.width = `${pct}%`;
-    if (headerXpPct) headerXpPct.textContent = `${pct}%`;
-
-    // Sincronizar stats en el Drawer móvil
-    if (drawerUserName) drawerUserName.textContent = name;
-    if (drawerUserHandle) {
-      drawerUserHandle.textContent = user.username ? `@${user.username}` : (user.user_code ? `@${user.user_code}` : '');
-    }
-    if (drawerUserRole) drawerUserRole.textContent = user.platform_role || 'USER';
-    if (drawerStreakVal) drawerStreakVal.textContent = `${streak}d`;
-    if (drawerCoinsVal) drawerCoinsVal.textContent = `${coins.toLocaleString()} G`;
-    if (drawerLevelVal) drawerLevelVal.textContent = `Nv. ${currentLevel}`;
-    if (drawerXpFill) drawerXpFill.style.width = `${pct}%`;
-    if (drawerXpLabel) drawerXpLabel.textContent = `${levelXp} / 1000 XP`;
-    if (drawerAvatarInitials) {
-      drawerAvatarInitials.textContent = Array.from(name.trim())[0]?.toLocaleUpperCase() || 'Y';
+    if (headerStatPill) {
+      headerStatPill.title = `Nivel ${currentLevel} · Racha: ${streak}d · Clic para ver estadísticas`;
     }
 
     // Anillo de progreso del avatar en el header (conic-gradient fluido)
@@ -1066,7 +737,7 @@ export function renderSiteHeader(container) {
       avatarRing.title = `Nivel ${currentLevel} (${pct}% XP) · ${levelXp}/1000 XP`;
     }
 
-    // Dropdown Header & Stats sync
+    // Desplegable de progreso del Header
     if (statsDdLevelBadge) statsDdLevelBadge.textContent = `Nv. ${currentLevel}`;
     if (statsDdLevelTitle) {
       const titles = [
@@ -1109,15 +780,6 @@ export function renderSiteHeader(container) {
           if (profileCardInitials) profileCardInitials.hidden = false;
         };
       }
-      if (drawerAvatarImg) {
-        drawerAvatarImg.src = avatarUrl;
-        drawerAvatarImg.hidden = false;
-        if (drawerAvatarInitials) drawerAvatarInitials.hidden = true;
-        drawerAvatarImg.onerror = () => {
-          drawerAvatarImg.hidden = true;
-          if (drawerAvatarInitials) drawerAvatarInitials.hidden = false;
-        };
-      }
     } else {
       profileAvatar.removeAttribute('src');
       profileAvatar.hidden = true;
@@ -1126,11 +788,6 @@ export function renderSiteHeader(container) {
         profileCardAvatar.removeAttribute('src');
         profileCardAvatar.hidden = true;
         if (profileCardInitials) profileCardInitials.hidden = false;
-      }
-      if (drawerAvatarImg) {
-        drawerAvatarImg.removeAttribute('src');
-        drawerAvatarImg.hidden = true;
-        if (drawerAvatarInitials) drawerAvatarInitials.hidden = false;
       }
     }
 
@@ -1147,11 +804,6 @@ export function renderSiteHeader(container) {
         profileCardAvatarFrame.hidden = false;
         profileCardAvatarFrame.onerror = () => { profileCardAvatarFrame.hidden = true; };
       }
-      if (drawerAvatarFrame) {
-        drawerAvatarFrame.src = frameUrl;
-        drawerAvatarFrame.hidden = false;
-        drawerAvatarFrame.onerror = () => { drawerAvatarFrame.hidden = true; };
-      }
     } else {
       if (profileAvatarFrame) {
         profileAvatarFrame.removeAttribute('src');
@@ -1161,24 +813,13 @@ export function renderSiteHeader(container) {
         profileCardAvatarFrame.removeAttribute('src');
         profileCardAvatarFrame.hidden = true;
       }
-      if (drawerAvatarFrame) {
-        drawerAvatarFrame.removeAttribute('src');
-        drawerAvatarFrame.hidden = true;
-      }
-    }
-
-    if (headerStatPill) {
-      headerStatPill.title = `Nivel ${currentLevel} (${pct}%) · ${coins.toLocaleString()} G · Racha: ${streak}d. Clic para ver misiones`;
     }
 
     /* Actualizar bottom nav con datos del usuario */
     window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { user } }));
   }
 
-  /* STATS DROPDOWN Y MISIONES RÁPIDAS */
-  let dropdownMissionsLoading = false;
-  let cachedMissionsData = null;
-
+  /* STATS DROPDOWN */
   function isStatsDropdownOpen() {
     return statsDropdownMenu && !statsDropdownMenu.hidden;
   }
@@ -1198,107 +839,10 @@ export function renderSiteHeader(container) {
 
     statsDropdownMenu.hidden = false;
     headerStatPill?.setAttribute('aria-expanded', 'true');
-    loadDropdownMissions();
   }
 
   function toggleStatsDropdown() {
     isStatsDropdownOpen() ? closeStatsDropdown() : openStatsDropdown();
-  }
-
-  async function loadDropdownMissions(forceReload = false) {
-    if (!statsDdMissionsList) return;
-    if (dropdownMissionsLoading) return;
-    if (cachedMissionsData && !forceReload) {
-      renderDropdownMissionsList(cachedMissionsData);
-      return;
-    }
-
-    dropdownMissionsLoading = true;
-    try {
-      const data = await apiRequest('/home/mission/');
-      cachedMissionsData = data;
-      renderDropdownMissionsList(data);
-    } catch {
-      statsDdMissionsList.innerHTML = `
-        <div class="header-stats-dd-empty">No se pudieron cargar las misiones</div>
-      `;
-      if (statsDdMissionsSummary) statsDdMissionsSummary.textContent = 'Error';
-    } finally {
-      dropdownMissionsLoading = false;
-    }
-  }
-
-  function renderDropdownMissionsList(data) {
-    if (!statsDdMissionsList) return;
-    if (data.auth_required) {
-      statsDdMissionsList.innerHTML = `
-        <div class="header-stats-dd-empty">Inicia sesión para ver misiones</div>
-      `;
-      if (statsDdMissionsSummary) statsDdMissionsSummary.textContent = 'Sin sesión';
-      return;
-    }
-
-    const missions = data.missions || [];
-    let readyCount = 0;
-    missions.forEach(m => { if (m.can_claim) readyCount += 1; });
-    if (data.chest?.can_claim) readyCount += 1;
-
-    if (statsDdMissionsSummary) {
-      statsDdMissionsSummary.textContent = readyCount > 0
-        ? `¡${readyCount} por reclamar!`
-        : `${data.total_claimed || 0}/${data.total_missions || missions.length} Reclamadas`;
-      statsDdMissionsSummary.classList.toggle('is-ready', readyCount > 0);
-    }
-
-    const iconMap = {
-      'book-open': '📖',
-      'flame': '🔥',
-      'message-circle': '💬',
-      'bookmark': '🔖',
-      'gift': '🎁',
-    };
-
-    const itemsHtml = missions.map(m => {
-      const icon = iconMap[m.icon] || '⭐';
-      let actionHtml = '';
-
-      if (m.is_claimed) {
-        actionHtml = `<span class="header-stats-dd-claimed">✓ Reclamada</span>`;
-      } else if (m.can_claim) {
-        actionHtml = `
-          <button type="button" class="header-stats-dd-claim-btn" data-key="${m.key}">
-            Reclamar +${m.reward_xp} XP
-          </button>`;
-      } else {
-        actionHtml = `
-          <a href="${m.action_url || '/pages/catalogo.html'}" class="header-stats-dd-action-btn">
-            ${m.action_text || 'Ir'} →
-          </a>`;
-      }
-
-      return `
-        <div class="header-stats-dd-item ${m.can_claim ? 'is-ready' : ''} ${m.is_claimed ? 'is-claimed' : ''}">
-          <div class="header-stats-dd-item-left">
-            <span class="header-stats-dd-item-icon">${icon}</span>
-            <div class="header-stats-dd-item-info">
-              <div class="header-stats-dd-item-title">${m.title}</div>
-              <div class="header-stats-dd-item-bar-row">
-                <div class="header-stats-dd-item-bar">
-                  <div class="header-stats-dd-item-bar-fill" data-progress="${m.progress_pct}"></div>
-                </div>
-                <span class="header-stats-dd-item-progress">${m.progress_label}</span>
-              </div>
-            </div>
-          </div>
-          <div class="header-stats-dd-item-right">
-            ${actionHtml}
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    statsDdMissionsList.innerHTML = itemsHtml || '<div class="header-stats-dd-empty">No hay misiones disponibles</div>';
-    applyDataProgress(statsDdMissionsList);
   }
 
   function checkStreakNotification(user) {
@@ -1342,22 +886,22 @@ export function renderSiteHeader(container) {
       if (cached && (cached.id || cached.username)) {
         showProfile(cached);
       }
-    } catch {}
+    } catch { }
 
     try {
       const user = await authRequest('/me', { signal: profileController.signal });
       if (!destroyed) {
         try {
           localStorage.setItem('user', JSON.stringify(user));
-        } catch {}
+        } catch { }
         showProfile(user);
         window.dispatchEvent(new CustomEvent('auth:user-synced', { detail: { user } }));
         checkStreakNotification(user);
         // Cargar conteo rápido inicial al autenticar
         apiRequest('/notifications/?unread_only=true').then(res => {
-           const count = res?.unread_count ?? (res?.data ? res.data.length : 0);
-           updateBellBadge(count);
-        }).catch(() => {});
+          const count = res?.unread_count ?? (res?.data ? res.data.length : 0);
+          updateBellBadge(count);
+        }).catch(() => { });
       }
     } catch (error) {
       if (error.name === 'AbortError') return;
@@ -1613,40 +1157,10 @@ export function renderSiteHeader(container) {
   }
 
   if (statsDropdownMenu) {
-    statsDropdownMenu.addEventListener('click', async (e) => {
-      const claimBtn = e.target.closest('.header-stats-dd-claim-btn');
-      if (!claimBtn || claimBtn.disabled) return;
-
-      const missionKey = claimBtn.dataset.key;
-      if (!missionKey) return;
-
-      claimBtn.disabled = true;
-      claimBtn.textContent = '...';
-
-      try {
-        const res = await apiRequest('/home/mission/claim/', {
-          method: 'POST',
-          body: { mission_key: missionKey },
-        });
-
-        if (res.leveled_up) {
-          showToast(`🎉 ¡SUBISTE DE NIVEL! Ahora eres Nivel ${res.new_level}`, 'success', 5000);
-        }
-
-        if (profileUser) {
-          profileUser.xp = res.new_xp;
-          profileUser.coins = res.new_coins;
-          profileUser.streak_days = res.streak_days;
-          showProfile(profileUser);
-        }
-
-        window.dispatchEvent(new CustomEvent('yume:xp-updated', { detail: res }));
-        cachedMissionsData = res.missions_state;
-        renderDropdownMissionsList(res.missions_state);
-      } catch (err) {
-        showToast(err.message || 'Error al reclamar la misión', 'error');
-        claimBtn.disabled = false;
-        claimBtn.textContent = 'Reclamar';
+    statsDropdownMenu.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (link) {
+        closeStatsDropdown();
       }
     });
   }
@@ -1657,11 +1171,6 @@ export function renderSiteHeader(container) {
       if (e.detail.new_coins !== undefined) profileUser.coins = e.detail.new_coins;
       if (e.detail.streak_days !== undefined) profileUser.streak_days = e.detail.streak_days;
       showProfile(profileUser);
-      if (e.detail.missions_state) {
-        cachedMissionsData = e.detail.missions_state;
-        renderDropdownMissionsList(e.detail.missions_state);
-      }
-      // Actualizar campana de notificaciones de inmediato en tiempo real
       loadNotifications(true);
     }
   });

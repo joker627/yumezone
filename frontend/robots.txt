@@ -22,7 +22,6 @@ Allow: /js/
 # Rutas privadas protegidas
 Disallow: /pages/login.html
 Disallow: /pages/registro.html
-Disallow: /pages/perfil.html
 Disallow: /pages/biblioteca.html
 Disallow: /pages/historial.html
 Disallow: /*?*edit=*

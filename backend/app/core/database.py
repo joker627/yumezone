@@ -1,4 +1,5 @@
 import aiomysql
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 from app.core.settings.config import get_settings
 
@@ -19,7 +20,7 @@ async def init_db_pool():
             maxsize=settings.db_pool_max,
             autocommit=True,
         )
-        print(" Pool de conexiones inicializado exitosamente.")
+        print(" Pool de conexiones inicializado exitosamente")
     except Exception as e:
         print(f" Error crítico inicializando Pool de conexiones: {e}")
         raise RuntimeError(f"Fallo crítico al conectar con la base de datos: {e}") from e
@@ -37,8 +38,29 @@ async def get_db_pool() -> aiomysql.Pool:
         raise Exception("La base de datos no está conectada.")
     return db_pool
 
-# obtencion de conexion a la base de datos
+# obtencion de conexion a la base de datos (inyección de dependencias)
 async def get_db_connection() -> AsyncGenerator[aiomysql.Connection, None]:
     pool = await get_db_pool()
     async with pool.acquire() as conn:
-        yield conn
+        try:
+            yield conn
+        finally:
+            try:
+                if not conn.get_autocommit():
+                    await conn.rollback()
+            except Exception:
+                pass
+
+# contexto transaccional atómico
+@asynccontextmanager
+async def transaction_scope() -> AsyncGenerator[aiomysql.Connection, None]:
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        await conn.begin()
+        try:
+            yield conn
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
+

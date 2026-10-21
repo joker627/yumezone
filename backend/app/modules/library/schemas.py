@@ -66,3 +66,7 @@ class WorkRatingResponse(BaseModel):
     user_rating: Optional[float] = None
     rating_average: Optional[float] = None
     rating_count: Optional[int] = None
+
+
+class MarkAllReadRequest(BaseModel):
+    read: bool = True

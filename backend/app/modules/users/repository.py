@@ -13,17 +13,19 @@ class UserRepository:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
-                where_clause = "username = %s OR user_code = %s OR username = %s"
-                values = [clean_id, clean_id, raw_id]
+                where_clause = "username = %s OR user_code = %s"
+                values = [clean_id, clean_id]
                 
                 if clean_id.isdigit():
                     where_clause += " OR id = %s"
                     values.append(int(clean_id))
                     
+                # Perfil base
                 await cur.execute(
                     f"""
-                    SELECT id, user_code, username, avatar_url, banner_url, anillo_url, anillo_url AS avatar_frame_url, active_title, country, bio, is_private, 
-                           platform_role, coins, xp, streak_days, last_streak_date, created_at, status
+                    SELECT id, user_code, username, avatar_url, banner_url, anillo_url, anillo_url AS avatar_frame_url, 
+                           active_title, country, bio, is_private, platform_role, coins, xp, streak_days, 
+                           last_streak_date, created_at, status
                     FROM users
                     WHERE ({where_clause}) AND status != 'DELETED'
                     LIMIT 1
@@ -34,6 +36,9 @@ class UserRepository:
                 if not user:
                     return None
 
+                uid = user["id"]
+
+                # Scan group
                 await cur.execute(
                     """
                     SELECT sg.id, sg.name, sg.slug, sg.logo_url, sgm.role
@@ -43,11 +48,11 @@ class UserRepository:
                     ORDER BY FIELD(sgm.role, 'ADMIN', 'MODERATOR', 'MEMBER') ASC
                     LIMIT 1
                     """,
-                    (user["id"],)
+                    (uid,)
                 )
                 user["scan_group"] = await cur.fetchone()
 
-                # Estadísticas reales del lector
+                # Estadísticas
                 await cur.execute(
                     """
                     SELECT
@@ -57,17 +62,14 @@ class UserRepository:
                         (SELECT COUNT(*) FROM user_library WHERE user_id = %s AND status = 'FOLLOWING') AS following_count,
                         (SELECT COUNT(*) FROM comments WHERE user_id = %s) AS total_comments
                     """,
-                    (user["id"], user["id"], user["id"], user["id"], user["id"])
+                    (uid, uid, uid, uid, uid)
                 )
                 user["stats"] = await cur.fetchone() or {
-                    "total_chapters_read": 0,
-                    "completed_works": 0,
-                    "favorites_count": 0,
-                    "following_count": 0,
-                    "total_comments": 0
+                    "total_chapters_read": 0, "completed_works": 0,
+                    "favorites_count": 0, "following_count": 0, "total_comments": 0
                 }
 
-                # Obras de la biblioteca del usuario (favoritos / siguiendo)
+                # Obras favoritas / biblioteca
                 await cur.execute(
                     """
                     SELECT 
@@ -88,24 +90,17 @@ class UserRepository:
                     ORDER BY (ul.status = 'FAVORITE') DESC, ul.rating DESC, ul.added_at DESC
                     LIMIT 6
                     """,
-                    (user["id"], user["id"])
+                    (uid, uid)
                 )
                 user["favorite_works"] = await cur.fetchall() or []
 
-                # Actividad reciente real (lecturas y comentarios)
+                # Actividad reciente
                 await cur.execute(
                     """
                     (
-                        SELECT 
-                            'READ' AS type,
-                            rh.read_at AS created_at,
-                            w.id AS work_id,
-                            w.title AS work_title,
-                            w.slug AS work_slug,
-                            w.cover_url AS work_cover_url,
-                            ch.chapter_number,
-                            ch.title AS chapter_title,
-                            NULL AS content
+                        SELECT 'READ' AS type, rh.read_at AS created_at,
+                               w.id AS work_id, w.title AS work_title, w.slug AS work_slug, w.cover_url AS work_cover_url,
+                               ch.chapter_number, ch.title AS chapter_title, NULL AS content
                         FROM reading_history rh
                         JOIN works w ON w.id = rh.work_id
                         JOIN chapters ch ON ch.id = rh.chapter_id
@@ -113,16 +108,9 @@ class UserRepository:
                     )
                     UNION ALL
                     (
-                        SELECT 
-                            'COMMENT' AS type,
-                            c.created_at,
-                            w.id AS work_id,
-                            w.title AS work_title,
-                            w.slug AS work_slug,
-                            w.cover_url AS work_cover_url,
-                            ch.chapter_number,
-                            ch.title AS chapter_title,
-                            c.content
+                        SELECT 'COMMENT' AS type, c.created_at,
+                               w.id AS work_id, w.title AS work_title, w.slug AS work_slug, w.cover_url AS work_cover_url,
+                               ch.chapter_number, ch.title AS chapter_title, c.content
                         FROM comments c
                         LEFT JOIN works w ON w.id = c.work_id
                         LEFT JOIN chapters ch ON ch.id = c.chapter_id
@@ -131,41 +119,31 @@ class UserRepository:
                     ORDER BY created_at DESC
                     LIMIT 8
                     """,
-                    (user["id"], user["id"])
+                    (uid, uid)
                 )
                 user["recent_activity"] = await cur.fetchall() or []
 
-                # Géneros más leídos
+                # Top géneros (unificado en 1 query)
                 await cur.execute(
                     """
                     SELECT g.name, COUNT(*) AS count
-                    FROM user_read_chapters urc
-                    JOIN work_genres wg ON wg.work_id = urc.work_id
-                    JOIN genres g ON g.id = wg.genre_id
-                    WHERE urc.user_id = %s
+                    FROM (
+                        SELECT wg.genre_id FROM user_read_chapters urc
+                        JOIN work_genres wg ON wg.work_id = urc.work_id
+                        WHERE urc.user_id = %s
+                        UNION ALL
+                        SELECT wg.genre_id FROM user_library ul
+                        JOIN work_genres wg ON wg.work_id = ul.work_id
+                        WHERE ul.user_id = %s
+                    ) AS combined
+                    JOIN genres g ON g.id = combined.genre_id
                     GROUP BY g.id, g.name
                     ORDER BY count DESC
                     LIMIT 4
                     """,
-                    (user["id"],)
+                    (uid, uid)
                 )
                 genres_data = await cur.fetchall() or []
-                if not genres_data:
-                    await cur.execute(
-                        """
-                        SELECT g.name, COUNT(*) AS count
-                        FROM user_library ul
-                        JOIN work_genres wg ON wg.work_id = ul.work_id
-                        JOIN genres g ON g.id = wg.genre_id
-                        WHERE ul.user_id = %s
-                        GROUP BY g.id, g.name
-                        ORDER BY count DESC
-                        LIMIT 4
-                        """,
-                        (user["id"],)
-                    )
-                    genres_data = await cur.fetchall() or []
-
                 total_genre_counts = sum(item["count"] for item in genres_data) or 1
                 for g_item in genres_data:
                     g_item["percentage"] = round((g_item["count"] / total_genre_counts) * 100)

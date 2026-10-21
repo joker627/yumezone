@@ -1,6 +1,7 @@
 -- Base de Datos: Yumezone
 CREATE DATABASE IF NOT EXISTS yumezone;
 USE yumezone;
+
 -- ==========================================
 -- 1. USUARIOS Y CONFIGURACIÓN DE LECTURA
 -- ==========================================
@@ -25,52 +26,80 @@ CREATE TABLE users (
     last_streak_date DATE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB;
 
+-- ==========================================
+-- 1.1 SISTEMA DE ROLES Y PERMISOS DINÁMICOS
+-- ==========================================
 CREATE TABLE roles (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  code VARCHAR(64) NOT NULL UNIQUE,
-  name VARCHAR(100) NOT NULL
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(64) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE permissions (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  code VARCHAR(100) NOT NULL UNIQUE,
-  description VARCHAR(255) NULL
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255) NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE role_permissions (
-  role_id BIGINT UNSIGNED NOT NULL,
-  permission_id BIGINT UNSIGNED NOT NULL,
-  PRIMARY KEY (role_id, permission_id),
-  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-  FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+    role_id BIGINT UNSIGNED NOT NULL,
+    permission_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE user_roles (
-  user_id INT NOT NULL,
-  role_id BIGINT UNSIGNED NOT NULL,
-  assigned_by INT NULL,
-  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (user_id, role_id),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-  FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL
+    user_id INT NOT NULL,
+    role_id BIGINT UNSIGNED NOT NULL,
+    assigned_by INT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE TABLE reading_settings (
-    user_id INT PRIMARY KEY,
-    zoom_level INT DEFAULT 100,
-    brightness INT DEFAULT 100,
-    background_color VARCHAR(20) DEFAULT 'DARK',
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+-- Roles base del sistema (Sin rol VIP)
+INSERT IGNORE INTO roles (id, code, name) VALUES
+(1, 'USER', 'Lector Estándar'),
+(2, 'SCAN_MEMBER', 'Miembro de Scanlator'),
+(3, 'SCAN_VERIFIED', 'Líder de Scan Verificado'),
+(4, 'MODERATOR', 'Moderador de Comunidad'),
+(5, 'ADMIN', 'Administrador de Plataforma'),
+(6, 'SUPERADMIN', 'Super Administrador / Webmaster');
+
+-- Permisos dinámicos del sistema
+INSERT IGNORE INTO permissions (id, code, description) VALUES
+(1, 'comment:create', 'Crear comentarios y usar el chat'),
+(2, 'comment:moderate', 'Ocultar o borrar comentarios y mensajes del chat de otros'),
+(3, 'report:resolve', 'Ver y resolver reportes de usuarios'),
+(4, 'scan:create', 'Crear un nuevo grupo de scan (Usuario verificado)'),
+(5, 'scan:panel_access', 'Acceder al panel de gestión de scans'),
+(6, 'work:create_global', 'Crear obras nuevas en el catálogo general'),
+(7, 'work:edit_any', 'Editar o eliminar cualquier obra o capítulo de la plataforma'),
+(8, 'scan:verify', 'Aprobar o bloquear grupos de scan'),
+(9, 'user:ban', 'Suspender o bloquear cuentas de usuarios'),
+(10, 'shop:manage', 'Crear y editar ítems de la tienda y medallas'),
+(11, 'platform:config', 'Modificar platform_settings, cola del Hero y asignar Admins');
+
+-- Asignación de permisos por rol
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
+(1, 1),                                                         -- USER
+(2, 1), (2, 5),                                                 -- SCAN_MEMBER
+(3, 1), (3, 4), (3, 5), (3, 6),                                 -- SCAN_VERIFIED
+(4, 1), (4, 2), (4, 3),                                         -- MODERATOR
+(5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8), (5, 9), (5, 10), -- ADMIN
+(6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7), (6, 8), (6, 9), (6, 10), (6, 11); -- SUPERADMIN
 
 -- ==========================================
 -- 2. GRUPOS SCAN
 -- ==========================================
 CREATE TABLE scan_groups (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id INT NULL, -- El usuario verificado que creó/es dueño del grupo
     name VARCHAR(100) UNIQUE NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
     logo_url VARCHAR(255),
@@ -79,19 +108,20 @@ CREATE TABLE scan_groups (
     social_links JSON,
     report_methods JSON,
     status ENUM('ACTIVE', 'INACTIVE', 'DELETED') DEFAULT 'ACTIVE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
 
 CREATE TABLE scan_group_members (
-    group_id INT,
-    user_id INT,
-    role ENUM('ADMIN', 'MODERATOR', 'MEMBER') DEFAULT 'MEMBER',
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('LEADER', 'CO_LEADER', 'UPLOADER', 'EDITOR', 'TRANSLATOR') DEFAULT 'UPLOADER',
     permissions JSON,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES scan_groups(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
 
 -- ==========================================
 -- 3. CLASIFICACIÓN DE CONTENIDO
@@ -246,6 +276,35 @@ CREATE TABLE IF NOT EXISTS user_daily_missions (
     UNIQUE KEY uq_user_mission_date (user_id, mission_key, claimed_date),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Chat en vivo de la comunidad
+CREATE TABLE IF NOT EXISTS chats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_chats_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Reacciones a mensajes del chat
+CREATE TABLE IF NOT EXISTS chat_reactions (
+    message_id INT NOT NULL,
+    user_id INT NOT NULL,
+    reaction VARCHAR(16) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (message_id, user_id, reaction),
+    FOREIGN KEY (message_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_chat_reactions_msg (message_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Purga automática diaria: conserva solamente los mensajes de las últimas 24 horas.
+-- Requiere que MySQL tenga event_scheduler = ON.
+CREATE EVENT IF NOT EXISTS purge_expired_chats
+ON SCHEDULE EVERY 1 HOUR
+DO DELETE FROM chats
+WHERE created_at < (CURRENT_TIMESTAMP - INTERVAL 24 HOUR);
 
 -- Medallas del sistema
 CREATE TABLE IF NOT EXISTS badges (
@@ -414,9 +473,9 @@ INSERT IGNORE INTO platform_settings (setting_key, setting_value, description)
 VALUES ('hero_new_rotation_hours', '{"hours": 24}', 'Duración en horas de cada obra nueva en el Hero');
 
 -- ==========================================
--- 9. COLA DE ROTACIÓN PARA OBRAS NUEVAS EN EL HERO
+-- 9. COLA DE ROTACIÓN PARA OBRAS EN EL HERO
 -- ==========================================
-CREATE TABLE hero_new_queue (
+CREATE TABLE hero_queue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     work_id INT NOT NULL,
     status ENUM('PENDING', 'ACTIVE', 'EXPIRED') DEFAULT 'PENDING',
@@ -429,59 +488,22 @@ CREATE TABLE hero_new_queue (
     INDEX idx_hero_queue_expires (expires_at)
 );
 
-CREATE TABLE home_chats (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_home_chats_created (created_at)
-);
 
--- Conserva solamente el chat de las ulltimas 24 horas.
--- Requiere que MySQL tenga event_scheduler = ON.
-CREATE EVENT IF NOT EXISTS purge_expired_home_chats
-ON SCHEDULE EVERY 1 HOUR
-DO DELETE FROM home_chats
-WHERE created_at < (CURRENT_TIMESTAMP - INTERVAL 24 HOUR);
-
-CREATE TABLE home_announcements (
+CREATE TABLE announcements (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    scan_group_id INT NULL,
     type VARCHAR(50) NOT NULL,
     type_label VARCHAR(50) NOT NULL,
     source VARCHAR(100),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE
+    expires_at TIMESTAMP NULL,
+    is_resolved BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (scan_group_id) REFERENCES scan_groups(id) ON DELETE CASCADE
 );
 
--- ==========================================
--- 9.1 TIENDA Y PERSONALIZACIÓN DE USUARIOS
--- ==========================================
-CREATE TABLE IF NOT EXISTS shop_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    category VARCHAR(50) NOT NULL DEFAULT 'BANNER',
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(255) NULL,
-    price_coins INT NOT NULL DEFAULT 100,
-    preview_url VARCHAR(500) NOT NULL,
-    required_level INT NOT NULL DEFAULT 1,
-    rarity VARCHAR(30) NOT NULL DEFAULT 'RARE',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS user_inventory (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    item_id INT NOT NULL,
-    is_equipped BOOLEAN DEFAULT FALSE,
-    acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_user_shop_item (user_id, item_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES shop_items(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==========================================
 -- 10. ÍNDICES ADICIONALES DE RENDIMIENTO
@@ -503,7 +525,7 @@ CREATE INDEX idx_chapters_status_published ON chapters (status, published_at);
 
 CREATE INDEX idx_library_user_status_added ON user_library (user_id, status, added_at);
 CREATE INDEX idx_scan_members_user_group ON scan_group_members (user_id, group_id);
-CREATE INDEX idx_announcements_active_created ON home_announcements (is_active, created_at);
+CREATE INDEX idx_announcements_active_created ON announcements (is_active, created_at);
 
 -- ==========================================
 -- 11. TRIGGERS DE RENDIMIENTO (OPTIMIZACIÓN)
@@ -534,13 +556,13 @@ CREATE TRIGGER trg_chapters_after_update
 AFTER UPDATE ON chapters
 FOR EACH ROW
 BEGIN
-    -- Recalcular todo de forma segura si hay un cambio de estado a publicado/oculto
+    -- Recalcular de forma consolidada si hay cambio de estado de publicación o fecha
     IF OLD.status != NEW.status OR OLD.published_at != NEW.published_at THEN
         UPDATE work_statistics 
         SET 
             first_chapter_id = (SELECT id FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number ASC, id ASC LIMIT 1),
             latest_chapter_id = (SELECT id FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number DESC, id DESC LIMIT 1),
-            latest_chapter_number = (SELECT chapter_number FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number DESC, id DESC LIMIT 1),
+            latest_chapter_number = (SELECT chapter_number FROM chapters WHERE id = latest_chapter_id),
             last_published_at = (SELECT MAX(published_at) FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED')
         WHERE work_id = NEW.work_id;
     END IF;

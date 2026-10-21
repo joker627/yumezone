@@ -66,11 +66,11 @@
 }
 
 .hero-stage.is-transitioning-next .hero-slide.is-active {
-  animation: hero-slide-enter-next 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: hero-slide-enter-next 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hero-stage.is-transitioning-prev .hero-slide.is-active {
-  animation: hero-slide-enter-prev 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: hero-slide-enter-prev 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes hero-slide-enter-next {

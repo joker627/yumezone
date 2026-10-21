@@ -1,6 +1,7 @@
 from typing import Optional, List
-
 import aiomysql
+
+from app.utils.formatters import format_chapter_number
 
 
 class LibraryRepository:
@@ -69,7 +70,7 @@ class LibraryRepository:
                 reading_progress = None
                 if r.get("last_chapter_id") is not None:
                     chap_num = float(r.get("last_chapter_number") or 1)
-                    chap_str = str(int(chap_num)) if chap_num.is_integer() else f"{chap_num:.1f}"
+                    chap_str = format_chapter_number(chap_num)
                     last_page = int(r.get("last_page_read") or 1)
                     tot_pages = int(r.get("last_chapter_total_pages") or 0)
                     pct = round((last_page / tot_pages) * 100) if tot_pages > 0 else 0
@@ -176,18 +177,14 @@ class LibraryRepository:
 
     async def save_reading_history(self, user_id: int, work_id: int, chapter_id: int, page: int) -> None:
         async with self.conn.cursor() as cur:
-            await cur.execute(
-                """
-                INSERT INTO reading_history (user_id, work_id, chapter_id, last_page_read)
-                VALUES (%s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                chapter_id = VALUES(chapter_id),
-                last_page_read = VALUES(last_page_read),
-                read_at = CURRENT_TIMESTAMP
-                """,
-                (user_id, work_id, chapter_id, page),
-            )
-            # Solo marcar el capítulo como completado/leído si ha alcanzado el 80% o la última página
+            # 1. Obtener número del capítulo entrante
+            await cur.execute("SELECT chapter_number FROM chapters WHERE id = %s", (chapter_id,))
+            ch_row = await cur.fetchone()
+            if not ch_row:
+                return
+            incoming_num = float(ch_row[0])
+
+            # 2. Marcar capítulo como leído si alcanza el 80% o la última página
             await cur.execute("SELECT COUNT(*) FROM chapter_images WHERE chapter_id = %s", (chapter_id,))
             row = await cur.fetchone()
             total_pages = int(row[0]) if row and row[0] else 1
@@ -199,6 +196,43 @@ class LibraryRepository:
                     """,
                     (user_id, work_id, chapter_id),
                 )
+
+            # 3. Buscar el capítulo leído más avanzado del usuario para esta obra
+            await cur.execute(
+                """
+                SELECT c.id, c.chapter_number
+                FROM user_read_chapters urc
+                JOIN chapters c ON c.id = urc.chapter_id
+                WHERE urc.user_id = %s AND urc.work_id = %s
+                ORDER BY c.chapter_number DESC, c.id DESC
+                LIMIT 1
+                """,
+                (user_id, work_id),
+            )
+            highest_read = await cur.fetchone()
+
+            target_chapter_id = chapter_id
+            target_page = page
+
+            # Si el usuario ya leyó o va en un capítulo más avanzado, NO alterar reading_history con un capítulo viejo
+            if highest_read:
+                highest_num = float(highest_read[1])
+                if highest_num > incoming_num:
+                    await self.conn.commit()
+                    return
+
+            await cur.execute(
+                """
+                INSERT INTO reading_history (user_id, work_id, chapter_id, last_page_read)
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    chapter_id = VALUES(chapter_id),
+                    last_page_read = VALUES(last_page_read),
+                    read_at = CURRENT_TIMESTAMP
+                """,
+                (user_id, work_id, chapter_id, page),
+            )
+            await self.conn.commit()
             await self.conn.commit()
 
     async def get_user_read_chapters(self, user_id: int, work_id: int) -> List[int]:
@@ -243,18 +277,33 @@ class LibraryRepository:
                     """,
                     (user_id, work_id, chapter_id),
                 )
-                # Actualizar también reading_history
+                is_read = True
+
+            # Recalcular el capítulo leído más avanzado para actualizar reading_history al último leído
+            await cur.execute(
+                """
+                SELECT c.id
+                FROM user_read_chapters urc
+                JOIN chapters c ON c.id = urc.chapter_id
+                WHERE urc.user_id = %s AND urc.work_id = %s
+                ORDER BY c.chapter_number DESC, c.id DESC
+                LIMIT 1
+                """,
+                (user_id, work_id),
+            )
+            latest_read = await cur.fetchone()
+            if latest_read:
+                latest_id = int(latest_read["id"])
                 await cur.execute(
                     """
                     INSERT INTO reading_history (user_id, work_id, chapter_id, last_page_read)
                     VALUES (%s, %s, %s, 1)
                     ON DUPLICATE KEY UPDATE
-                        chapter_id = VALUES(chapter_id),
+                        chapter_id = %s,
                         read_at = CURRENT_TIMESTAMP
                     """,
-                    (user_id, work_id, chapter_id),
+                    (user_id, work_id, latest_id, latest_id),
                 )
-                is_read = True
 
             await self.conn.commit()
 
@@ -337,3 +386,26 @@ class LibraryRepository:
             if not row or row.get("rating") is None:
                 return None
             return float(row["rating"])
+
+    async def mark_all_chapters_read(self, user_id: int, work_id: int, read: bool = True) -> int:
+        async with self.conn.cursor() as cur:
+            if not read:
+                await cur.execute(
+                    "DELETE FROM user_read_chapters WHERE user_id = %s AND work_id = %s",
+                    (user_id, work_id),
+                )
+                affected = cur.rowcount
+            else:
+                await cur.execute(
+                    """
+                    INSERT INTO user_read_chapters (user_id, work_id, chapter_id)
+                    SELECT %s, c.work_id, c.id
+                    FROM chapters c
+                    WHERE c.work_id = %s AND c.status = 'PUBLISHED'
+                    ON DUPLICATE KEY UPDATE read_at = CURRENT_TIMESTAMP
+                    """,
+                    (user_id, work_id),
+                )
+                affected = cur.rowcount
+            await self.conn.commit()
+            return affected

@@ -8,12 +8,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # imports internal
 from app.core.database import get_db_pool
+from app.core.redis import get_redis_client
 from app.core.security import decode_access_token
 from app.modules.auth.repository import AuthRepository
 from app.modules.users.models import CurrentUser
 
 security = HTTPBearer(auto_error=False)
 optional_security = HTTPBearer(auto_error=False)
+
+USER_SESSION_CACHE_TTL = 300  # 5 minutos
 
 
 # Obtener usuario actual
@@ -44,16 +47,36 @@ async def get_current_user(
     if email is None:
         raise credentials_exception
 
+    # 1. Intentar resolver desde caché Redis para evitar 2 queries SQL por petición
+    redis = get_redis_client()
+    cache_key = f"yume:user_session:{email}"
+    if redis:
+        try:
+            cached_data = await redis.get(cache_key)
+            if cached_data:
+                return CurrentUser(**json.loads(cached_data))
+        except Exception:
+            pass
+
+    # 2. Si no está en caché, consultar MySQL
     repository = AuthRepository()
     user = await repository.get_user_by_email(email)
 
-    # usuario autenticado id
     if user is None or user.id is None:
         raise credentials_exception
 
     user_dict = user.model_dump()
     user_dict["is_scan_member"] = await repository.is_scan_leader(user.id)
-    return CurrentUser(**user_dict)
+    current_user = CurrentUser(**user_dict)
+
+    # 3. Guardar en caché Redis
+    if redis:
+        try:
+            await redis.set(cache_key, current_user.model_dump_json(), ex=USER_SESSION_CACHE_TTL)
+        except Exception:
+            pass
+
+    return current_user
 
 
 # validar usuario 
@@ -113,7 +136,7 @@ async def verify_upload_permission(
                         detail="No perteneces a este grupo scan.",
                     )
 
-                if member["role"] in ["ADMIN", "MODERATOR"]:
+                if member["role"] in ["LEADER", "CO_LEADER", "UPLOADER", "ADMIN", "MODERATOR"]:
                     return True
 
                 if member["permissions"]:

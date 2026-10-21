@@ -60,8 +60,3 @@ class CurrentUser(BaseModel):
     updated_at: Optional[datetime] = None
 
 
-class ReadingSettings(BaseModel):
-    user_id: int
-    zoom_level: int = 100
-    brightness: int = 100
-    background_color: str = "DARK"

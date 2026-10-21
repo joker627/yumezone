@@ -6,10 +6,11 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import get_redoc_html
+from fastapi.middleware.gzip import GZipMiddleware
 
 # imports internal
 from app.core.database import close_db_pool, init_db_pool
+from app.core.redis import close_redis_pool, init_redis_pool
 from app.modules.auth.router import router as auth_router
 from app.modules.works.router import router as work_router
 from app.modules.chapters.router import router as chapter_router
@@ -21,10 +22,11 @@ from app.modules.metrics.router import router as metrics_router
 from app.modules.admin.router import router as admin_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.comments.router import router as comments_router
-from app.modules.chat.router import router as chat_router
 from app.modules.uploads.router import router as uploads_router
 from app.modules.users.router import router as users_router
 from app.modules.shop.router import router as shop_router
+from app.modules.chat.router import router as chat_router
+from app.modules.announcements.router import router as announcements_router
 
 load_dotenv()
 
@@ -32,8 +34,10 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     # iniciar la aplicacion
     await init_db_pool()
+    await init_redis_pool()
     yield
     # cerrar la aplicacion
+    await close_redis_pool()
     await close_db_pool()
 
 app = FastAPI(
@@ -63,6 +67,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Incluir enrutadores organizados por etiquetas
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Autenticación"])
@@ -76,10 +81,11 @@ app.include_router(metrics_router, prefix="/api/v1/metrics", tags=["Métricas"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["Administración"])
 app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["Notificaciones"])
 app.include_router(comments_router, prefix="/api/v1/comments", tags=["Comentarios"])
-app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(uploads_router, prefix="/api/v1/uploads", tags=["Uploads"])
 app.include_router(users_router, prefix="/api/v1/users", tags=["Usuarios"])
 app.include_router(shop_router, prefix="/api/v1/shop", tags=["Tienda"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
+app.include_router(announcements_router, prefix="/api/v1/announcements", tags=["Anuncios"])
 
 @app.get("/")
 def read_root():

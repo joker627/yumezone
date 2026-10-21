@@ -1,5 +1,5 @@
-# imports internal
-from pydantic import BaseModel, EmailStr, Field
+import re
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 
 # imports external
@@ -58,3 +58,18 @@ class UserUpdate(BaseModel):
     avatar_url: Optional[str] = None
     bio: Optional[str] = Field(default=None, max_length=500)
     is_private: Optional[bool] = None
+
+    @field_validator("avatar_url")
+    @classmethod
+    def validate_avatar_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if any(c in v for c in ['"', "'", '<', '>', '\n', '\r', ' ']):
+            raise ValueError("La URL contiene caracteres no permitidos")
+        if not re.match(r"^(https?://|/)", v, re.IGNORECASE):
+            raise ValueError("La URL debe iniciar con http://, https:// o /")
+        return v
+

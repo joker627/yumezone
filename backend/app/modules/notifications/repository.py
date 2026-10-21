@@ -80,4 +80,5 @@ class NotificationRepository:
                 "INSERT INTO notifications (user_id, type, payload) VALUES (%s, %s, %s)",
                 (user_id, notif_type, payload_str),
             )
+            await self.conn.commit()
             return cur.lastrowid
