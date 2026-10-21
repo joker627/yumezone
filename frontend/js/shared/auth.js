@@ -62,7 +62,7 @@ export async function apiRequest(path, options = {}) {
 
     // Disparador reactivo global: si se realiza una acción mutante (POST, PUT, PATCH, DELETE) que altera datos
     const method = (requestOptions.method || 'GET').toUpperCase();
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !path.includes('/chat/heartbeat') && !path.includes('/notifications')) {
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !path.includes('/notifications') && !path.includes('/chat/heartbeat')) {
         try {
             window.dispatchEvent(new CustomEvent('yume:mutation', { detail: { path, method, payload } }));
         } catch {}

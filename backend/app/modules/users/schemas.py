@@ -46,6 +46,9 @@ class UserProfileResponse(BaseModel):
     badges: List[Dict[str, Any]] = []
 
 
+import re
+from pydantic import BaseModel, field_validator
+
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     bio: Optional[str] = None
@@ -56,6 +59,31 @@ class UserUpdate(BaseModel):
     active_title: Optional[str] = None
     country: Optional[str] = None
     is_private: Optional[bool] = None
+
+    @field_validator("avatar_url", "banner_url", "anillo_url", "avatar_frame_url")
+    @classmethod
+    def validate_url_fields(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if any(c in v for c in ['"', "'", '<', '>', '\n', '\r', ' ']):
+            raise ValueError("La URL contiene caracteres no permitidos")
+        if not re.match(r"^(https?://|/)", v, re.IGNORECASE):
+            raise ValueError("La URL debe iniciar con http://, https:// o /")
+        return v
+
+    @field_validator("country")
+    @classmethod
+    def validate_country(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip().upper()
+        if not re.match(r"^[A-Z]{2}$", v):
+            raise ValueError("El código de país debe ser un código ISO de 2 letras (ej. CO, MX, AR)")
+        return v
+
 
 class UserSearchItem(BaseModel):
     id: int

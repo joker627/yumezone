@@ -58,30 +58,37 @@ router = APIRouter()
 
 # Obtener capitulos por ID de obra
 @router.get(
-    "/work/{work_id}",
+    "/work/{work_id_or_slug}",
     response_model=List[ChapterResponse],
 )
 async def get_chapters(
-    work_id: int,
+    work_id_or_slug: str,
     published_only: bool = Query(True, description="Filtrar solo capítulos publicados"),
     order: str = Query("asc", description="Orden de número de capítulo: asc o desc"),
     service: ChapterService = Depends(get_chapter_service),
     work_service: WorkService = Depends(get_work_service),
     current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
 ):
+    if work_id_or_slug.isdigit():
+        actual_work_id = int(work_id_or_slug)
+    else:
+        work_obj = await work_service.get_work_by_slug(work_id_or_slug)
+        if not work_obj:
+            raise HTTPException(status_code=404, detail="Obra no encontrada")
+        actual_work_id = work_obj.id
+
     if not published_only:
-        # Ver el borrador ajeno exige ser de la plataforma o del grupo dueño de la obra
         if not current_user:
             published_only = True
         elif current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]:
             try:
-                work = await work_service.get_work_by_id(work_id)
+                work = await work_service.get_work_by_id(actual_work_id)
                 await verify_upload_permission(current_user, work.scan_group_id)
             except HTTPException:
                 published_only = True
 
     return await service.get_chapters(
-        work_id, published_only=published_only, order=order
+        actual_work_id, published_only=published_only, order=order
     )
 
 

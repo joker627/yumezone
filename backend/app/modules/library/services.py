@@ -91,3 +91,7 @@ class LibraryService:
             return await self.repository.toggle_chapter_read(user_id, chapter_id)
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
+
+    async def mark_all_read(self, user_id: int, work_id: int, read: bool = True) -> dict:
+        affected = await self.repository.mark_all_chapters_read(user_id, work_id, read)
+        return {"work_id": work_id, "read": read, "affected": affected}

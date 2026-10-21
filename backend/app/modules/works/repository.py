@@ -1,3 +1,4 @@
+import json
 import time
 from typing import List, Optional, Tuple
 
@@ -103,15 +104,7 @@ class WorkRepository:
             """
             order_values = [search_term, search_term]
 
-        count_joins = ""
-        if search_term:
-            count_joins = """
-                LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id
-                LEFT JOIN statuses AS st ON st.id = w.status_id
-                LEFT JOIN formats AS f ON f.id = w.format_id
-                LEFT JOIN demographics AS d ON d.id = w.demographic_id
-            """
-            
+        count_joins = "LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id" if search_term else ""
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute(
                 f"""
@@ -192,7 +185,7 @@ class WorkRepository:
         _FILTERS_CACHE_TIME = now
         return filters
 
-    # get work by slug
+    # get work by slug (con géneros en una sola consulta SQL)
     async def get_work_by_slug(self, slug: str) -> Optional[Work]:
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute(
@@ -208,7 +201,16 @@ class WorkRepository:
                        COALESCE(ws.views_last_24h, 0) AS views_last_24h,
                        f.name AS format_name,
                        st.name AS status_name,
-                       d.name AS demographic_name
+                       d.name AS demographic_name,
+                       COALESCE(
+                           (
+                               SELECT JSON_ARRAYAGG(JSON_OBJECT('id', g.id, 'name', g.name))
+                               FROM genres AS g
+                               JOIN work_genres AS wg ON wg.genre_id = g.id
+                               WHERE wg.work_id = w.id
+                           ),
+                           JSON_ARRAY()
+                       ) AS genres_json
                 FROM works AS w
                 LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
                 LEFT JOIN formats AS f ON f.id = w.format_id
@@ -220,17 +222,13 @@ class WorkRepository:
             )
             row = await cur.fetchone()
             if row:
-                await cur.execute(
-                    """
-                    SELECT g.id, g.name
-                    FROM genres AS g
-                    JOIN work_genres AS wg ON wg.genre_id = g.id
-                    WHERE wg.work_id = %s
-                    ORDER BY g.name
-                    """,
-                    (row["id"],),
-                )
-                row["genres"] = await cur.fetchall() or []
+                genres = row.get("genres_json") or []
+                if isinstance(genres, str):
+                    try:
+                        genres = json.loads(genres)
+                    except Exception:
+                        genres = []
+                row["genres"] = genres
                 return Work(**row)
         return None
 

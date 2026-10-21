@@ -26,6 +26,8 @@ class Settings:
     jwt_secret: str
     jwt_algo: str
     jwt_exp: int
+    redis_url: str
+    cookie_secure: bool
 
 # caché de settings y carga de config desde .env
 @lru_cache()
@@ -42,4 +44,6 @@ def get_settings() -> Settings:
         jwt_secret=get_env_or_raise("JWT_SECRET"),
         jwt_algo=get_env_or_raise("JWT_ALGO"),
         jwt_exp=int(get_env_or_raise("JWT_EXP")),
+        redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+        cookie_secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
     )

@@ -91,6 +91,21 @@ class ChapterRepository:
                 )
                 await cur.execute(query, values)
                 chapter.id = cur.lastrowid
+
+                if chapter.status == "PUBLISHED":
+                    await cur.execute(
+                        """
+                        UPDATE work_statistics
+                        SET latest_chapter_id = %s,
+                            latest_chapter_number = %s,
+                            last_published_at = %s,
+                            first_chapter_id = COALESCE(first_chapter_id, %s)
+                        WHERE work_id = %s
+                          AND (%s >= COALESCE(latest_chapter_number, -1))
+                        """,
+                        (chapter.id, chapter.chapter_number, chapter.published_at, chapter.id, chapter.work_id, chapter.chapter_number),
+                    )
+
                 await conn.commit()
                 return chapter
 
@@ -175,22 +190,25 @@ class ChapterImageRepository:
     async def replace_chapter_images(
         self, chapter_id: int, images: List[ChapterImage]
     ) -> List[ChapterImage]:
-        """Reemplaza referencias de páginas en una única transacción."""
+        """Reemplaza referencias de páginas de forma completamente atómica."""
         pool = await get_db_pool()
         async with pool.acquire() as conn:
-            async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM chapter_images WHERE chapter_id = %s", (chapter_id,))
-                for image in images:
-                    await cur.execute(
+            try:
+                await conn.begin()
+                async with conn.cursor() as cur:
+                    await cur.execute("DELETE FROM chapter_images WHERE chapter_id = %s", (chapter_id,))
+                    if images:
+                        query = """
+                            INSERT INTO chapter_images (chapter_id, image_url, order_number)
+                            VALUES (%s, %s, %s)
                         """
-                        INSERT INTO chapter_images (chapter_id, image_url, order_number)
-                        VALUES (%s, %s, %s)
-                        """,
-                        (image.chapter_id, image.image_url, image.order_number),
-                    )
-                    image.id = cur.lastrowid
+                        values = [(img.chapter_id, img.image_url, img.order_number) for img in images]
+                        await cur.executemany(query, values)
                 await conn.commit()
-        return images
+                return images
+            except Exception:
+                await conn.rollback()
+                raise
 
     # Eliminar imágenes de un capítulo
     async def delete_chapter_images(self, chapter_id: int) -> bool:

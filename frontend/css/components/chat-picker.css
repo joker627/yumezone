@@ -1,0 +1,147 @@
+/* =========================================================================
+   Componente Modular: Selector de GIFs de Anime (Cyber-Luxury Dark)
+   ========================================================================= */
+
+/* Popover Flotante */
+.chat-picker-popover {
+  position: absolute;
+  bottom: 58px;
+  left: 0.5rem;
+  right: 0.5rem;
+  z-index: 130;
+  background: rgba(11, 15, 25, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(45, 212, 191, 0.15);
+  backdrop-filter: blur(24px);
+  padding: 0.55rem 0.65rem;
+  animation: yzFadeIn 150ms ease-out;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.chat-picker-popover[hidden] {
+  display: none !important;
+}
+
+/* Cabecera del Selector de GIFs */
+.chat-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.45rem;
+  margin-bottom: 0.45rem;
+}
+
+.chat-picker-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--teal-300);
+  letter-spacing: 0.02em;
+}
+
+.chat-picker-title svg {
+  color: var(--teal-400);
+}
+
+.chat-picker-close {
+  background: transparent;
+  border: none;
+  color: var(--neutral-400);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: all 150ms;
+}
+
+.chat-picker-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chat-picker-panel {
+  display: block;
+}
+
+/* Buscador de GIFs */
+.chat-gif-search-wrap {
+  margin-bottom: 0.45rem;
+}
+
+.chat-gif-search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md, 8px);
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  color: var(--neutral-100);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.chat-gif-search-input:focus {
+  border-color: var(--teal-400);
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+}
+
+/* Grilla de GIFs */
+.chat-gif-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  height: 270px;
+  max-height: 270px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.chat-gif-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat-gif-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-gif-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.chat-gif-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.5);
+}
+
+.chat-gif-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  height: 80px;
+  transition: transform 150ms, border-color 150ms, box-shadow 150ms;
+}
+
+.chat-gif-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--teal-400);
+  box-shadow: 0 4px 12px rgba(45, 212, 191, 0.25);
+}
+
+.chat-gif-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

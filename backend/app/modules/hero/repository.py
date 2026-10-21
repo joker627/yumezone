@@ -43,7 +43,7 @@ class HeroRepository:
     async def _get_new_group(self) -> List[Dict[str, Any]]:
         query = f"""
             {WORK_QUERY}
-            JOIN hero_new_queue AS hq ON hq.work_id = w.id
+            JOIN hero_queue AS hq ON hq.work_id = w.id
             WHERE hq.status = 'ACTIVE'
               AND (hq.expires_at IS NULL OR hq.expires_at > NOW())
             ORDER BY hq.activated_at ASC, hq.id ASC
@@ -180,7 +180,7 @@ class HeroRepository:
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
             # Comprobar primero si hay elementos que requieran rotación para evitar mutaciones innecesarias en peticiones GET
             await cur.execute("""
-                SELECT 1 FROM hero_new_queue
+                SELECT 1 FROM hero_queue
                 WHERE (status = 'ACTIVE' AND expires_at IS NOT NULL AND expires_at <= NOW())
                    OR (status = 'PENDING')
                 LIMIT 1
@@ -204,14 +204,14 @@ class HeroRepository:
                 except (ValueError, KeyError, TypeError, json.JSONDecodeError):
                     hours = 24
             await cur.execute("""
-                UPDATE hero_new_queue
+                UPDATE hero_queue
                 SET status = 'EXPIRED'
                 WHERE status = 'ACTIVE' AND expires_at IS NOT NULL
                   AND expires_at <= NOW()
                 """)
             await cur.execute(
                 """
-                SELECT id FROM hero_new_queue
+                SELECT id FROM hero_queue
                 WHERE status = 'PENDING'
                 ORDER BY queued_at ASC, id ASC
                 LIMIT %s
@@ -225,7 +225,7 @@ class HeroRepository:
             for item in pending:
                 await cur.execute(
                     """
-                    UPDATE hero_new_queue
+                    UPDATE hero_queue
                     SET status = 'ACTIVE', activated_at = NOW(), expires_at = %s
                     WHERE id = %s
                     """,

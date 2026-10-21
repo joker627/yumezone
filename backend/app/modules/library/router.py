@@ -16,12 +16,12 @@ from app.modules.library.schemas import (
     ReadingHistoryCreate,
     WorkRatingResponse,
     WorkRatingUpdate,
+    MarkAllReadRequest,
 )
 from app.modules.library.services import LibraryService
 from app.modules.users.models import CurrentUser
 
 router = APIRouter()
-
 
 def get_library_service(
     conn: aiomysql.Connection = Depends(get_db_connection),
@@ -196,3 +196,16 @@ async def toggle_chapter_read(
     library_service: LibraryService = Depends(get_library_service),
 ):
     return await library_service.toggle_chapter_read(current_user.id, chapter_id)
+
+
+@router.post(
+    "/works/{work_id}/mark-all-read",
+    status_code=status.HTTP_200_OK,
+)
+async def mark_all_chapters_read(
+    work_id: int,
+    payload: MarkAllReadRequest,
+    current_user: CurrentUser = Depends(get_current_active_user),
+    library_service: LibraryService = Depends(get_library_service),
+):
+    return await library_service.mark_all_read(current_user.id, work_id, payload.read)

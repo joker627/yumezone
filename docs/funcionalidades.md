@@ -23,7 +23,7 @@ Aquí están los dominios de la plataforma, marcados con su estado real de imple
 * ✅ **`home`**: Datos para la portada (lanzamientos, ranking, populares, chat reciente, misión).
 * ✅ **`hero`**: Carrusel destacado de la portada.
 * 🚧 **`comments`**: Sistema de comentarios de obras y capítulos (Módulo reservado).
-* 🚧 **`chat`**: Chat en vivo de la portada, con lectura/escritura en `home_chats`. Un chat normal: sin canales, sin menciones y sin comandos.
+* 💬 **`chat (Discord WidgetBot)`**: Chat comunitario en vivo integrado directamente con Discord mediante WidgetBot, sin consumo de base de datos ni carga en el servidor backend.
 * 🚧 **`boards`**: Tablones de anuncios de scans y avisos globales.
 * 🚧 **`notifications`**: Sistema de alertas (invitaciones, nuevos capítulos).
 * 🚧 **`taxonomies`**: Filtros de géneros, demografías y formatos (Solo modelos/tablas).

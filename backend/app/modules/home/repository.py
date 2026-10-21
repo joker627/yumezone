@@ -1,57 +1,16 @@
 import json
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-
 import aiomysql
 
-
-# ---------------------------------------------------------------------------
-# Utilidad de tiempo relativo
-# ---------------------------------------------------------------------------
-def _relative_time(dt) -> str:
-    if dt is None:
-        return ""
-    if hasattr(dt, "tzinfo") and dt.tzinfo is not None:
-        delta = datetime.now(timezone.utc) - dt
-    else:
-        # Datetime naive generado localmente por MySQL (NOW() / CURRENT_TIMESTAMP)
-        delta = datetime.now() - dt
-
-    secs = max(0, int(delta.total_seconds()))
-    if secs < 60:
-        return "Ahora"
-    if secs < 3600:
-        return f"Hace {secs // 60}m"
-    if secs < 86400:
-        return f"Hace {secs // 3600}h"
-    days = secs // 86400
-    if days == 1:
-        return "Ayer"
-    if days < 7:
-        return f"Hace {days}d"
-    return dt.strftime("%d/%m/%Y")
+from app.utils.formatters import (
+    format_chapter_number,
+    format_relative_time,
+    format_views,
+    parse_json_safe,
+)
 
 
-def _fmt_chapter(chapter_number) -> str:
-    """Formatea número de capítulo eliminando decimales innecesarios."""
-    cn = float(chapter_number)
-    return str(int(cn)) if cn == int(cn) else str(cn)
-
-
-def _fmt_views(views: int) -> str:
-    """Formatea número de vistas con sufijos k/M."""
-    if views >= 1_000_000:
-        return f"{views / 1_000_000:.1f}M lecturas"
-    if views >= 1_000:
-        return f"{views / 1_000:.0f}k lecturas"
-    if views == 1:
-        return "1 lectura"
-    return f"{views} lecturas"
-
-
-# ---------------------------------------------------------------------------
 # Query base reutilizable para obras
-# ---------------------------------------------------------------------------
 WORK_BASE = """
     SELECT w.id, w.title, w.slug, w.cover_url, w.banner_url, w.author,
            sg.name AS scan_group_name, sg.slug AS scan_group_slug,
@@ -63,7 +22,16 @@ WORK_BASE = """
            COALESCE(ws.trending_score, 0.00)  AS trending_score,
            COALESCE(ws.favorites_count, 0)    AS favorites_count,
            f.name  AS format_name,
-           st.name AS status_name
+           st.name AS status_name,
+           COALESCE(
+               (
+                   SELECT JSON_ARRAYAGG(g.name)
+                   FROM work_genres AS wg
+                   JOIN genres AS g ON g.id = wg.genre_id
+                   WHERE wg.work_id = w.id
+               ),
+               JSON_ARRAY()
+           ) AS genres_json
     FROM works AS w
     LEFT JOIN scan_groups     AS sg ON sg.id = w.scan_group_id
     LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
@@ -86,9 +54,7 @@ class HomeRepository:
     def __init__(self, conn: aiomysql.Connection):
         self.conn = conn
 
-    # -----------------------------------------------------------------------
     # Helpers internos
-    # -----------------------------------------------------------------------
     async def _fetch(self, sql: str, values: tuple = ()) -> List[Dict[str, Any]]:
         async with self.conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute(sql, values)
@@ -97,29 +63,9 @@ class HomeRepository:
     async def _execute(self, sql: str, values: tuple = ()) -> int:
         async with self.conn.cursor() as cur:
             await cur.execute(sql, values)
+            await self.conn.commit()
             return cur.rowcount
 
-    async def _attach_genres(self, works: List[Dict]) -> None:
-        """Agrega géneros a cada obra en una sola query (evita N+1)."""
-        if not works:
-            return
-        ids = [w["id"] for w in works]
-        ph = ", ".join("%s" for _ in ids)
-        rows = await self._fetch(
-            f"""
-            SELECT wg.work_id, g.name
-            FROM work_genres AS wg
-            JOIN genres AS g ON g.id = wg.genre_id
-            WHERE wg.work_id IN ({ph})
-            ORDER BY g.name
-            """,
-            tuple(ids),
-        )
-        genre_map: Dict[int, list] = {wid: [] for wid in ids}
-        for r in rows:
-            genre_map[r["work_id"]].append(r["name"])
-        for w in works:
-            w["genres"] = genre_map[w["id"]]
 
     async def _attach_latest_chapter(self, works: List[Dict]) -> None:
         """Adjunta el último capítulo publicado de cada obra (1 query)."""
@@ -133,15 +79,10 @@ class HomeRepository:
                    c.chapter_number,
                    c.published_at,
                    sg.name AS scan_group_name
-            FROM chapters AS c
+            FROM work_statistics AS ws
+            JOIN chapters AS c ON c.id = ws.latest_chapter_id
             LEFT JOIN scan_groups AS sg ON sg.id = c.scan_group_id
-            WHERE c.work_id IN ({ph})
-              AND c.status = 'PUBLISHED'
-              AND c.chapter_number = (
-                  SELECT MAX(c2.chapter_number)
-                  FROM chapters AS c2
-                  WHERE c2.work_id = c.work_id AND c2.status = 'PUBLISHED'
-              )
+            WHERE ws.work_id IN ({ph})
             """,
             tuple(ids),
         )
@@ -158,17 +99,16 @@ class HomeRepository:
     def _enrich_chapter_fields(self, w: Dict) -> None:
         """Añade href, chapter_href y chapter_text a una obra ya hidratada."""
         w["href"] = f"/pages/obra.html?slug={w['slug']}"
+        w["genres"] = parse_json_safe(w.get("genres_json"), [])
         if w.get("latest_chapter_id"):
             w["chapter_href"] = f"/pages/leer.html?chapter_id={w['latest_chapter_id']}"
             if w.get("latest_chapter_number") is not None:
-                w["chapter_text"] = f"Cap. {_fmt_chapter(w['latest_chapter_number'])}"
+                w["chapter_text"] = f"Cap. {format_chapter_number(w['latest_chapter_number'])}"
         else:
             w["chapter_href"] = w["href"]
             w["chapter_text"] = ""
 
-    # -----------------------------------------------------------------------
     # Lanzamientos Recientes
-    # -----------------------------------------------------------------------
     async def get_launches(
         self, filter_format: Optional[str] = None, limit: int = 6
     ) -> List[Dict]:
@@ -194,18 +134,16 @@ class HomeRepository:
         params.append(limit)
 
         works = await self._fetch(query, tuple(params))
-        await self._attach_genres(works)
         await self._attach_latest_chapter(works)
         for w in works:
             self._enrich_chapter_fields(w)
             pub = w.get("latest_published_at")
-            w["published_text"] = _relative_time(pub) if pub else ""
+            w["published_text"] = format_relative_time(pub) if pub else ""
             w["rating"] = float(w.get("rating_average") or 0)
         return works
 
-    # -----------------------------------------------------------------------
+
     # Ranking
-    # -----------------------------------------------------------------------
     async def get_ranking(self, period: str = "weekly", limit: int = 6) -> List[Dict]:
         order_col = RANKING_PERIODS.get(period, RANKING_PERIODS["weekly"])
         col_key = order_col.split(".")[-1]
@@ -225,16 +163,14 @@ class HomeRepository:
         for i, w in enumerate(works, start=1):
             w["position"] = i
             reads = int(w.get(col_key, 0) or w.get("total_views", 0) or 0)
-            w["reads_formatted"] = _fmt_views(reads)
+            w["reads_formatted"] = format_views(reads)
             w["badge"] = w.get("format_name") or ""
             w["href"] = f"/pages/obra.html?slug={w['slug']}"
             w["rating"] = float(w.get("rating_average") or 0)
-        await self._attach_genres(works)
+            w["genres"] = parse_json_safe(w.get("genres_json"), [])
         return works
 
-    # -----------------------------------------------------------------------
     # Populares Esta Semana
-    # -----------------------------------------------------------------------
     async def get_popular(self, format: Optional[str] = None, limit: int = 4) -> List[Dict]:
         params: list = []
         format_clause = ""
@@ -258,7 +194,6 @@ class HomeRepository:
             tuple(params),
         )
 
-        await self._attach_genres(works)
         await self._attach_latest_chapter(works)
         for w in works:
             fav = int(w.get("favorites_count", 0) or 0)
@@ -269,24 +204,23 @@ class HomeRepository:
             w["rating"] = float(w.get("rating_average") or 0)
         return works
 
-    # -----------------------------------------------------------------------
     # Anuncios
-    # -----------------------------------------------------------------------
     async def get_announcements(self, filter_type: Optional[str] = None) -> List[Dict]:
         params: list = []
-        type_clause = ""
         if filter_type:
             type_clause = " AND type = %s"
             params.append(filter_type)
+        else:
+            type_clause = " AND type IN ('sistema', 'evento')"
 
         rows = await self._fetch(
             f"""
-            SELECT type, type_label, source, title, description, created_at
-            FROM home_announcements
+            SELECT type, type_label, source, title, description, created_at, is_resolved
+            FROM announcements
             WHERE is_active = TRUE
             {type_clause}
-            ORDER BY created_at DESC
-            LIMIT 10
+            ORDER BY is_resolved ASC, created_at DESC
+            LIMIT 6
             """,
             tuple(params),
         )
@@ -297,7 +231,8 @@ class HomeRepository:
                 "source": r["source"],
                 "title": r["title"],
                 "description": r["description"],
-                "published_text": _relative_time(r["created_at"]),
+                "published_text": format_relative_time(r["created_at"]),
+                "is_resolved": bool(r.get("is_resolved", False)),
             }
             for r in rows
         ]
@@ -336,7 +271,7 @@ class HomeRepository:
             total = int(r.get("total_pages") or 0)
             read = int(r.get("last_page_read") or 0)
             pct = round((read / total) * 100) if total > 0 else 0
-            chap_str = _fmt_chapter(r["chapter_number"])
+            chap_str = format_chapter_number(r["chapter_number"])
             result.append(
                 {
                     "work_id": r["id"],
@@ -348,7 +283,7 @@ class HomeRepository:
                     "chapter_text": f"Cap. {chap_str}",
                     "page_text": f"Pág. {read}/{total}" if total else "",
                     "progress": pct,
-                    "updated_text": _relative_time(r["read_at"]),
+                    "updated_text": format_relative_time(r["read_at"]),
                     "href": f"/pages/obra.html?slug={r['slug']}",
                     "chapter_href": f"/pages/leer.html?slug={r['slug']}&chapter_id={r['chapter_id']}",
                 }
@@ -359,6 +294,7 @@ class HomeRepository:
     # Misiones Diarias y Recompensas Reales de XP
     # -----------------------------------------------------------------------
     async def get_missions(self, user_id: int) -> Dict[str, Any]:
+        # Consulta consolidada de progreso diario y misiones reclamadas
         user_rows = await self._fetch(
             """
             SELECT 
@@ -377,7 +313,15 @@ class HomeRepository:
                     SELECT COUNT(*)
                     FROM user_library
                     WHERE user_id = u.id
-                ) AS library_count
+                ) AS library_count,
+                COALESCE(
+                    (
+                        SELECT JSON_ARRAYAGG(JSON_OBJECT('mission_key', udm.mission_key, 'xp_awarded', udm.xp_awarded, 'coins_awarded', udm.coins_awarded))
+                        FROM user_daily_missions AS udm
+                        WHERE udm.user_id = u.id AND udm.claimed_date = CURDATE()
+                    ),
+                    JSON_ARRAY()
+                ) AS claimed_json
             FROM users AS u
             WHERE u.id = %s
             """,
@@ -395,15 +339,13 @@ class HomeRepository:
         streak_days = int(row.get("streak_days") or 0)
         level = (xp // 1000) + 1
 
-        claimed_rows = await self._fetch(
-            """
-            SELECT mission_key, xp_awarded, coins_awarded, claimed_at
-            FROM user_daily_missions
-            WHERE user_id = %s AND claimed_date = CURDATE()
-            """,
-            (user_id,),
-        )
-        claimed_map = {r["mission_key"]: r for r in claimed_rows}
+        claimed_raw = row.get("claimed_json") or []
+        if isinstance(claimed_raw, str):
+            try:
+                claimed_raw = json.loads(claimed_raw)
+            except Exception:
+                claimed_raw = []
+        claimed_map = {r["mission_key"]: r for r in claimed_raw if isinstance(r, dict) and "mission_key" in r}
 
         missions_def = [
             {
@@ -553,58 +495,39 @@ class HomeRepository:
         else:
             raise ValueError("Clave de misión no válida.")
 
-        user_rows = await self._fetch(
-            "SELECT xp, coins, streak_days, last_streak_date FROM users WHERE id = %s",
-            (user_id,)
-        )
-        if not user_rows:
-            raise ValueError("Usuario no encontrado.")
+        old_xp = int(data.get("xp") or 0)
+        old_coins = int(data.get("coins") or 0)
 
-        user_row = user_rows[0]
-        old_xp = int(user_row.get("xp") or 0)
-        old_coins = int(user_row.get("coins") or 0)
-        streak_days = int(user_row.get("streak_days") or 0)
-        last_streak_date = user_row.get("last_streak_date")
-
-        streak_update_sql = ""
-        now_date_rows = await self._fetch("SELECT CURDATE() as cur_d, DATE_SUB(CURDATE(), INTERVAL 1 DAY) as prev_d")
-        cur_d = now_date_rows[0]["cur_d"]
-        prev_d = now_date_rows[0]["prev_d"]
-
-        if last_streak_date != cur_d:
-            if last_streak_date == prev_d:
-                streak_days += 1
-            else:
-                streak_days = 1
-            streak_update_sql = ", streak_days = %s, last_streak_date = CURDATE()"
-            update_vals = (xp_to_award, coins_to_award, streak_days, user_id)
-        else:
-            update_vals = (xp_to_award, coins_to_award, user_id)
-
-        # 1. Registrar el reclamo
+        # 1. Registrar reclamo de forma idempotente
         await self._execute(
             """
             INSERT INTO user_daily_missions (user_id, mission_key, claimed_date, xp_awarded, coins_awarded)
             VALUES (%s, %s, CURDATE(), %s, %s)
+            ON DUPLICATE KEY UPDATE claimed_at = CURRENT_TIMESTAMP
             """,
             (user_id, mission_key, xp_to_award, coins_to_award),
         )
 
-        # 2. Otorgar XP y Monedas al usuario en la base de datos
-        if streak_update_sql:
-            await self._execute(
-                f"UPDATE users SET xp = xp + %s, coins = coins + %s {streak_update_sql} WHERE id = %s",
-                update_vals,
-            )
-        else:
-            await self._execute(
-                "UPDATE users SET xp = xp + %s, coins = coins + %s WHERE id = %s",
-                update_vals,
-            )
+        # 2. Recompensa y racha atómica en MySQL
+        await self._execute(
+            """
+            UPDATE users
+            SET xp = xp + %s,
+                coins = coins + %s,
+                streak_days = CASE
+                    WHEN last_streak_date = CURDATE() THEN streak_days
+                    WHEN last_streak_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN streak_days + 1
+                    ELSE 1
+                END,
+                last_streak_date = CURDATE()
+            WHERE id = %s
+            """,
+            (xp_to_award, coins_to_award, user_id),
+        )
 
-        # 3. Notificar al usuario formalmente con tipo 'reward'
+        # Notif reward
         try:
-            notif_title = "¡Misión Diaria Completada! ⭐" if mission_key != "daily_chest" else "¡Cofre de Maestría Abierto! 🎁"
+            notif_title = "¡Misión Diaria Completada!" if mission_key != "daily_chest" else "¡Cofre de Maestría Abierto!"
             notif_payload = json.dumps({
                 "title": notif_title,
                 "message": f"Has recibido +{xp_to_award} XP y +{coins_to_award} Ghost Monedas.",
@@ -621,8 +544,8 @@ class HomeRepository:
                 """,
                 (user_id, notif_payload),
             )
-        except Exception as notif_err:
-            print(f"Error generando notificación de recompensa: {notif_err}")
+        except Exception:
+            pass
 
         new_xp = old_xp + xp_to_award
         new_coins = old_coins + coins_to_award
@@ -630,11 +553,11 @@ class HomeRepository:
         new_level = (new_xp // 1000) + 1
         leveled_up = new_level > old_level
 
-        # Si subió de nivel, crear notificación distintiva de nivel
+        # Notif level up
         if leveled_up:
             try:
                 lvl_payload = json.dumps({
-                    "title": f"¡Subiste a Nivel {new_level}! 🏆",
+                    "title": f"¡Subiste a Nivel {new_level}!",
                     "message": f"¡Felicidades! Alcanzaste el Nivel {new_level} con tu actividad en YumeZone.",
                     "level": new_level,
                     "url": "/pages/usuario.html"
@@ -646,10 +569,11 @@ class HomeRepository:
                     """,
                     (user_id, lvl_payload),
                 )
-            except Exception as lvl_err:
-                print(f"Error generando notificación de nivel: {lvl_err}")
+            except Exception:
+                pass
 
         updated_data = await self.get_missions(user_id)
+        streak_days = updated_data.get("streak_days", 1)
 
         return {
             "success": True,
@@ -667,41 +591,3 @@ class HomeRepository:
             "missions_state": updated_data,
         }
 
-    # -----------------------------------------------------------------------
-    # Chat reciente
-    # -----------------------------------------------------------------------
-    async def get_recent_chat(self, limit: int = 10) -> List[Dict[str, Any]]:
-        rows = await self._fetch("""
-            SELECT hc.id, hc.content, hc.created_at,
-                   u.username, u.avatar_url, u.anillo_url, u.platform_role, u.xp
-            FROM home_chats AS hc
-            JOIN users AS u ON u.id = hc.user_id
-            ORDER BY hc.created_at DESC
-            LIMIT %s
-            """, (limit,))
-
-        ROLE_MAP = {
-            "SUPERADMIN": ("mod", "MOD"),
-            "ADMIN": ("admin", "ADMIN"),
-        }
-
-        result = []
-        for r in rows:
-            role_key, role_label = ROLE_MAP.get(r["platform_role"], ("user", ""))
-            level = (int(r.get("xp") or 0) // 1000) + 1
-            result.append(
-                {
-                    "id": r.get("id"),
-                    "username": r["username"],
-                    "avatar_url": r.get("avatar_url"),
-                    "anillo_url": r.get("anillo_url"),
-                    "avatar_frame_url": r.get("anillo_url"),
-                    "role": role_key,
-                    "role_label": role_label,
-                    "level": f"NV. {level}",
-                    "created_text": _relative_time(r["created_at"]),
-                    "content": r["content"],
-                    "platform_role": r.get("platform_role"),
-                }
-            )
-        return result

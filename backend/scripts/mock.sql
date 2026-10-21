@@ -18,18 +18,26 @@ TRUNCATE TABLE formats;
 TRUNCATE TABLE statuses;
 TRUNCATE TABLE tags;
 TRUNCATE TABLE genres;
-TRUNCATE TABLE home_chats;
-TRUNCATE TABLE home_announcements;
-TRUNCATE TABLE hero_new_queue;
+TRUNCATE TABLE announcements;
+TRUNCATE TABLE hero_queue;
 TRUNCATE TABLE scan_group_members;
 TRUNCATE TABLE scan_groups;
-TRUNCATE TABLE reading_settings;
 TRUNCATE TABLE platform_settings;
 TRUNCATE TABLE notifications;
 TRUNCATE TABLE user_daily_missions;
 TRUNCATE TABLE user_inventory;
 TRUNCATE TABLE shop_items;
 TRUNCATE TABLE badges;
+TRUNCATE TABLE user_roles;
+TRUNCATE TABLE role_permissions;
+TRUNCATE TABLE permissions;
+TRUNCATE TABLE roles;
+TRUNCATE TABLE chat_reactions;
+TRUNCATE TABLE chats;
+TRUNCATE TABLE comment_reactions;
+TRUNCATE TABLE comments;
+TRUNCATE TABLE content_reports;
+TRUNCATE TABLE audit_logs;
 DELETE FROM users WHERE id != 1;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -37,35 +45,68 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ==========================================
 -- 1. USUARIOS
 -- ==========================================
-INSERT IGNORE INTO users (id, user_code, username, email, password, avatar_url, banner_url, anillo_url, bio, platform_role, status, coins, xp, streak_days) VALUES
-(1, '3F1EBC225197C5CB', 'YumeMaster', 'manuel7xs@gmail.com', '$argon2id$v=19$m=65536,t=3,p=4$oqDEHluADePJ1vRyFtXhRg$HLQ0nz8Q/mUt5BBdvQo0We0tkKDmWuKBv6qnPkNoG4k', 'https://s1.cdnlxd.xyz/avatars/gqjoqnqwzqr3z42t_1787169934547.webp?v=1787169934793', '/assets/images/shop/banner1.gif', '/assets/images/shop/anillo1.gif', 'Administrador principal de YumeZone.', 'SUPERADMIN', 'ACTIVE', 3000, 45000, 14),
-(2, 'SCN001', 'GhostMaster', 'ghost@yumezone.com', '$2b$12$hash_fake_ghost', 'https://i.pravatar.cc/150?u=ghost', '/assets/images/shop/banner2.gif', '/assets/images/shop/anillo2.gif', 'Líder de GhostScans. MOD del chat.', 'SUPERADMIN', 'ACTIVE', 800, 40000, 3),
-(3, 'USR001', 'KiritoFan', 'kirito@test.com', '$2b$12$hash_fake_user1', 'https://i.pravatar.cc/150?u=kirito', NULL, NULL, 'Fan del cultivo espectral', 'USER', 'ACTIVE', 350, 17000, 7),
-(4, 'USR002', 'SakuraChan', 'sakura@test.com', '$2b$12$hash_fake_user2', 'https://i.pravatar.cc/150?u=sakura', NULL, NULL, 'Amante del shoujo y la fantasía', 'USER', 'ACTIVE', 200, 12000, 1),
-(5, 'USR003', 'OtakuKing', 'otaku@test.com', '$2b$12$hash_fake_user3', 'https://i.pravatar.cc/150?u=otaku', NULL, NULL, 'Devoro 100 caps al día', 'USER', 'ACTIVE', 650, 28000, 5);
+INSERT IGNORE INTO users (id, user_code, username, email, password, avatar_url, banner_url, anillo_url, country, bio, platform_role, status, coins, xp, streak_days) VALUES
+(1, '3F1EBC225197C5CB', 'YumeMaster', 'manuel7xs@gmail.com', '$argon2id$v=19$m=65536,t=3,p=4$oqDEHluADePJ1vRyFtXhRg$HLQ0nz8Q/mUt5BBdvQo0We0tkKDmWuKBv6qnPkNoG4k', 'https://s1.cdnlxd.xyz/avatars/gqjoqnqwzqr3z42t_1787169934547.webp?v=1787169934793', '/assets/images/shop/banner1.webp', '/assets/images/shop/anillo1.webp', 'CO', 'Administrador principal de YumeZone.', 'SUPERADMIN', 'ACTIVE', 3000, 45000, 14),
+(2, 'SCN001', 'GhostMaster', 'ghost@yumezone.com', '$2b$12$hash_fake_ghost', 'https://i.pravatar.cc/150?u=ghost', '/assets/images/shop/banner2.webp', '/assets/images/shop/anillo2.webp', 'MX', 'Líder de GhostScans. MOD del chat.', 'SUPERADMIN', 'ACTIVE', 800, 40000, 3),
+(3, 'USR001', 'KiritoFan', 'kirito@test.com', '$2b$12$hash_fake_user1', 'https://i.pravatar.cc/150?u=kirito', NULL, NULL, 'ES', 'Fan del cultivo espectral', 'USER', 'ACTIVE', 350, 17000, 7),
+(4, 'USR002', 'SakuraChan', 'sakura@test.com', '$2b$12$hash_fake_user2', 'https://i.pravatar.cc/150?u=sakura', NULL, NULL, 'AR', 'Amante del shoujo y la fantasía', 'USER', 'ACTIVE', 200, 12000, 1),
+(5, 'USR003', 'OtakuKing', 'otaku@test.com', '$2b$12$hash_fake_user3', 'https://i.pravatar.cc/150?u=otaku', NULL, NULL, 'CL', 'Devoro 100 caps al día', 'USER', 'ACTIVE', 650, 28000, 5);
 
-INSERT IGNORE INTO reading_settings (user_id, zoom_level, brightness, background_color) VALUES
-(1, 100, 100, 'DARK'),
-(2, 100, 90, 'DARK'),
-(3, 110, 80, 'SEPIA'),
-(4, 100, 100, 'DARK'),
-(5, 90, 70, 'BLACK');
+-- ==========================================
+-- 1.1 ROLES Y PERMISOS DEL SISTEMA
+-- ==========================================
+INSERT IGNORE INTO roles (id, code, name) VALUES
+(1, 'USER', 'Lector Estándar'),
+(2, 'SCAN_MEMBER', 'Miembro de Scanlator'),
+(3, 'SCAN_VERIFIED', 'Líder de Scan Verificado'),
+(4, 'MODERATOR', 'Moderador de Comunidad'),
+(5, 'ADMIN', 'Administrador de Plataforma'),
+(6, 'SUPERADMIN', 'Super Administrador / Webmaster');
+
+INSERT IGNORE INTO permissions (id, code, description) VALUES
+(1, 'comment:create', 'Crear comentarios y usar el chat'),
+(2, 'comment:moderate', 'Ocultar o borrar comentarios y mensajes del chat de otros'),
+(3, 'report:resolve', 'Ver y resolver reportes de usuarios'),
+(4, 'scan:create', 'Crear un nuevo grupo de scan (Usuario verificado)'),
+(5, 'scan:panel_access', 'Acceder al panel de gestión de scans'),
+(6, 'work:create_global', 'Crear obras nuevas en el catálogo general'),
+(7, 'work:edit_any', 'Editar o eliminar cualquier obra o capítulo de la plataforma'),
+(8, 'scan:verify', 'Aprobar o bloquear grupos de scan'),
+(9, 'user:ban', 'Suspender o bloquear cuentas de usuarios'),
+(10, 'shop:manage', 'Crear y editar ítems de la tienda y medallas'),
+(11, 'platform:config', 'Modificar platform_settings, cola del Hero y asignar Admins');
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
+(1, 1),
+(2, 1), (2, 5),
+(3, 1), (3, 4), (3, 5), (3, 6),
+(4, 1), (4, 2), (4, 3),
+(5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8), (5, 9), (5, 10),
+(6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7), (6, 8), (6, 9), (6, 10), (6, 11);
+
+INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by) VALUES
+(1, 6, 1),
+(2, 5, 1),
+(2, 3, 1),
+(3, 1, 1),
+(4, 1, 1),
+(5, 1, 1);
 
 -- ==========================================
 -- 2. GRUPOS SCAN
 -- ==========================================
-INSERT IGNORE INTO scan_groups (id, name, slug, logo_url, banner_url, description, social_links, status) VALUES
-(1, 'GhostScans', 'ghostscans', 'https://s1.cdnlxd.xyz/avatars/gqjoqnqwzqr3z42t_1787169934547.webp?v=1787169934793', 'https://placehold.co/1200x400/10b981/ffffff?text=GhostScans', 'Grupo líder en manhuas de cultivo espectral.', '{"discord":"https://discord.gg/ghostscans","web":"https://ghostscans.com"}', 'ACTIVE'),
-(2, 'YumeScans', 'yumescans', 'https://placehold.co/200x200/8b5cf6/ffffff?text=YS', 'https://placehold.co/1200x400/8b5cf6/ffffff?text=YumeScans', 'Especialistas en manhwas de acción y romance.', '{"discord":"https://discord.gg/yumescans"}', 'ACTIVE'),
-(3, 'DragonTL', 'dragontl', 'https://placehold.co/200x200/ef4444/ffffff?text=DT', 'https://placehold.co/1200x400/ef4444/ffffff?text=DragonTL', 'Traducciones de los mejores mangas shonen.', '{"discord":"https://discord.gg/dragontl"}', 'ACTIVE'),
-(4, 'SakuraTeam', 'sakurateam', 'https://placehold.co/200x200/ec4899/ffffff?text=ST', 'https://placehold.co/1200x400/ec4899/ffffff?text=SakuraTeam', 'Enfoque en shoujo y josei.', '{"discord":"https://discord.gg/sakurateam"}', 'ACTIVE'),
-(5, 'ShadowTL', 'shadowtl', 'https://placehold.co/200x200/0ea5e9/ffffff?text=SH', 'https://placehold.co/1200x400/0ea5e9/ffffff?text=ShadowTL', 'Traducciones oscuras y de fantasía.', '{"discord":"https://discord.gg/shadowtl"}', 'ACTIVE');
+INSERT IGNORE INTO scan_groups (id, owner_user_id, name, slug, logo_url, banner_url, description, social_links, status) VALUES
+(1, 2, 'GhostScans', 'ghostscans', 'https://s1.cdnlxd.xyz/avatars/gqjoqnqwzqr3z42t_1787169934547.webp?v=1787169934793', 'https://placehold.co/1200x400/10b981/ffffff?text=GhostScans', 'Grupo líder en manhuas de cultivo espectral.', '{"discord":"https://discord.gg/ghostscans","web":"https://ghostscans.com"}', 'ACTIVE'),
+(2, 1, 'YumeScans', 'yumescans', 'https://placehold.co/200x200/8b5cf6/ffffff?text=YS', 'https://placehold.co/1200x400/8b5cf6/ffffff?text=YumeScans', 'Especialistas en manhwas de acción y romance.', '{"discord":"https://discord.gg/yumescans"}', 'ACTIVE'),
+(3, 2, 'DragonTL', 'dragontl', 'https://placehold.co/200x200/ef4444/ffffff?text=DT', 'https://placehold.co/1200x400/ef4444/ffffff?text=DragonTL', 'Traducciones de los mejores mangas shonen.', '{"discord":"https://discord.gg/dragontl"}', 'ACTIVE'),
+(4, 4, 'SakuraTeam', 'sakurateam', 'https://placehold.co/200x200/ec4899/ffffff?text=ST', 'https://placehold.co/1200x400/ec4899/ffffff?text=SakuraTeam', 'Enfoque en shoujo y josei.', '{"discord":"https://discord.gg/sakurateam"}', 'ACTIVE'),
+(5, 1, 'ShadowTL', 'shadowtl', 'https://placehold.co/200x200/0ea5e9/ffffff?text=SH', 'https://placehold.co/1200x400/0ea5e9/ffffff?text=ShadowTL', 'Traducciones oscuras y de fantasía.', '{"discord":"https://discord.gg/shadowtl"}', 'ACTIVE');
 
 INSERT IGNORE INTO scan_group_members (group_id, user_id, role, permissions) VALUES
-(1, 2, 'ADMIN', '{"can_upload":true,"can_edit":true}'),
-(1, 3, 'MEMBER', '{"can_upload":false,"can_comment":true}'),
-(2, 4, 'ADMIN', '{"can_upload":true,"can_edit":true}'),
-(3, 5, 'MEMBER', '{"can_upload":false}');
+(1, 2, 'LEADER', '{"can_upload":true,"can_edit":true}'),
+(1, 3, 'UPLOADER', '{"can_upload":false,"can_comment":true}'),
+(2, 4, 'LEADER', '{"can_upload":true,"can_edit":true}'),
+(3, 5, 'UPLOADER', '{"can_upload":false}');
 
 -- ==========================================
 -- 3. CLASIFICACIÓN
@@ -99,8 +140,8 @@ INSERT IGNORE INTO works (id, title, slug, alternative_title, synopsis, author, 
 (1,'Solo Leveling','solo-leveling','Na Honjaman Level Up',
  'En un mundo donde los cazadores luchan contra monstruos que salen de portales, Sung Jin-Woo es conocido como el cazador más débil de rango E. Tras sobrevivir a una mazmorra doble que acaba con casi todo su equipo, despierta con un sistema misterioso que le permite subir de nivel infinitamente como en un videojuego. Ahora tiene la oportunidad de convertirse en el cazador más fuerte de la historia.',
  'Chugong',
- '/assets/comic/manhua/solo-leveling/portada/portada.jpeg',
- 'https://i.pinimg.com/originals/a7/2f/0a/a72f0adb6991d05d8b4d64cdd73727c2.jpg',
+ '/assets/comic/manhua/solo-leveling/portada/portada.webp',
+ 'https://i.pinimg.com/originals/a7/2f/0a/a72f0adb6991d05d8b4d64cdd73727c2.webp',
  2,3,1,1),
 
 (2,'Martial Peak','martial-peak','Wu Lian Feng Dian',
@@ -267,195 +308,195 @@ INSERT IGNORE INTO chapters (id, work_id, scan_group_id, chapter_number, title, 
 -- ==========================================
 INSERT IGNORE INTO chapter_images (chapter_id, image_url, order_number) VALUES
 -- Capítulo 0 (Prólogo) de SL: 22 páginas reales
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_001.jpg', 1),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_002.jpg', 2),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_003.jpg', 3),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_004.jpg', 4),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_005.jpg', 5),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_006.jpg', 6),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_007.jpg', 7),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_008.jpg', 8),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_009.jpg', 9),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_010.jpg', 10),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_011.jpg', 11),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_012.jpg', 12),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_013.jpg', 13),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_014.jpg', 14),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_015.jpg', 15),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_016.jpg', 16),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_017.jpg', 17),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_018.jpg', 18),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_019.jpg', 19),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_020.jpg', 20),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_021.jpg', 21),
-(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_022.jpg', 22),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_001.webp', 1),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_002.webp', 2),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_003.webp', 3),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_004.webp', 4),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_005.webp', 5),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_006.webp', 6),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_007.webp', 7),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_008.webp', 8),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_009.webp', 9),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_010.webp', 10),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_011.webp', 11),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_012.webp', 12),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_013.webp', 13),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_014.webp', 14),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_015.webp', 15),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_016.webp', 16),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_017.webp', 17),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_018.webp', 18),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_019.webp', 19),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_020.webp', 20),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_021.webp', 21),
+(28, '/assets/comic/manhua/solo-leveling/capitulo-0/page_022.webp', 22),
 -- Capítulo 1 de SL: 25 páginas reales
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_001.jpg', 1),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_002.jpg', 2),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_003.jpg', 3),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_004.jpg', 4),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_005.jpg', 5),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_006.jpg', 6),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_007.jpg', 7),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_008.jpg', 8),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_009.jpg', 9),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_010.jpg', 10),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_011.jpg', 11),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_012.jpg', 12),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_013.jpg', 13),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_014.jpg', 14),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_015.jpg', 15),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_016.jpg', 16),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_017.jpg', 17),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_018.jpg', 18),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_019.jpg', 19),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_020.jpg', 20),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_021.jpg', 21),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_022.jpg', 22),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_023.jpg', 23),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_024.jpg', 24),
-(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_025.jpg', 25),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_001.webp', 1),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_002.webp', 2),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_003.webp', 3),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_004.webp', 4),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_005.webp', 5),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_006.webp', 6),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_007.webp', 7),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_008.webp', 8),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_009.webp', 9),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_010.webp', 10),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_011.webp', 11),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_012.webp', 12),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_013.webp', 13),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_014.webp', 14),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_015.webp', 15),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_016.webp', 16),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_017.webp', 17),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_018.webp', 18),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_019.webp', 19),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_020.webp', 20),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_021.webp', 21),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_022.webp', 22),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_023.webp', 23),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_024.webp', 24),
+(1, '/assets/comic/manhua/solo-leveling/capitulo-1/page_025.webp', 25),
 -- Capítulo 2 de SL: 11 páginas reales
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_001.jpg', 1),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_002.jpg', 2),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_003.jpg', 3),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_004.jpg', 4),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_005.jpg', 5),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_006.jpg', 6),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_007.jpg', 7),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_008.jpg', 8),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_009.jpg', 9),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_010.jpg', 10),
-(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_011.jpg', 11),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_001.webp', 1),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_002.webp', 2),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_003.webp', 3),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_004.webp', 4),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_005.webp', 5),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_006.webp', 6),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_007.webp', 7),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_008.webp', 8),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_009.webp', 9),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_010.webp', 10),
+(2, '/assets/comic/manhua/solo-leveling/capitulo-2/page_011.webp', 11),
 -- Capítulo 3 de SL: 17 páginas reales
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_001.jpg', 1),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_002.jpg', 2),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_003.jpg', 3),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_004.jpg', 4),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_005.jpg', 5),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_006.jpg', 6),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_007.jpg', 7),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_008.jpg', 8),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_009.jpg', 9),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_010.jpg', 10),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_011.jpg', 11),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_012.jpg', 12),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_013.jpg', 13),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_014.jpg', 14),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_015.jpg', 15),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_016.jpg', 16),
-(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_017.jpg', 17),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_001.webp', 1),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_002.webp', 2),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_003.webp', 3),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_004.webp', 4),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_005.webp', 5),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_006.webp', 6),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_007.webp', 7),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_008.webp', 8),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_009.webp', 9),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_010.webp', 10),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_011.webp', 11),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_012.webp', 12),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_013.webp', 13),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_014.webp', 14),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_015.webp', 15),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_016.webp', 16),
+(3, '/assets/comic/manhua/solo-leveling/capitulo-3/page_017.webp', 17),
 -- Capítulo 4 de SL: 16 páginas reales
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_001.jpg', 1),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_002.jpg', 2),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_003.jpg', 3),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_004.jpg', 4),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_005.jpg', 5),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_006.jpg', 6),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_007.jpg', 7),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_008.jpg', 8),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_009.jpg', 9),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_010.jpg', 10),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_011.jpg', 11),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_012.jpg', 12),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_013.jpg', 13),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_014.jpg', 14),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_015.jpg', 15),
-(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_016.jpg', 16),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_001.webp', 1),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_002.webp', 2),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_003.webp', 3),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_004.webp', 4),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_005.webp', 5),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_006.webp', 6),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_007.webp', 7),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_008.webp', 8),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_009.webp', 9),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_010.webp', 10),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_011.webp', 11),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_012.webp', 12),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_013.webp', 13),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_014.webp', 14),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_015.webp', 15),
+(4, '/assets/comic/manhua/solo-leveling/capitulo-4/page_016.webp', 16),
 -- Capítulo 5 de SL: 14 páginas reales
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_001.jpg', 1),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_002.jpg', 2),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_003.jpg', 3),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_004.jpg', 4),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_005.jpg', 5),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_006.jpg', 6),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_007.jpg', 7),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_008.jpg', 8),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_009.jpg', 9),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_010.jpg', 10),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_011.jpg', 11),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_012.jpg', 12),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_013.jpg', 13),
-(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_014.jpg', 14),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_001.webp', 1),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_002.webp', 2),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_003.webp', 3),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_004.webp', 4),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_005.webp', 5),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_006.webp', 6),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_007.webp', 7),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_008.webp', 8),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_009.webp', 9),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_010.webp', 10),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_011.webp', 11),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_012.webp', 12),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_013.webp', 13),
+(29, '/assets/comic/manhua/solo-leveling/capitulo-5/page_014.webp', 14),
 -- Capítulo 6 de SL: 16 páginas reales
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_001.jpg', 1),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_002.jpg', 2),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_003.jpg', 3),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_004.jpg', 4),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_005.jpg', 5),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_006.jpg', 6),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_007.jpg', 7),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_008.jpg', 8),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_009.jpg', 9),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_010.jpg', 10),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_011.jpg', 11),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_012.jpg', 12),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_013.jpg', 13),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_014.jpg', 14),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_015.jpg', 15),
-(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_016.jpg', 16),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_001.webp', 1),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_002.webp', 2),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_003.webp', 3),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_004.webp', 4),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_005.webp', 5),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_006.webp', 6),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_007.webp', 7),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_008.webp', 8),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_009.webp', 9),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_010.webp', 10),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_011.webp', 11),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_012.webp', 12),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_013.webp', 13),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_014.webp', 14),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_015.webp', 15),
+(30, '/assets/comic/manhua/solo-leveling/capitulo-6/page_016.webp', 16),
 -- Capítulo 7 de SL: 22 páginas reales
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_001.jpg', 1),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_002.jpg', 2),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_003.jpg', 3),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_004.jpg', 4),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_005.jpg', 5),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_006.jpg', 6),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_007.jpg', 7),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_008.jpg', 8),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_009.jpg', 9),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_010.jpg', 10),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_011.jpg', 11),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_012.jpg', 12),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_013.jpg', 13),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_014.jpg', 14),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_015.jpg', 15),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_016.jpg', 16),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_017.jpg', 17),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_018.jpg', 18),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_019.jpg', 19),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_020.jpg', 20),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_021.jpg', 21),
-(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_022.jpg', 22),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_001.webp', 1),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_002.webp', 2),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_003.webp', 3),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_004.webp', 4),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_005.webp', 5),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_006.webp', 6),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_007.webp', 7),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_008.webp', 8),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_009.webp', 9),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_010.webp', 10),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_011.webp', 11),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_012.webp', 12),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_013.webp', 13),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_014.webp', 14),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_015.webp', 15),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_016.webp', 16),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_017.webp', 17),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_018.webp', 18),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_019.webp', 19),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_020.webp', 20),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_021.webp', 21),
+(31, '/assets/comic/manhua/solo-leveling/capitulo-7/page_022.webp', 22),
 -- Capítulo 8 de SL: 21 páginas reales
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_001.jpg', 1),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_002.jpg', 2),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_003.jpg', 3),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_004.jpg', 4),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_005.jpg', 5),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_006.jpg', 6),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_007.jpg', 7),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_008.jpg', 8),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_009.jpg', 9),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_010.jpg', 10),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_011.jpg', 11),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_012.jpg', 12),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_013.jpg', 13),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_014.jpg', 14),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_015.jpg', 15),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_016.jpg', 16),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_017.jpg', 17),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_018.jpg', 18),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_019.jpg', 19),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_020.jpg', 20),
-(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_021.jpg', 21),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_001.webp', 1),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_002.webp', 2),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_003.webp', 3),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_004.webp', 4),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_005.webp', 5),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_006.webp', 6),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_007.webp', 7),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_008.webp', 8),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_009.webp', 9),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_010.webp', 10),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_011.webp', 11),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_012.webp', 12),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_013.webp', 13),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_014.webp', 14),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_015.webp', 15),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_016.webp', 16),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_017.webp', 17),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_018.webp', 18),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_019.webp', 19),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_020.webp', 20),
+(32, '/assets/comic/manhua/solo-leveling/capitulo-8/page_021.webp', 21),
 -- Capítulo 9 de SL: 16 páginas reales
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_001.jpg', 1),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_002.jpg', 2),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_003.jpg', 3),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_004.jpg', 4),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_005.jpg', 5),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_006.jpg', 6),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_007.jpg', 7),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_008.jpg', 8),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_009.jpg', 9),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_010.jpg', 10),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_011.jpg', 11),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_012.jpg', 12),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_013.jpg', 13),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_014.jpg', 14),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_015.jpg', 15),
-(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_016.jpg', 16),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_001.webp', 1),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_002.webp', 2),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_003.webp', 3),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_004.webp', 4),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_005.webp', 5),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_006.webp', 6),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_007.webp', 7),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_008.webp', 8),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_009.webp', 9),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_010.webp', 10),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_011.webp', 11),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_012.webp', 12),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_013.webp', 13),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_014.webp', 14),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_015.webp', 15),
+(33, '/assets/comic/manhua/solo-leveling/capitulo-9/page_016.webp', 16),
 -- Cap 178 SL: 18 páginas
 (3,'',1),
 (3,'',2),
@@ -599,28 +640,24 @@ INSERT IGNORE INTO view_logs (work_id, chapter_id, user_id, ip_address, viewed_a
 -- ==========================================
 -- 12. HERO QUEUE
 -- ==========================================
-INSERT IGNORE INTO hero_new_queue (work_id, status, queued_at, activated_at, expires_at) VALUES
+INSERT IGNORE INTO hero_queue (work_id, status, queued_at, activated_at, expires_at) VALUES
 (7,'ACTIVE',NOW() - INTERVAL 20 HOUR,NOW() - INTERVAL 20 HOUR,NOW() + INTERVAL 30 DAY),
 (8,'ACTIVE',NOW() - INTERVAL 12 HOUR,NOW() - INTERVAL 12 HOUR,NOW() + INTERVAL 30 DAY),
 (9,'ACTIVE',NOW() - INTERVAL 6 HOUR, NOW() - INTERVAL 6 HOUR, NOW() + INTERVAL 30 DAY);
 
 -- ==========================================
--- 13. CHAT Y ANUNCIOS
+-- 13. ANUNCIOS Y COMUNICADOS (ANNOUNCEMENTS)
 -- ==========================================
-INSERT IGNORE INTO home_chats (user_id, content) VALUES
-(2,'¡Nuevo cap de Solo Leveling disponible! Cap 178 está brutal 🔥'),
-(3,'Alguien más vio el cap 175 de TBATE? La batalla final estuvo épica'),
-(4,'¿Cuándo suben el cap 3600 de Martial Peak completo?'),
-(5,'Ya está disponible en GhostScans, revisen la sección de lanzamientos'),
-(1,'Gracias a todos por su apoyo. Yumezone sigue creciendo 🙏');
+INSERT IGNORE INTO announcements (id, scan_group_id, type, type_label, source, title, description, created_at, expires_at, is_resolved, is_active) VALUES
+(1, NULL, 'sistema', 'Sistema', 'DevTeam', 'Servidores CDN 4K activados', 'Se ha completado el despliegue de nuestra infraestructura global CDN de ultra baja latencia. Ahora podrás disfrutar de una lectura fluida en 4K con precarga instantánea y sin interrupciones.', NOW() - INTERVAL 15 MINUTE, NULL, FALSE, TRUE),
+(8, NULL, 'evento', 'Evento', 'Comunidad', 'Torneo de Trivia Manga', 'Participa este sábado en el Discord oficial de la comunidad de YumeZone en nuestro gran torneo de trivia manga y compite contra otros lectores para ganar monedas, llaves y suscripciones VIP.', NOW() - INTERVAL 1 HOUR, NULL, FALSE, TRUE),
+(2, NULL, 'sistema', 'Sistema', 'DevTeam', 'Mantenimiento programado', 'El mantenimiento preventivo en nuestros clústeres de bases de datos y servidores de almacenamiento concluyó exitosamente. Todos los servicios y sincronizaciones de lectura operan al 100%.', NOW() - INTERVAL 2 HOUR, NULL, TRUE, TRUE),
+(3, NULL, 'evento', 'Evento', 'GhostFest', 'Doble XP & Llaves esta semana', 'Durante este evento especial, completa tus lecturas y misiones diarias para obtener el doble de experiencia, llaves doradas de desbloqueo anticipado y marcos de perfil de edición limitada.', NOW() - INTERVAL 6 HOUR, NULL, TRUE, TRUE),
+(4, NULL, 'evento', 'Evento', 'YumeZone', 'Concurso de Fan Art', 'Envía tus mejores ilustraciones originales de tus obras favoritas al canal de arte en Discord. Las obras ganadoras recibirán membresías VIP anuales, monedas de la tienda y marcos exclusivos.', NOW() - INTERVAL 1 DAY, NULL, TRUE, TRUE),
+(7, NULL, 'sistema', 'Sistema', 'DevTeam', 'Actualización v2.4 del Lector', 'La versión 2.4 de nuestro lector web ya está disponible con mejoras en renderizado de alta velocidad, soporte optimizado para gestos táctiles en móviles y un consumo de batería reducido.', NOW() - INTERVAL 3 DAY, NULL, TRUE, TRUE),
+(5, 1, 'scan', 'Scans', 'GhostScans', 'Convocatoria para traductores', 'Buscamos traductores de coreano y chino con pago por capítulo y horarios flexibles.', NOW() - INTERVAL 4 DAY, NOW() + INTERVAL 2 DAY, FALSE, TRUE),
+(6, 2, 'scan', 'Scans', 'YumeScans', 'Proyecto nuevo: Tower of God', 'YumeScans anuncia la traducción oficial de Tower of God con publicaciones semanales en alta resolución.', NOW() - INTERVAL 5 DAY, NOW() + INTERVAL 2 DAY, FALSE, TRUE);
 
-INSERT IGNORE INTO home_announcements (type, type_label, source, title, description) VALUES
-('sistema','Sistema','DevTeam','Servidores CDN 4K activados','Se ha desplegado la infraestructura a CDN de latencia ultra baja para lectura sin búfer en resoluciones de 4K. La velocidad de carga de imágenes mejoró un 60%.'),
-('sistema','Sistema','DevTeam','Mantenimiento programado','El próximo sábado de 2am a 4am realizaremos mantenimiento preventivo. Los servicios podrían estar intermitentes.'),
-('evento','Evento','GhostFest','Doble XP & Llaves esta semana','Completa 3 capítulos diarios para desbloquear recompensas exclusivas, marcos de perfil y llaves de acceso anticipado al próximo gran evento.'),
-('evento','Evento','YumeZone','Concurso de Fan Art','Participa en nuestro concurso de fan art. Las 3 mejores obras ganarán 1 mes de acceso premium y merchandise exclusivo.'),
-('scan','Scans','GhostScans','Convocatoria para traductores','Buscamos traductores de coreano y chino con pago por capítulo. Experiencia en manhua de cultivo requerida.'),
-('scan','Scans','YumeScans','Proyecto nuevo: Tower of God','YumeScans anuncia la traducción oficial de Tower of God. Primer capítulo disponible el próximo lunes.');
 
 -- ==========================================
 -- 14. NOTIFICACIONES
@@ -647,13 +684,13 @@ INSERT IGNORE INTO badges (id, name, tier, icon, description, condition_type, co
 -- 16. TIENDA DE ARTÍCULOS (SHOP_ITEMS)
 -- ==========================================
 INSERT IGNORE INTO shop_items (id, category, name, description, price_coins, preview_url, required_level, rarity) VALUES
-(1, 'FRAME', 'Marco Anillo Alpha', 'Anillo cinético animado con pulsos de energía celeste.', 350, '/assets/images/shop/anillo1.gif', 1, 'RARE'),
-(2, 'FRAME', 'Marco Anillo Espectral', 'Vórtice espectral animado imbuido en llamas oscuras.', 500, '/assets/images/shop/anillo2.gif', 2, 'EPIC'),
-(3, 'BANNER', 'Banner Celestial Azul', 'Horizonte dinámico de energía celestial y zafiro.', 400, '/assets/images/shop/banner1.gif', 1, 'RARE'),
-(4, 'BANNER', 'Banner Sombra Dimensional', 'Manto dinámico de sombras purpúreas en movimiento.', 450, '/assets/images/shop/banner2.gif', 2, 'EPIC'),
-(5, 'BANNER', 'Banner Fuego Carmesí', 'Llamas abrasadoras continuas de combate.', 500, '/assets/images/shop/banner3.gif', 3, 'EPIC'),
-(6, 'BANNER', 'Banner Abismo Infinito', 'Vacío estelar infinito de alta densidad cósmica.', 650, '/assets/images/shop/banner4.gif', 4, 'LEGENDARY'),
-(7, 'BANNER', 'Banner Cyber Pulse', 'Pulso continuo de redes cibernéticas en verde neón.', 350, '/assets/images/shop/banner5.gif', 1, 'RARE');
+(1, 'FRAME', 'Marco Anillo Alpha', 'Anillo cinético animado con pulsos de energía celeste.', 350, '/assets/images/shop/anillo1.webp', 1, 'RARE'),
+(2, 'FRAME', 'Marco Anillo Espectral', 'Vórtice espectral animado imbuido en llamas oscuras.', 500, '/assets/images/shop/anillo2.webp', 2, 'EPIC'),
+(3, 'BANNER', 'Banner Celestial Azul', 'Horizonte dinámico de energía celestial y zafiro.', 400, '/assets/images/shop/banner1.webp', 1, 'RARE'),
+(4, 'BANNER', 'Banner Sombra Dimensional', 'Manto dinámico de sombras purpúreas en movimiento.', 450, '/assets/images/shop/banner2.webp', 2, 'EPIC'),
+(5, 'BANNER', 'Banner Fuego Carmesí', 'Llamas abrasadoras continuas de combate.', 500, '/assets/images/shop/banner3.webp', 3, 'EPIC'),
+(6, 'BANNER', 'Banner Abismo Infinito', 'Vacío estelar infinito de alta densidad cósmica.', 650, '/assets/images/shop/banner4.webp', 4, 'LEGENDARY'),
+(7, 'BANNER', 'Banner Cyber Pulse', 'Pulso continuo de redes cibernéticas en verde neón.', 350, '/assets/images/shop/banner5.webp', 1, 'RARE');
 
 -- ==========================================
 -- 17. INVENTARIO DE USUARIOS (USER_INVENTORY)
@@ -672,3 +709,21 @@ INSERT IGNORE INTO comments (id, work_id, chapter_id, user_id, parent_id, conten
 (1, 1, NULL, 1, NULL, 'obra maestra', FALSE, 'VISIBLE'),
 (2, 1, NULL, 2, 1, 'Totalmente de acuerdo, el dibujo del manhwa es de otro nivel.', FALSE, 'VISIBLE'),
 (3, 1, NULL, 3, NULL, '¿Cada cuánto tiempo salen los capítulos traducidos?', FALSE, 'VISIBLE');
+
+-- ==========================================
+-- 19. CHAT EN VIVO DE LA COMUNIDAD (CHATS)
+-- ==========================================
+INSERT IGNORE INTO chats (id, user_id, content, created_at) VALUES
+(1, 1, '¡Bienvenidos a YumeZone! Que disfruten los nuevos capítulos ', NOW() - INTERVAL 15 MINUTE),
+(2, 2, 'El nuevo capítulo de Solo Leveling estuvo increíble ', NOW() - INTERVAL 10 MINUTE),
+(3, 3, '¿Alguien sabe cuándo sale la actualización de Nano Machine? ', NOW() - INTERVAL 5 MINUTE);
+
+-- ==========================================
+-- 20. REACCIONES DEL CHAT (CHAT_REACTIONS)
+-- ==========================================
+INSERT IGNORE INTO chat_reactions (message_id, user_id, reaction) VALUES
+(1, 2, '❤️'),
+(1, 3, '🔥'),
+(2, 1, '🔥'),
+(2, 3, '👍'),
+(3, 1, '❤️');

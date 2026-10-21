@@ -3,6 +3,7 @@ import { apiRequest, getAccessToken } from '../shared/auth.js';
 import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl, applyDataProgress } from '../shared/ui-utils.js';
 import { renderLaunchItem, renderRankCard, renderPopularCard } from '../components/cards.js';
 import { showToast } from '../shared/toast.js';
+import { initChatPicker, getChatPickerTemplate } from '../components/chat-picker.js';
 
 function renderContinueCard(item) {
   const work = item.work ?? item;
@@ -45,61 +46,58 @@ function renderContinueCard(item) {
   </a>`;
 }
 
+function getCategoryInfo(item) {
+  const type = (item.type || '').toLowerCase();
+  const isResolved = Boolean(item.is_resolved);
+
+  if (type === 'sistema') {
+    return {
+      catClass: 'cat-system',
+      categoryText: isResolved ? 'Sistema • Completado' : 'Sistema • Activo'
+    };
+  } else if (type === 'evento') {
+    return {
+      catClass: 'cat-event',
+      categoryText: isResolved ? 'Evento • Finalizado' : 'Evento • Activo'
+    };
+  } else if (type === 'alerta' || type === 'aviso') {
+    return {
+      catClass: 'cat-alert',
+      categoryText: isResolved ? 'Aviso • Resuelto' : 'Aviso Importante'
+    };
+  } else if (type === 'actualizacion' || type === 'update') {
+    return {
+      catClass: 'cat-update',
+      categoryText: isResolved ? 'Actualización • Aplicada' : 'Actualización'
+    };
+  } else {
+    return {
+      catClass: 'cat-system',
+      categoryText: isResolved ? `${esc(item.type_label || 'Oficial')} • Completado` : `${esc(item.type_label || 'Oficial')} • Activo`
+    };
+  }
+}
+
 function renderAnuncio(item) {
-  const tag = esc(item.type ?? item.tag ?? 'sistema');
-  const tagLabel = esc(item.type_label ?? item.tagLabel ?? tag);
-  const source = esc(item.source ?? '');
+  const info = getCategoryInfo(item);
   const title = esc(item.title ?? '');
   const desc = esc(item.description ?? item.desc ?? '');
   const time = esc(item.published_text ?? item.time ?? '');
-  return `
-  <div class="anuncio-item">
-    <div class="anuncio-item--head">
-      <span class="anuncio-item--tag anuncio-item--tag--${tag}">${tagLabel}${source ? ' · ' + source : ''}</span>
-      <span class="anuncio-item--time">${time}</span>
-    </div>
-    <p class="anuncio-item--title">${title}</p>
-    ${desc ? `<p class="anuncio-item--desc">${desc}</p>` : ''}
-  </div>`;
-}
-
-function renderChatMsg(msg) {
-  const msgId = msg.id;
-  const name = esc(msg.username ?? msg.name ?? 'Usuario');
-  const avatarUrl = (msg.avatar_url ?? msg.avatar ?? '').trim();
-  const anilloUrl = (msg.anillo_url ?? msg.avatar_frame_url ?? '').trim();
-  const initial = esc((msg.username ?? msg.name ?? 'U').slice(0, 1).toUpperCase());
-  const role = esc(msg.role ?? '');
-  const roleLabel = esc(msg.role_label ?? msg.roleLabel ?? role.toUpperCase());
-  const level = esc(msg.level ?? '');
-  const time = esc(msg.created_text ?? msg.time ?? '');
-  const content = esc(msg.content ?? msg.text ?? '');
-
-  const avatarMarkup = avatarUrl
-    ? `<img class="chat-msg--avatar-img" src="${esc(avatarUrl)}" alt="${name}" loading="lazy" onerror="this.hidden=true;if(this.nextElementSibling){this.nextElementSibling.hidden=false;}"><span class="chat-msg--initial" hidden aria-hidden="true">${initial}</span>`
-    : `<span class="chat-msg--initial">${initial}</span>`;
-
-  const frameMarkup = anilloUrl
-    ? `<img class="chat-msg--frame-img" src="${esc(anilloUrl)}" alt="" aria-hidden="true">`
-    : '';
+  const isResolved = Boolean(item.is_resolved);
 
   return `
-  <div class="chat-msg" data-author="${name}" data-msg-id="${msgId || ''}">
-    <div class="chat-msg--avatar">
-      <div class="chat-msg--avatar-inner">${avatarMarkup}</div>
-      ${frameMarkup}
-    </div>
-    <div class="chat-msg--body">
-      <div class="chat-msg--header">
-        <span class="chat-msg--name">${name}</span>
-        ${role ? `<span class="chat-msg--role chat-msg--role--${role}">${roleLabel}</span>` : ''}
-        ${level ? `<span class="chat-msg--level">${level}</span>` : ''}
-        <span class="chat-msg--time">${time}</span>
+    <div class="announcement ${isResolved ? 'is-resolved' : ''}">
+      <div class="card-top">
+        <span class="category ${info.catClass}">${info.categoryText}</span>
+        <span class="date">${time}</span>
       </div>
-      <div class="chat-msg--text">${content}</div>
+      <div class="card-title">${title}</div>
+      <div class="card-desc">${desc}</div>
     </div>
-  </div>`;
+  `;
 }
+
+
 
 function skeletonCards(type, count, cols) {
   let html = '';
@@ -155,15 +153,26 @@ function skeletonCards(type, count, cols) {
         </div>
       </div>`;
     } else if (type === 'anuncio') {
-      /* anuncio-item: meta row + title + desc */
+      /* anuncio: texto limpio con divider */
       html += `
-      <div class="sk-anuncio">
-        <div class="sk-anuncio--head">
+      <div class="announcement">
+        <div class="card-top">
           <div class="sk-box sk-tag"></div>
           <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
         </div>
-        <div class="sk-box sk-line sk-w-80"></div>
-        <div class="sk-box sk-line sk-line--xs sk-w-90"></div>
+        <div class="sk-box sk-line sk-w-80" style="margin-bottom: 6px;"></div>
+        <div class="sk-box sk-line sk-line--xs sk-w-90" style="margin-bottom: 4px;"></div>
+        <div class="sk-box sk-line sk-line--xs sk-w-70"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="announcement">
+        <div class="card-top">
+          <div class="sk-box sk-tag"></div>
+          <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
+        </div>
+        <div class="sk-box sk-line sk-w-80" style="margin-bottom: 6px;"></div>
+        <div class="sk-box sk-line sk-line--xs sk-w-90" style="margin-bottom: 4px;"></div>
+        <div class="sk-box sk-line sk-line--xs sk-w-70"></div>
       </div>`;
     } else if (type === 'chat') {
       /* chat-msg: avatar circle + body column */
@@ -299,112 +308,318 @@ async function loadPopulars(slot, filterFormat = 'all') {
 }
 
 
-async function loadAnuncios(slot, type = 'sistema') {
-  try {
-    const data = await apiRequest(`/home/announcements/?type=${type}`);
-    const items = data.results ?? data ?? [];
-    setContent(slot, items.length
-      ? items.slice(0, 3).map(renderAnuncio).join('')
-      : emptyState('bell', 'No hay anuncios en esta sección.'));
-  } catch {
-    setContent(slot, emptyState('bell', 'No se pudieron cargar los anuncios.'));
-  }
-}
+let anuncioTimer = null;
+let currentAnuncioIdx = 1;
+let isAnuncioTransitioning = false;
+let isAnuncioHovered = false;
+const ANUNCIO_SLIDE_DURATION = 6000;
 
-async function loadChatOnlineStats() {
-  const onlineCountEl = document.getElementById('chat-online-count');
-  const onlineListEl = document.getElementById('chat-online-list');
-  try {
-    const data = await apiRequest('/chat/online');
-    if (onlineCountEl && typeof data?.online_count === 'number') {
-      onlineCountEl.textContent = `${data.online_count} en línea`;
-    }
-    if (onlineListEl && Array.isArray(data?.active_users)) {
-      if (!data.active_users.length) {
-        onlineListEl.innerHTML = '<p class="chat-online-empty">No hay lectores conectados en este momento.</p>';
-        return;
-      }
-      onlineListEl.innerHTML = data.active_users.map(u => {
-        const uName = esc(u.username ?? 'Lector');
-        const uAvatar = (u.avatar_url ?? '').trim();
-        const uAnillo = (u.anillo_url ?? u.avatar_frame_url ?? '').trim();
-        const uInitial = esc((u.username ?? 'U').slice(0, 1).toUpperCase());
-        const uRole = esc(u.platform_role ?? 'USER');
-        const isMod = ['ADMIN', 'SUPERADMIN'].includes(uRole.toUpperCase());
-        const avatarEl = uAvatar
-          ? `<img class="chat-online-user-avatar" src="${esc(uAvatar)}" alt="${uName}" onerror="this.hidden=true;this.nextElementSibling.hidden=false;"><span class="chat-online-user-initial" hidden>${uInitial}</span>`
-          : `<span class="chat-online-user-initial">${uInitial}</span>`;
-        const frameEl = uAnillo
-          ? `<img class="chat-online-user-frame" src="${esc(uAnillo)}" alt="" aria-hidden="true">`
-          : '';
-        return `
-          <div class="chat-online-user-item">
-            <div class="chat-online-user-avatar-wrap">
-              <div class="chat-online-user-avatar-inner">${avatarEl}</div>
-              ${frameEl}
-              <span class="chat-online-status-dot"></span>
-            </div>
-            <div class="chat-online-user-info">
-              <span class="chat-online-user-name">${uName}</span>
-              ${isMod ? '<span class="chat-online-user-badge">STAFF</span>' : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  } catch (err) {
-    console.debug('Error cargando online stats:', err);
-  }
-}
+async function loadAnuncios() {
+  const section = document.getElementById('section-anuncios');
+  const slot = document.getElementById('slot-anuncios');
+  const controls = document.getElementById('anuncio-nav-controls');
+  const counter = document.getElementById('anuncio-counter');
+  const progressTrack = document.getElementById('anuncio-progress-track');
+  const progressBar = document.getElementById('anuncio-progress-bar');
 
-// Estado del chat para renderizado incremental (evita recargar todo el DOM)
-const chatState = {
-  ids: new Set(),
-  signature: '',
-};
-
-async function loadChat(slot, { force = false } = {}) {
   if (!slot) return;
+
   try {
-    const data = await apiRequest('/home/chat/recent/?limit=30');
-    const items = data.results ?? data ?? [];
+    const data = await apiRequest('/announcements/');
+    const all = data.results ?? data ?? [];
+    const items = all.filter(item => {
+      const t = (item.type || '').toLowerCase();
+      return t === 'sistema' || t === 'evento' || !t;
+    }).slice(0, 6);
 
-    const normal = items.slice(0, 25).reverse(); // orden cronológico
-    const signature = normal.map(m => m.id).join(',');
-
-    // Sin cambios: no tocar el DOM
-    if (!force && signature === chatState.signature) return;
-
-    const nearBottom = slot.scrollHeight - slot.scrollTop - slot.clientHeight < 80;
-    const newOnes = normal.filter(m => !chatState.ids.has(m.id));
-    const canAppend = !force && chatState.ids.size > 0
-      && normal.every(m => chatState.ids.has(m.id) || newOnes.includes(m))
-      && newOnes.length < normal.length;
-
-    if (canAppend) {
-      // Quitar mensajes que ya no vienen (borrados) y añadir solo los nuevos
-      const keep = new Set(normal.map(m => String(m.id)));
-      slot.querySelectorAll('.chat-msg[data-msg-id]').forEach(el => {
-        if (!keep.has(el.dataset.msgId)) el.remove();
-      });
-      if (newOnes.length) slot.insertAdjacentHTML('beforeend', newOnes.map(renderChatMsg).join(''));
-    } else if (normal.length) {
-      setContent(slot, normal.map(renderChatMsg).join(''));
-    } else {
-      setContent(slot, emptyState('chat', 'No hay mensajes en el chat. ¡Sé el primero en escribir!'));
+    if (!items.length) {
+      slot.innerHTML = emptyState('bell', 'No hay anuncios activos.');
+      if (controls) controls.hidden = true;
+      if (progressTrack) progressTrack.hidden = true;
+      return;
     }
 
-    chatState.ids = new Set(normal.map(m => m.id));
-    chatState.signature = signature;
-
-    if (nearBottom || force) {
-      requestAnimationFrame(() => { slot.scrollTop = slot.scrollHeight; });
+    const pairs = [];
+    for (let i = 0; i < items.length; i += 2) {
+      pairs.push(items.slice(i, i + 2));
     }
-  } catch (err) {
-    console.warn('Error al cargar chat:', err);
-    if (!chatState.ids.size) setContent(slot, emptyState('chat', 'Chat no disponible en este momento.'));
+
+    function renderSlideHtml(group, idx) {
+      return `
+        <div class="slide" data-slide-index="${idx}">
+          ${group.map((item, i) => `
+            ${renderAnuncio(item)}
+            ${i < group.length - 1 ? '<div class="divider"></div>' : ''}
+          `).join('')}
+        </div>
+      `;
+    }
+
+    const totalOriginal = pairs.length;
+
+    if (totalOriginal <= 1) {
+      slot.innerHTML = `
+        <div class="slider-viewport">
+          <div class="slider-track">
+            ${renderSlideHtml(pairs[0], 0)}
+          </div>
+        </div>
+      `;
+      if (controls) controls.hidden = true;
+      if (progressTrack) progressTrack.hidden = true;
+      return;
+    }
+
+    // Carrusel continuo infinito: [Clon Último] + [Slide 0] + [Slide 1] ... + [Clon Primero]
+    // Permite deslizarse en línea de forma continua sin jamás retroceder de golpe
+    const clonedLast = renderSlideHtml(pairs[totalOriginal - 1], totalOriginal - 1);
+    const clonedFirst = renderSlideHtml(pairs[0], 0);
+
+    slot.innerHTML = `
+      <div class="slider-viewport">
+        <div class="slider-track" id="slider-track">
+          ${clonedLast}
+          ${pairs.map((g, idx) => renderSlideHtml(g, idx)).join('')}
+          ${clonedFirst}
+        </div>
+      </div>
+    `;
+
+    const track = document.getElementById('slider-track');
+    if (controls) controls.hidden = false;
+    if (progressTrack) progressTrack.hidden = false;
+
+    currentAnuncioIdx = 1;
+
+    function getViewportWidth() {
+      const vp = slot.querySelector('.slider-viewport');
+      return vp ? vp.getBoundingClientRect().width : 0;
+    }
+
+    function setSlidePosition(animate = true) {
+      const w = getViewportWidth();
+      if (!w) return;
+      track.style.transition = animate ? 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+      track.style.transform = `translate3d(-${currentAnuncioIdx * w}px, 0, 0)`;
+      updateCounter();
+    }
+
+    // Inicializar en Slide 1 sin animación
+    setSlidePosition(false);
+
+    function updateCounter() {
+      if (!counter) return;
+      let displayIdx = currentAnuncioIdx;
+      if (displayIdx === 0) displayIdx = totalOriginal;
+      else if (displayIdx === totalOriginal + 1) displayIdx = 1;
+      counter.textContent = `${String(displayIdx).padStart(2, '0')} / ${String(totalOriginal).padStart(2, '0')}`;
+    }
+
+    function startTimeline() {
+      if (!progressBar) return;
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '0%';
+      void progressBar.offsetWidth;
+      if (!isAnuncioHovered) {
+        progressBar.style.transition = `width ${ANUNCIO_SLIDE_DURATION}ms linear`;
+        progressBar.style.width = '100%';
+      }
+    }
+
+    function goToSlide(targetIdx) {
+      if (isAnuncioTransitioning) return;
+      isAnuncioTransitioning = true;
+      currentAnuncioIdx = targetIdx;
+      setSlidePosition(true);
+      startTimeline();
+    }
+
+    function nextSlide() {
+      goToSlide(currentAnuncioIdx + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentAnuncioIdx - 1);
+    }
+
+    track.addEventListener('transitionend', () => {
+      isAnuncioTransitioning = false;
+      const w = getViewportWidth();
+      // Salto invisible instantáneo al alcanzar los extremos clonados
+      if (currentAnuncioIdx === totalOriginal + 1) {
+        track.style.transition = 'none';
+        currentAnuncioIdx = 1;
+        track.style.transform = `translate3d(-${w}px, 0, 0)`;
+      } else if (currentAnuncioIdx === 0) {
+        track.style.transition = 'none';
+        currentAnuncioIdx = totalOriginal;
+        track.style.transform = `translate3d(-${totalOriginal * w}px, 0, 0)`;
+      }
+      updateCounter();
+    });
+
+    window.addEventListener('resize', () => {
+      setSlidePosition(false);
+    });
+
+    function startAutoPlay() {
+      clearInterval(anuncioTimer);
+      anuncioTimer = setInterval(() => {
+        nextSlide();
+      }, ANUNCIO_SLIDE_DURATION);
+    }
+
+    function resetAutoPlay() {
+      clearInterval(anuncioTimer);
+      startTimeline();
+      startAutoPlay();
+    }
+
+    // Navegación táctil optimizada y arrastre suave
+    const viewport = slot.querySelector('.slider-viewport');
+    let isPointerDown = false;
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let pointerStartTime = 0;
+    let gestureDirection = null; // 'horizontal' | 'vertical' | null
+    let didDrag = false;
+    let pointerCaptureTarget = null;
+
+    function onPointerDown(e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (isAnuncioTransitioning) return;
+      pointerStartX = e.clientX;
+      pointerStartY = e.clientY;
+      pointerStartTime = Date.now();
+      isPointerDown = true;
+      gestureDirection = null;
+      didDrag = false;
+      pointerCaptureTarget = null;
+      clearInterval(anuncioTimer);
+      if (progressBar) {
+        const computedWidth = getComputedStyle(progressBar).width;
+        progressBar.style.transition = 'none';
+        progressBar.style.width = computedWidth;
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!isPointerDown) return;
+      const dx = e.clientX - pointerStartX;
+      const dy = e.clientY - pointerStartY;
+
+      // Determinar la intención direccional en los primeros píxeles
+      if (!gestureDirection) {
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        if (absX < 7 && absY < 7) return; // Zona muerta táctil
+        if (absY >= absX) {
+          // Gesto predominantemente vertical: permitir scroll nativo sin trabas
+          gestureDirection = 'vertical';
+          isPointerDown = false;
+          return;
+        }
+        // Gesto horizontal confirmado
+        gestureDirection = 'horizontal';
+        pointerCaptureTarget = viewport;
+        try {
+          pointerCaptureTarget?.setPointerCapture?.(e.pointerId);
+        } catch {}
+        viewport?.classList.add('is-dragging');
+      }
+
+      if (gestureDirection === 'horizontal') {
+        didDrag = true;
+        if (e.cancelable) e.preventDefault();
+        const w = getViewportWidth();
+        track.style.transition = 'none';
+        track.style.transform = `translate3d(${-currentAnuncioIdx * w + dx}px, 0, 0)`;
+      }
+    }
+
+    function onPointerUp(e) {
+      if (!isPointerDown && !didDrag) return;
+      const wasDragging = didDrag;
+      isPointerDown = false;
+      didDrag = false;
+      gestureDirection = null;
+
+      try {
+        pointerCaptureTarget?.releasePointerCapture?.(e.pointerId);
+      } catch {}
+      pointerCaptureTarget = null;
+      viewport?.classList.remove('is-dragging');
+
+      if (wasDragging) {
+        const dx = e.clientX - pointerStartX;
+        const timeDiff = Math.max(1, Date.now() - pointerStartTime);
+        const velocity = Math.abs(dx) / timeDiff; // px/ms
+        const isFlick = velocity > 0.25;
+        const passedDistance = Math.abs(dx) >= 28;
+
+        if (isFlick || passedDistance) {
+          if (dx < 0) nextSlide();
+          else prevSlide();
+        } else {
+          setSlidePosition(true);
+        }
+        resetAutoPlay();
+      }
+    }
+
+    function onPointerCancel(e) {
+      isPointerDown = false;
+      didDrag = false;
+      gestureDirection = null;
+      try {
+        pointerCaptureTarget?.releasePointerCapture?.(e.pointerId);
+      } catch {}
+      pointerCaptureTarget = null;
+      viewport?.classList.remove('is-dragging');
+      setSlidePosition(true);
+      resetAutoPlay();
+    }
+
+    if (viewport) {
+      viewport.addEventListener('pointerdown', onPointerDown);
+      viewport.addEventListener('pointermove', onPointerMove);
+      viewport.addEventListener('pointerup', onPointerUp);
+      viewport.addEventListener('pointercancel', onPointerCancel);
+    }
+
+    const hasDesktopMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (section && hasDesktopMouse) {
+      section.onmouseenter = () => {
+        if (!isPointerDown) {
+          isAnuncioHovered = true;
+          clearInterval(anuncioTimer);
+          if (progressBar) {
+            const computedWidth = getComputedStyle(progressBar).width;
+            progressBar.style.transition = 'none';
+            progressBar.style.width = computedWidth;
+          }
+        }
+      };
+
+      section.onmouseleave = () => {
+        if (!isPointerDown) {
+          isAnuncioHovered = false;
+          resetAutoPlay();
+        }
+      };
+    }
+
+    updateCounter();
+    startTimeline();
+    startAutoPlay();
+  } catch {
+    slot.innerHTML = emptyState('bell', 'No se pudieron cargar los anuncios.');
+    if (controls) controls.hidden = true;
+    if (progressTrack) progressTrack.hidden = true;
   }
 }
+
+
 
 export function renderHomeSections(container) {
   if (!container) return;
@@ -521,8 +736,8 @@ export function renderHomeSections(container) {
       <!-- ====== SIDEBAR ====== -->
       <aside class="home-aside" aria-label="Panel lateral">
 
-        <!-- Tablón de Anuncios -->
-        <section class="aside-card" aria-labelledby="aside-anuncios-title" id="section-anuncios">
+        <!-- Tablón de Anuncios (Mini-Carrusel Cyber-News) -->
+        <section class="aside-card aside-card--anuncios" aria-labelledby="aside-anuncios-title" id="section-anuncios">
           <div class="aside-card--head">
             <div class="aside-card--head-left">
               <div class="aside-card--icon aside-card--icon--teal">
@@ -530,17 +745,16 @@ export function renderHomeSections(container) {
               </div>
               <h2 id="aside-anuncios-title" class="aside-card--title">Tablón de Anuncios</h2>
             </div>
-            <span class="aside-card--badge aside-card--badge--oficial">Oficial</span>
+            <div class="anuncio-nav-controls" id="anuncio-nav-controls" hidden>
+              <span class="anuncio-counter" id="anuncio-counter">01 / 01</span>
+            </div>
           </div>
-          <div class="anuncio-tabs" role="tablist" id="anuncio-tabs">
-            <button class="anuncio-tab is-active" type="button" role="tab" data-type="sistema">Sistema</button>
-            <button class="anuncio-tab" type="button" role="tab" data-type="evento">Eventos</button>
-            <button class="anuncio-tab" type="button" role="tab" data-type="scan">Scans</button>
+          <div class="aside-card--body anuncio-body">
+            <div class="anuncio-progress-track" id="anuncio-progress-track" hidden>
+              <div class="anuncio-progress-bar" id="anuncio-progress-bar"></div>
+            </div>
+            <div id="slot-anuncios">${skeletonCards('anuncio', 1, 1)}</div>
           </div>
-          <div class="aside-card--body">
-            <div id="slot-anuncios">${skeletonCards('anuncio', 2, 1)}</div>
-          </div>
-          <a class="aside-link" href="/pages/comunidad.html">Ver todos los anuncios →</a>
         </section>
 
         <!-- Misión Diaria -->
@@ -562,46 +776,37 @@ export function renderHomeSections(container) {
           </div>
         </section>
 
-        <!-- Chat en Vivo Modernizado y Funcional -->
+        <!-- Chat en Vivo de la Comunidad (Nativo con GIFs y Emojis) -->
         <section class="aside-card aside-card--chat" aria-labelledby="aside-chat-title" id="section-chat">
           <div class="aside-card--head">
             <div class="aside-card--head-left">
-              <div class="aside-card--icon aside-card--icon--blue">
-                <img src="/assets/icons/svg/chat.svg" alt="" aria-hidden="true">
+              <div class="aside-card--icon aside-card--icon--teal">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
               </div>
-              <div>
-                <div class="chat-title-row">
-                  <h2 id="aside-chat-title" class="aside-card--title">Chat en Vivo</h2>
-                </div>
-                <div class="chat-online-indicator" id="chat-online-indicator" title="Ver lectores en línea">
+              <div class="chat-title-group">
+                <h2 id="aside-chat-title" class="aside-card--title">Chat en Vivo</h2>
+                <div class="chat-online-pill" id="chat-online-badge" title="Lectores en línea">
                   <span class="hs-dot"></span>
-                  <span id="chat-online-count">En línea</span>
+                  <span id="chat-online-count">1 en línea</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Cajón / Lista de Usuarios en Línea (Colapsable) -->
-          <div class="chat-online-drawer" id="chat-online-drawer" hidden>
-            <div class="chat-online-drawer-head">
-              <span>Lectores conectados</span>
-              <button id="chat-online-drawer-close" type="button" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="chat-online-list" id="chat-online-list">
-              <!-- Renderizado dinámicamente -->
-            </div>
+          <!-- Feed de mensajes -->
+          <div class="chat-messages" id="slot-chat" role="log" aria-live="polite">
+            ${skeletonCards('chat', 4, 1)}
           </div>
 
-          <div class="chat-messages" role="log" aria-live="polite" id="slot-chat">
-            ${skeletonCards('chat', 3, 1)}
+          <!-- Popover flotante modular para Emojis y GIFs -->
+          <div class="chat-picker-popover" id="chat-picker-popover" hidden>
+            ${getChatPickerTemplate()}
           </div>
 
-          <div class="chat-input-row">
-            <input id="chat-input" name="chat_message" class="chat-input" type="text" placeholder="Escribe un mensaje…" aria-label="Mensaje de chat" maxlength="500" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <button class="chat-send-btn" id="chat-send-btn" type="button" aria-label="Enviar mensaje" title="Enviar mensaje">
-              <img src="/assets/icons/svg/send.svg" width="15" height="15" alt="" aria-hidden="true">
-            </button>
-          </div>
+          <!-- Barra de composición -->
+          <div class="chat-input-row" id="chat-input-row"></div>
         </section>
 
       </aside>
@@ -616,7 +821,7 @@ export function renderHomeSections(container) {
   loadRanking(document.getElementById('slot-rank'));
   loadPopulars(document.getElementById('slot-popular'));
   loadAnuncios(document.getElementById('slot-anuncios'));
-  loadChat(document.getElementById('slot-chat'));
+  initChatSection(document.getElementById('section-chat'));
 
   /* Misiones diarias y gamificación XP real */
   function renderMissionsWidget(data, body, xpEl, levelBadge) {
@@ -737,10 +942,12 @@ export function renderHomeSections(container) {
       }
 
       chestHtml = `
-        <div class="mision-chest ${chest.can_claim ? 'is-ready' : ''}">
+        <div class="mision-chest ${chest.can_claim ? 'is-ready' : ''} ${chest.is_claimed ? 'is-claimed' : ''}">
           <div class="mision-chest--head">
             <div class="mision-chest--title-wrap">
-              <span class="mision-chest--icon">🎁</span>
+              <div class="mision-chest--icon-box">
+                <span class="mision-chest--icon">🎁</span>
+              </div>
               <div>
                 <h4 class="mision-chest--title">${esc(chest.title)}</h4>
                 <span class="mision-chest--sub">Todas las misiones del día (4/4)</span>
@@ -795,26 +1002,28 @@ export function renderHomeSections(container) {
           body: { mission_key: missionKey },
         });
 
-        // Crear partícula flotante de XP animada
+        // Crear partícula flotante de XP animada en el viewport
         const rect = claimBtn.getBoundingClientRect();
-        const bodyRect = body.getBoundingClientRect();
         const particle = document.createElement('div');
         particle.className = 'mision-floating-reward';
         particle.textContent = `+${res.xp_awarded} XP! ✨`;
-        particle.style.left = `${rect.left - bodyRect.left + rect.width / 2}px`;
-        particle.style.top = `${rect.top - bodyRect.top}px`;
-        body.appendChild(particle);
+        particle.style.position = 'fixed';
+        particle.style.left = `${rect.left + rect.width / 2}px`;
+        particle.style.top = `${rect.top}px`;
+        particle.style.zIndex = '9999';
+        particle.style.pointerEvents = 'none';
+        document.body.appendChild(particle);
+        window.setTimeout(() => particle.remove(), 1200);
+
+        showToast(res.message || `+${res.xp_awarded} XP reclamados con éxito`, 'success');
+
         // Si subió de nivel (hito especial), mostrar toast destacado
         if (res.leveled_up) {
           showToast(`🎉 ¡SUBISTE DE NIVEL! Ahora eres Nivel ${res.new_level}`, 'success', 5000);
         }
 
-        // Notificar a toda la ventana para actualizar barras de XP en navbar/perfil
+        // Notificar a toda la ventana (el listener se encargará de actualizar el widget y el navbar)
         window.dispatchEvent(new CustomEvent('yume:xp-updated', { detail: res }));
-
-        if (res.missions_state) {
-          renderMissionsWidget(res.missions_state, body, xpEl, levelBadge);
-        }
       } catch (err) {
         showToast(err.message || 'No se pudo reclamar la misión', 'error');
         claimBtn.disabled = false;
@@ -837,9 +1046,17 @@ export function renderHomeSections(container) {
 
     await fetchAndRenderMissions();
 
-    // Re-verificar cuando la ventana recupera el foco (por ejemplo después de leer un capítulo en otra pestaña)
+    // Re-verificar cuando la ventana recupera el foco o cuando se reclama una misión (ej. desde el Header)
     window.addEventListener('focus', () => {
       fetchAndRenderMissions();
+    });
+
+    window.addEventListener('yume:xp-updated', (e) => {
+      if (e.detail && e.detail.missions_state) {
+        renderMissionsWidget(e.detail.missions_state, body, xpEl, levelBadge);
+      } else {
+        fetchAndRenderMissions();
+      }
     });
   })();
 
@@ -868,20 +1085,6 @@ export function renderHomeSections(container) {
     });
   }
 
-  const anuncioTabs = document.getElementById('anuncio-tabs');
-  if (anuncioTabs) {
-    anuncioTabs.addEventListener('click', e => {
-      const btn = e.target.closest('button');
-      if (!btn || !btn.dataset.type) return;
-
-      anuncioTabs.querySelectorAll('button').forEach(t => t.classList.remove('is-active'));
-      btn.classList.add('is-active');
-
-      const slot = document.getElementById('slot-anuncios');
-      if (slot) slot.innerHTML = skeletonCards('anuncio', 2, 1);
-      loadAnuncios(slot, btn.dataset.type);
-    });
-  }
 
   const popularFormatTabs = document.getElementById('popular-format-tabs');
   if (popularFormatTabs) {
@@ -900,24 +1103,12 @@ export function renderHomeSections(container) {
     });
   }
 
-  // Chat en Vivo: entrada de mensaje, envío y lista de conectados
-  const chatInput = document.getElementById('chat-input');
-  const chatSendBtn = document.getElementById('chat-send-btn');
-  const chatSlot = document.getElementById('slot-chat');
-  const chatOnlineIndicator = document.getElementById('chat-online-indicator');
-  const chatOnlineDrawer = document.getElementById('chat-online-drawer');
-  const chatOnlineDrawerClose = document.getElementById('chat-online-drawer-close');
-
-  // Inicializar carga de stats en línea
-  loadChatOnlineStats();
-
   window.addEventListener('auth:profile-updated', (e) => {
     if (e.detail?.user) {
       try { localStorage.setItem('user', JSON.stringify(e.detail.user)); } catch { }
     }
   });
 
-  // Si hay token pero el objeto de usuario aún no está en memoria local, sincronizar al instante
   if (getAccessToken()) {
     const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
     if (!cachedUser.platform_role) {
@@ -929,79 +1120,463 @@ export function renderHomeSections(container) {
     }
   }
 
-  // Toggle de Usuarios en Línea
-  if (chatOnlineIndicator && chatOnlineDrawer) {
-    chatOnlineIndicator.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isHidden = chatOnlineDrawer.hidden;
-      chatOnlineDrawer.hidden = !isHidden;
-      if (isHidden) loadChatOnlineStats();
-    });
+  /* =========================================================================
+     Chat en Vivo Nativo de la Comunidad (GIFs, Emojis, Presencia y Roles)
+     ========================================================================= */
 
-    chatOnlineDrawerClose?.addEventListener('click', () => {
-      chatOnlineDrawer.hidden = true;
-    });
-  }
+  function initChatSection(sectionEl) {
+    if (!sectionEl) return;
 
-  // Cerrar el cajón de usuarios en línea al hacer clic fuera
-  document.addEventListener('click', (e) => {
-    if (chatOnlineDrawer && !chatOnlineDrawer.hidden && !e.target.closest('#chat-online-drawer') && !e.target.closest('#chat-online-indicator')) {
-      chatOnlineDrawer.hidden = true;
-    }
-  });
+    const slot = document.getElementById('slot-chat');
+    const inputRow = document.getElementById('chat-input-row');
+    const onlineCountEl = document.getElementById('chat-online-count');
 
-  async function handleSendChatMessage() {
-    if (!chatInput || chatInput.disabled) return;
-    const content = chatInput.value.trim();
-    if (!content) return;
+    const pickerPopover = document.getElementById('chat-picker-popover');
 
-    if (!getAccessToken()) {
-      showToast('Debes iniciar sesión para participar en el chat en vivo', 'warning');
-      return;
-    }
-
-    if (chatSendBtn) chatSendBtn.disabled = true;
-    chatInput.disabled = true;
-
+    let chatSignature = '';
+    let knownMessageIds = new Set();
+    const token = getAccessToken();
+    let currentUser = null;
     try {
-      await apiRequest('/chat/messages', {
-        method: 'POST',
-        body: { content },
-      });
-      chatInput.value = '';
-      await loadChat(chatSlot, { force: true });
-      loadChatOnlineStats();
-    } catch (err) {
-      showToast(err.message || 'No se pudo enviar el mensaje', 'error');
-    } finally {
-      chatInput.disabled = false;
-      if (chatSendBtn) chatSendBtn.disabled = false;
-      chatInput.focus();
+      currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    } catch { }
+
+    function formatRelativeTime(dateInput) {
+      if (!dateInput) return '';
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return '';
+      const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (diffSec < 45) return 'justo ahora';
+      if (diffSec < 3600) return `hace ${Math.floor(diffSec / 60)} min`;
+      if (diffSec < 86400) return `hace ${Math.floor(diffSec / 3600)} h`;
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
-  }
 
-  if (chatSendBtn) {
-    chatSendBtn.addEventListener('click', handleSendChatMessage);
-  }
+    function formatChatContent(rawContent) {
+      const trimmed = (rawContent || '').trim();
+      if (!trimmed) return '';
 
-  if (chatInput) {
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSendChatMessage();
+      // Detección de GIF/imagen (Giphy, Tenor o URL con extensión de imagen/gif)
+      const gifRegex = /(https?:\/\/(?:[^\s]+\.(?:gif|webp|png|jpe?g)(?:\?[^\s]*)?|(?:media\.giphy\.com|i\.giphy\.com|media\.tenor\.com|c\.tenor\.com)[^\s]*))/i;
+      const match = trimmed.match(gifRegex);
+
+      if (match) {
+        const gifUrl = match[1];
+        const textPart = trimmed.replace(gifUrl, '').trim();
+
+        let formattedText = '';
+        if (textPart) {
+          const escapedText = esc(textPart).replace(
+            /(https?:\/\/[^\s]+)/g,
+            '<a href="$1" target="_blank" rel="noopener noreferrer" class="chat-inline-link">$1</a>'
+          );
+          formattedText = `<div class="chat-msg--caption">${escapedText}</div>`;
+        }
+
+        const gifHtml = `<div class="chat-msg--gif-wrap">
+          <img src="${esc(gifUrl)}" alt="GIF" class="chat-msg--gif" loading="lazy" />
+        </div>`;
+
+        return formattedText ? `${formattedText}${gifHtml}` : gifHtml;
+      }
+
+      let formatted = esc(trimmed);
+      formatted = formatted.replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="chat-inline-link">$1</a>'
+      );
+      return formatted;
+    }
+
+    const QUICK_REACTIONS = ['❤️', '👍', '😂', '🔥', '😮', '😢'];
+
+    function renderReactionsMarkup(msgId, reactions = []) {
+      const list = Array.isArray(reactions) ? reactions : [];
+      const chips = list.map(r => `
+        <button type="button" class="chat-reaction-chip ${r.user_reacted ? 'is-active' : ''}" data-msg-id="${msgId}" data-reaction="${esc(r.reaction)}" title="${r.count} reacción(es)">
+          <span class="chat-reaction-chip--emoji">${esc(r.reaction)}</span>
+          <span class="chat-reaction-chip--count">${r.count}</span>
+        </button>
+      `).join('');
+
+      return `
+        <div class="chat-msg--reactions" data-msg-id="${msgId}">
+          <button type="button" class="chat-msg--react-trigger" data-action="toggle-reaction-bar" data-msg-id="${msgId}" title="Reaccionar" aria-label="Añadir reacción">😊+</button>
+          <div class="chat-msg--reaction-list">
+            ${chips}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSingleMsg(msg) {
+      const msgId = msg.id;
+      const authorId = msg.user_id;
+      const name = esc(msg.username ?? 'Lector');
+      const avatarUrl = (msg.avatar_url ?? '').trim();
+      const anilloUrl = (msg.anillo_url ?? '').trim();
+      const initial = esc((msg.username ?? 'U').slice(0, 1).toUpperCase());
+      const role = (msg.platform_role ?? 'USER').toUpperCase();
+      const isMod = ['ADMIN', 'SUPERADMIN'].includes(role);
+      const isVip = role === 'VIP';
+      const roleLabel = isMod ? 'STAFF' : (isVip ? 'VIP' : '');
+      const levelNum = Math.floor((Number(msg.xp) || 0) / 1000) + 1;
+      const timeStr = msg.created_at ? formatRelativeTime(msg.created_at) : '';
+
+      const avatarMarkup = avatarUrl
+        ? `<img class="chat-msg--avatar-img" src="${esc(avatarUrl)}" alt="${name}" loading="lazy" onerror="this.hidden=true;if(this.nextElementSibling){this.nextElementSibling.hidden=false;}"><span class="chat-msg--initial" hidden aria-hidden="true">${initial}</span>`
+        : `<span class="chat-msg--initial">${initial}</span>`;
+
+      const frameMarkup = anilloUrl
+        ? `<img class="chat-msg--frame-img" src="${esc(anilloUrl)}" alt="" aria-hidden="true">`
+        : '';
+
+      const bodyContent = formatChatContent(msg.content);
+      const reactionsMarkup = renderReactionsMarkup(msgId, msg.reactions);
+
+      return `
+        <div class="chat-msg ${isMod ? 'chat-msg--mod' : ''}" data-msg-id="${msgId}">
+          <div class="chat-msg--avatar">
+            <div class="chat-msg--avatar-inner">${avatarMarkup}</div>
+            ${frameMarkup}
+          </div>
+          <div class="chat-msg--body">
+            <div class="chat-msg--header">
+              <span class="chat-msg--name ${isMod ? 'is-mod' : (isVip ? 'is-vip' : '')}">${name}</span>
+              ${roleLabel ? `<span class="chat-msg--role chat-msg--role--${roleLabel.toLowerCase()}">${roleLabel}</span>` : ''}
+              <span class="chat-msg--level">Nv. ${levelNum}</span>
+              <span class="chat-msg--time">${timeStr}</span>
+            </div>
+            <div class="chat-msg--text">${bodyContent}</div>
+            ${reactionsMarkup}
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadChatMessages({ force = false } = {}) {
+      if (!slot) return;
+      try {
+        const data = await apiRequest('/chat/messages?limit=40');
+        const items = data?.data || [];
+        const chronological = items.slice().reverse();
+        const signature = chronological.map(m => {
+          const rSig = (m.reactions || []).map(r => `${r.reaction}:${r.count}:${r.user_reacted ? 1 : 0}`).join('|');
+          return `${m.id}[${rSig}]`;
+        }).join(';');
+
+        if (!force && signature === chatSignature) return;
+
+        const nearBottom = (slot.scrollHeight - slot.scrollTop - slot.clientHeight) < 90;
+        const newOnes = chronological.filter(m => !knownMessageIds.has(m.id));
+        const canAppend = !force && knownMessageIds.size > 0
+          && chronological.every(m => knownMessageIds.has(m.id) || newOnes.includes(m))
+          && newOnes.length < chronological.length;
+
+        if (canAppend) {
+          const keep = new Set(chronological.map(m => String(m.id)));
+          slot.querySelectorAll('.chat-msg[data-msg-id]').forEach(el => {
+            if (!keep.has(el.dataset.msgId)) el.remove();
+          });
+          // Actualizar reacciones de los mensajes existentes que cambiaron
+          chronological.forEach(m => {
+            const existingEl = slot.querySelector(`.chat-msg[data-msg-id="${m.id}"]`);
+            if (existingEl) {
+              const currentReactionsEl = existingEl.querySelector('.chat-msg--reactions');
+              const newMarkup = renderReactionsMarkup(m.id, m.reactions);
+              const temp = document.createElement('div');
+              temp.innerHTML = newMarkup;
+              if (currentReactionsEl && temp.firstElementChild) {
+                currentReactionsEl.replaceWith(temp.firstElementChild);
+              }
+            }
+          });
+          if (newOnes.length) {
+            slot.insertAdjacentHTML('beforeend', newOnes.map(renderSingleMsg).join(''));
+          }
+        } else if (chronological.length) {
+          slot.innerHTML = chronological.map(renderSingleMsg).join('');
+        } else {
+          slot.innerHTML = emptyState('chat', 'No hay mensajes aún. ¡Sé el primero en escribir!');
+        }
+
+        knownMessageIds = new Set(chronological.map(m => m.id));
+        chatSignature = signature;
+
+        if (nearBottom || force) {
+          requestAnimationFrame(() => { slot.scrollTop = slot.scrollHeight; });
+        }
+      } catch (err) {
+        console.warn('Error al cargar chat:', err);
+        if (!knownMessageIds.size) {
+          slot.innerHTML = emptyState('chat', 'Chat no disponible temporalmente.');
+        }
+      }
+    }
+
+    async function loadOnlineStats() {
+      try {
+        const data = await apiRequest('/chat/online');
+        if (onlineCountEl && typeof data?.online_count === 'number') {
+          onlineCountEl.textContent = `${Math.max(1, data.online_count)} en línea`;
+        }
+      } catch (err) {
+        console.warn('Error al cargar online stats:', err);
+      }
+    }
+
+    function renderInputRow() {
+      if (!inputRow) return;
+
+      if (!token) {
+        inputRow.innerHTML = `
+          <div class="chat-guest-notice">
+            <span>Inicia sesión para participar en el chat</span>
+            <a href="/pages/login.html" class="chat-login-action-btn">Entrar →</a>
+          </div>
+        `;
+        return;
+      }
+
+      inputRow.innerHTML = `
+        <div class="chat-attached-gif-bar" id="chat-attached-gif-bar" hidden>
+          <div class="chat-attached-gif-thumb">
+            <img id="chat-attached-gif-img" src="" alt="GIF adjunto" />
+          </div>
+          <div class="chat-attached-gif-details">
+            <span class="chat-attached-gif-title">GIF adjunto</span>
+            <span class="chat-attached-gif-sub">Se enviará junto con tu mensaje</span>
+          </div>
+          <button type="button" class="chat-attached-gif-del" id="chat-attached-gif-del" title="Quitar GIF">&times;</button>
+        </div>
+        <div class="chat-input-main">
+          <div class="chat-input-controls">
+            <button type="button" class="chat-addon-btn chat-addon-btn--gif" id="chat-btn-gif" title="Insertar GIFs de Anime" aria-label="Abrir selector de GIFs">GIF</button>
+          </div>
+          <form class="chat-form" id="chat-form" action="javascript:void(0);">
+            <input type="text" class="chat-input" id="chat-input" maxlength="500" placeholder="Escribe un mensaje en la comunidad..." autocomplete="off" />
+            <button type="submit" class="chat-send-btn" id="chat-send-btn" title="Enviar mensaje" aria-label="Enviar">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </form>
+        </div>
+      `;
+
+      setupFormEvents();
+    }
+
+    function setupFormEvents() {
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send-btn');
+      const gifBtn = document.getElementById('chat-btn-gif');
+      const attachedBar = document.getElementById('chat-attached-gif-bar');
+      const attachedImg = document.getElementById('chat-attached-gif-img');
+      const attachedDel = document.getElementById('chat-attached-gif-del');
+
+      let attachedGifUrl = null;
+
+      function clearAttachedGif() {
+        attachedGifUrl = null;
+        if (attachedBar) attachedBar.hidden = true;
+        if (attachedImg) attachedImg.src = '';
+      }
+
+      if (attachedDel) {
+        attachedDel.addEventListener('click', (e) => {
+          e.stopPropagation();
+          clearAttachedGif();
+          input?.focus();
+        });
+      }
+
+      initChatPicker({
+        popoverEl: pickerPopover,
+        triggerGifBtn: gifBtn,
+        onSelectGif: (gifUrl) => {
+          attachedGifUrl = gifUrl;
+          if (attachedBar && attachedImg) {
+            attachedImg.src = gifUrl;
+            attachedBar.hidden = false;
+          }
+          if (input) {
+            input.focus();
+          }
+        }
+      });
+
+      if (form && input) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const text = input.value.trim();
+          if (!text && !attachedGifUrl) return;
+
+          const finalContent = text && attachedGifUrl
+            ? `${text} ${attachedGifUrl}`
+            : (text || attachedGifUrl);
+
+          const currentGif = attachedGifUrl;
+          input.value = '';
+          clearAttachedGif();
+
+          input.disabled = true;
+          if (sendBtn) sendBtn.disabled = true;
+
+          try {
+            await apiRequest('/chat/messages', {
+              method: 'POST',
+              body: { content: finalContent }
+            });
+            await loadChatMessages({ force: true });
+          } catch (err) {
+            console.error('Error enviando mensaje:', err);
+            input.value = text;
+            if (currentGif) {
+              attachedGifUrl = currentGif;
+              if (attachedBar && attachedImg) {
+                attachedImg.src = currentGif;
+                attachedBar.hidden = false;
+              }
+            }
+          } finally {
+            input.disabled = false;
+            if (sendBtn) sendBtn.disabled = false;
+            input.focus();
+          }
+        });
+      }
+    }
+
+    function setupReactionInteractions() {
+      if (!slot) return;
+
+      function closeAllReactionBars() {
+        slot.querySelectorAll('.chat-reaction-bar').forEach(bar => bar.remove());
+      }
+
+      slot.addEventListener('click', async (e) => {
+        const triggerBtn = e.target.closest('[data-action="toggle-reaction-bar"]');
+        if (triggerBtn) {
+          e.stopPropagation();
+          const msgEl = triggerBtn.closest('.chat-msg');
+          if (!msgEl) return;
+          const msgId = triggerBtn.dataset.msgId || msgEl.dataset.msgId;
+          const existingBar = msgEl.querySelector('.chat-reaction-bar');
+
+          if (existingBar) {
+            existingBar.remove();
+            return;
+          }
+
+          closeAllReactionBars();
+
+          const bar = document.createElement('div');
+          bar.className = 'chat-reaction-bar';
+          bar.dataset.msgId = msgId;
+          bar.innerHTML = QUICK_REACTIONS.map(emoji => `
+            <button type="button" class="chat-reaction-btn" data-reaction="${emoji}" data-msg-id="${msgId}" title="Reaccionar ${emoji}">${emoji}</button>
+          `).join('');
+
+          const reactionsContainer = triggerBtn.closest('.chat-msg--reactions') || msgEl;
+          reactionsContainer.appendChild(bar);
+          return;
+        }
+
+        const reactBtn = e.target.closest('.chat-reaction-btn, .chat-reaction-chip');
+        if (reactBtn) {
+          e.stopPropagation();
+          const msgId = reactBtn.dataset.msgId;
+          const reaction = reactBtn.dataset.reaction;
+          if (!msgId || !reaction) return;
+
+          closeAllReactionBars();
+
+          if (!token) {
+            alert('Debes iniciar sesión para reaccionar a los mensajes.');
+            window.location.href = '/pages/login.html';
+            return;
+          }
+
+          try {
+            const res = await apiRequest(`/chat/messages/${msgId}/reactions`, {
+              method: 'POST',
+              body: { reaction }
+            });
+
+            if (res?.reactions) {
+              const msgEl = slot.querySelector(`.chat-msg[data-msg-id="${msgId}"]`);
+              if (msgEl) {
+                const currentContainer = msgEl.querySelector('.chat-msg--reactions');
+                const newMarkup = renderReactionsMarkup(msgId, res.reactions);
+                const temp = document.createElement('div');
+                temp.innerHTML = newMarkup;
+                if (currentContainer && temp.firstElementChild) {
+                  currentContainer.replaceWith(temp.firstElementChild);
+                }
+              }
+            }
+          } catch (err) {
+            console.warn('Error al enviar reacción:', err);
+          }
+          return;
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.chat-reaction-bar') && !e.target.closest('[data-action="toggle-reaction-bar"]')) {
+          closeAllReactionBars();
+        }
+      });
+    }
+
+    renderInputRow();
+    setupReactionInteractions();
+    loadChatMessages({ force: true });
+    loadOnlineStats();
+
+    if (token) {
+      apiRequest('/chat/heartbeat', { method: 'POST' }).catch(() => {});
+      setInterval(() => {
+        apiRequest('/chat/heartbeat', { method: 'POST' }).catch(() => {});
+      }, 30000);
+
+      window.addEventListener('beforeunload', () => {
+        apiRequest('/chat/heartbeat', { method: 'DELETE' }).catch(() => {});
+      });
+    }
+
+    // Temporizador inteligente: solo consulta cuando el chat está visible en pantalla y la pestaña activa
+    let isChatVisibleOnScreen = false;
+
+    function pollChatIfNeeded() {
+      if (document.hidden || !isChatVisibleOnScreen) return;
+      loadChatMessages();
+      loadOnlineStats();
+    }
+
+    if ('IntersectionObserver' in window && sectionEl) {
+      const chatObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          isChatVisibleOnScreen = entry.isIntersecting;
+          if (isChatVisibleOnScreen && !document.hidden) {
+            pollChatIfNeeded();
+          }
+        });
+      }, { rootMargin: '120px' });
+      chatObserver.observe(sectionEl);
+    } else {
+      isChatVisibleOnScreen = true;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && isChatVisibleOnScreen) {
+        pollChatIfNeeded();
       }
     });
-  }
 
-  // Refresco suave cada 20 segundos para el Chat en Vivo
-  const chatInterval = setInterval(() => {
-    if (document.hidden) return;
-    const currentChatSlot = document.getElementById('slot-chat');
-    if (currentChatSlot) {
-      loadChat(currentChatSlot);
-      loadChatOnlineStats();
-    } else {
-      clearInterval(chatInterval);
-    }
-  }, 20000);
+    setInterval(pollChatIfNeeded, 10000);
+  }
 }

@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../api/api-config.js';
-import { safeUrl, IMG_FALLBACK } from '../shared/url-utils.js';
+import { safeUrl, IMG_FALLBACK } from '../shared/ui-utils.js';
 import { apiRequest, getAccessToken } from '../shared/auth.js';
 import { renderSiteHeader } from '../components/header.js';
 import { renderNotice } from '../components/notice.js';
@@ -8,7 +8,7 @@ import { renderNotice } from '../components/notice.js';
 const DEFAULT_CONFIG = {
     apiUrl: `${API_BASE_URL}/v1/hero/`,
     autoRotateMs: 7000,
-    transitionMs: 500,
+    transitionMs: 320,
 };
 
 function createSlide(work, index, template) {
@@ -162,8 +162,26 @@ const HeroComponent = {
         const slideTemplate = document.getElementById('hero-slide-template');
 
         let slides = [];
+        let currentWorks = [];
         let currentIndex = 0;
         let autoTimer = null;
+        const userRatingCache = new Map();
+
+        async function checkSlideRating(workId) {
+            if (!getAccessToken() || !workId || userRatingCache.has(workId)) return;
+            userRatingCache.set(workId, null);
+            try {
+                const data = await apiRequest(`/library/${workId}/rating`);
+                if (data && data.user_rating != null) {
+                    userRatingCache.set(workId, data.user_rating);
+                    const badge = stage.querySelector(`[data-home-hero-rating-badge][data-work-id="${workId}"]`);
+                    if (badge) {
+                        badge.classList.add('has-user-rating');
+                        badge.title = `¡Ya calificaste esta obra con ${Number(data.user_rating).toFixed(1)} ★! Clic para editar`;
+                    }
+                }
+            } catch {}
+        }
 
         // Carga de datos.
         async function load() {
@@ -195,6 +213,7 @@ const HeroComponent = {
 
                 if (!works.length) throw new Error('Sin obras destacadas');
 
+                currentWorks = works;
                 renderSlides(works);
                 skeleton.hidden = true;
                 footer.hidden = false;
@@ -225,22 +244,6 @@ const HeroComponent = {
                 dot.setAttribute('aria-current', String(index === 0));
                 dotsEl.append(dot);
             });
-
-            // Si el usuario está autenticado, encender las insignias de las obras ya calificadas
-            if (getAccessToken()) {
-                works.forEach(async (work) => {
-                    try {
-                        const data = await apiRequest(`/library/${work.id}/rating`);
-                        if (data && data.user_rating != null) {
-                            const badge = stage.querySelector(`[data-home-hero-rating-badge][data-work-id="${work.id}"]`);
-                            if (badge) {
-                                badge.classList.add('has-user-rating');
-                                badge.title = `¡Ya calificaste esta obra con ${Number(data.user_rating).toFixed(1)} ★! Clic para editar`;
-                            }
-                        }
-                    } catch {}
-                });
-            }
         }
 
         // Navegación.
@@ -260,6 +263,11 @@ const HeroComponent = {
                 dot.classList.toggle('is-active', isActive);
                 dot.setAttribute('aria-current', String(isActive));
             });
+
+            const activeWork = currentWorks[currentIndex];
+            if (activeWork && activeWork.id) {
+                checkSlideRating(activeWork.id);
+            }
 
             if (animate) {
                 if (direction) {
@@ -306,8 +314,11 @@ const HeroComponent = {
             if (e.key === 'ArrowRight') next();
         }
 
-        // Navegación por arrastre con mouse o táctil.
+        // Navegación táctil optimizada y arrastre suave
         let pointerStartX = 0;
+        let pointerStartY = 0;
+        let pointerStartTime = 0;
+        let gestureDirection = null; // 'horizontal' | 'vertical' | null
         let isPointerDown = false;
         let didDrag = false;
         let suppressClickAfterSwipe = false;
@@ -316,20 +327,40 @@ const HeroComponent = {
         function onPointerDown(e) {
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             pointerStartX = e.clientX;
+            pointerStartY = e.clientY;
+            pointerStartTime = Date.now();
             isPointerDown = true;
+            gestureDirection = null;
             didDrag = false;
             suppressClickAfterSwipe = false;
+            pointerCaptureTarget = null;
             stopAuto();
-            pointerCaptureTarget = e.target instanceof Element ? e.target : stage;
-            pointerCaptureTarget.setPointerCapture?.(e.pointerId);
         }
 
         function onPointerMove(e) {
             if (!isPointerDown) return;
             const dx = e.clientX - pointerStartX;
-            didDrag = Math.abs(dx) >= 10;
-            if (didDrag) {
-                e.preventDefault();
+            const dy = e.clientY - pointerStartY;
+
+            if (!gestureDirection) {
+                const absX = Math.abs(dx);
+                const absY = Math.abs(dy);
+                if (absX < 8 && absY < 8) return;
+                if (absY >= absX) {
+                    gestureDirection = 'vertical';
+                    isPointerDown = false;
+                    return;
+                }
+                gestureDirection = 'horizontal';
+                pointerCaptureTarget = e.target instanceof Element ? e.target : stage;
+                try {
+                    pointerCaptureTarget.setPointerCapture?.(e.pointerId);
+                } catch {}
+            }
+
+            if (gestureDirection === 'horizontal') {
+                didDrag = true;
+                if (e.cancelable) e.preventDefault();
                 const targetIndex = dx < 0
                     ? (currentIndex + 1) % slides.length
                     : (currentIndex - 1 + slides.length) % slides.length;
@@ -346,30 +377,45 @@ const HeroComponent = {
         }
 
         function onPointerUp(e) {
-            if (!isPointerDown) return;
-            const dx = e.clientX - pointerStartX;
+            if (!isPointerDown && !didDrag) return;
+            const wasDragging = didDrag;
             isPointerDown = false;
-            pointerCaptureTarget?.releasePointerCapture?.(e.pointerId);
+            didDrag = false;
+            gestureDirection = null;
+            try {
+                pointerCaptureTarget?.releasePointerCapture?.(e.pointerId);
+            } catch {}
             pointerCaptureTarget = null;
             stage.classList.remove('is-dragging');
             stage.classList.remove('is-drag-next', 'is-drag-prev');
             slides.forEach((slide) => slide.classList.remove('is-drag-target'));
             stage.style.removeProperty('--hero-drag-offset');
-            if (Math.abs(dx) >= 50) {
-                suppressClickAfterSwipe = true;
-                window.setTimeout(() => {
-                    suppressClickAfterSwipe = false;
-                }, 0);
-                dx > 0 ? prev() : next();
+
+            if (wasDragging) {
+                const dx = e.clientX - pointerStartX;
+                const timeDiff = Math.max(1, Date.now() - pointerStartTime);
+                const velocity = Math.abs(dx) / timeDiff; // px/ms
+                const isFlick = velocity > 0.25;
+                const passedDistance = Math.abs(dx) >= 30;
+
+                if (isFlick || passedDistance) {
+                    suppressClickAfterSwipe = true;
+                    window.setTimeout(() => {
+                        suppressClickAfterSwipe = false;
+                    }, 0);
+                    dx > 0 ? prev() : next();
+                }
             }
-            didDrag = false;
             startAuto();
         }
 
         function onPointerCancel(e) {
             isPointerDown = false;
             didDrag = false;
-            pointerCaptureTarget?.releasePointerCapture?.(e.pointerId);
+            gestureDirection = null;
+            try {
+                pointerCaptureTarget?.releasePointerCapture?.(e.pointerId);
+            } catch {}
             pointerCaptureTarget = null;
             stage.classList.remove('is-dragging');
             stage.classList.remove('is-drag-next', 'is-drag-prev');

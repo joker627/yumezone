@@ -1,36 +1,25 @@
-from typing import Annotated, Literal, Optional
-
+from typing import Annotated, Optional
 import aiomysql
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, Query, status
 
 from app.core.database import get_db_connection
 from app.core.dependencies import get_current_active_user
+from app.modules.comments.repository import CommentRepository
+from app.modules.comments.schemas import (
+    CommentCreate,
+    CommentReportCreate,
+    CommentUpdate,
+    ReactionCreate,
+)
+from app.modules.comments.services import CommentService
 from app.modules.users.models import CurrentUser
 
 router = APIRouter()
 
 
-class CommentCreate(BaseModel):
-    work_id: int = Field(gt=0)
-    chapter_id: Optional[int] = Field(default=None, gt=0)
-    parent_id: Optional[int] = Field(default=None, gt=0)
-    content: str = Field(min_length=1, max_length=3000)
-    contains_spoiler: bool = False
-
-
-class CommentUpdate(BaseModel):
-    content: str = Field(min_length=1, max_length=3000)
-    contains_spoiler: bool = False
-
-
-class ReactionCreate(BaseModel):
-    reaction: Literal["LIKE", "DISLIKE"]
-
-
-class CommentReportCreate(BaseModel):
-    reason: str = Field(min_length=3, max_length=100)
-    details: Optional[str] = Field(default=None, max_length=2000)
+def get_comment_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> CommentService:
+    repository = CommentRepository(conn)
+    return CommentService(repository)
 
 
 @router.get("/")
@@ -38,76 +27,27 @@ async def list_comments(
     work_id: Annotated[int, Query(gt=0)],
     chapter_id: Annotated[Optional[int], Query(gt=0)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    service: CommentService = Depends(get_comment_service),
 ):
-    chapter_filter = "AND c.chapter_id = %s" if chapter_id else "AND c.chapter_id IS NULL"
-    values = (work_id, chapter_id, limit) if chapter_id else (work_id, limit)
-    async with conn.cursor(aiomysql.DictCursor) as cur:
-        await cur.execute(
-            f"""
-            SELECT c.id, c.work_id, c.chapter_id, c.parent_id, c.content, c.contains_spoiler,
-                   c.created_at, c.updated_at, u.id AS user_id, u.username, u.avatar_url,
-                   u.anillo_url, u.anillo_url AS avatar_frame_url,
-                   COALESCE(SUM(cr.reaction = 'LIKE'), 0) AS likes,
-                   COALESCE(SUM(cr.reaction = 'DISLIKE'), 0) AS dislikes
-            FROM comments c
-            JOIN users u ON u.id = c.user_id
-            LEFT JOIN comment_reactions cr ON cr.comment_id = c.id
-            WHERE c.work_id = %s AND c.status = 'VISIBLE' {chapter_filter}
-            GROUP BY c.id, u.id
-            ORDER BY c.created_at DESC LIMIT %s
-            """,
-            values,
-        )
-        return {"data": await cur.fetchall()}
+    comments = await service.list_comments(work_id, chapter_id, limit)
+    return {"data": comments}
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_comment(
     payload: CommentCreate,
     current_user: CurrentUser = Depends(get_current_active_user),
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    service: CommentService = Depends(get_comment_service),
 ):
-    async with conn.cursor(aiomysql.DictCursor) as cur:
-        if payload.chapter_id:
-            await cur.execute(
-                "SELECT 1 FROM chapters WHERE id = %s AND work_id = %s AND status = 'PUBLISHED'",
-                (payload.chapter_id, payload.work_id),
-            )
-            if await cur.fetchone() is None:
-                raise HTTPException(status_code=404, detail="Capítulo no encontrado en la obra")
-        if payload.parent_id:
-            await cur.execute(
-                "SELECT 1 FROM comments WHERE id = %s AND work_id = %s AND chapter_id <=> %s",
-                (payload.parent_id, payload.work_id, payload.chapter_id),
-            )
-            if await cur.fetchone() is None:
-                raise HTTPException(status_code=404, detail="Comentario padre no encontrado")
-        await cur.execute(
-            """
-            INSERT INTO comments (work_id, chapter_id, user_id, parent_id, content, contains_spoiler)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (payload.work_id, payload.chapter_id, current_user.id, payload.parent_id,
-             payload.content.strip(), payload.contains_spoiler),
-        )
-        comment_id = cur.lastrowid
-    await conn.commit()
+    comment_id = await service.create_comment(
+        work_id=payload.work_id,
+        chapter_id=payload.chapter_id,
+        current_user=current_user,
+        parent_id=payload.parent_id,
+        content=payload.content,
+        contains_spoiler=payload.contains_spoiler,
+    )
     return {"id": comment_id}
-
-
-async def get_owned_comment(
-    conn: aiomysql.Connection, comment_id: int, current_user: CurrentUser
-) -> dict:
-    async with conn.cursor(aiomysql.DictCursor) as cur:
-        await cur.execute("SELECT id, user_id, status FROM comments WHERE id = %s", (comment_id,))
-        comment = await cur.fetchone()
-    if comment is None:
-        raise HTTPException(status_code=404, detail="Comentario no encontrado")
-    is_admin = current_user.platform_role.upper() in {"ADMIN", "SUPERADMIN"}
-    if comment["user_id"] != current_user.id and not is_admin:
-        raise HTTPException(status_code=403, detail="No puedes modificar este comentario")
-    return comment
 
 
 @router.patch("/{comment_id}")
@@ -115,15 +55,14 @@ async def update_comment(
     comment_id: int,
     payload: CommentUpdate,
     current_user: CurrentUser = Depends(get_current_active_user),
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    service: CommentService = Depends(get_comment_service),
 ):
-    await get_owned_comment(conn, comment_id, current_user)
-    async with conn.cursor() as cur:
-        await cur.execute(
-            "UPDATE comments SET content = %s, contains_spoiler = %s WHERE id = %s",
-            (payload.content.strip(), payload.contains_spoiler, comment_id),
-        )
-    await conn.commit()
+    await service.update_comment(
+        comment_id=comment_id,
+        content=payload.content,
+        contains_spoiler=payload.contains_spoiler,
+        current_user=current_user,
+    )
     return None
 
 
@@ -131,12 +70,9 @@ async def update_comment(
 async def delete_comment(
     comment_id: int,
     current_user: CurrentUser = Depends(get_current_active_user),
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    service: CommentService = Depends(get_comment_service),
 ):
-    await get_owned_comment(conn, comment_id, current_user)
-    async with conn.cursor() as cur:
-        await cur.execute("UPDATE comments SET status = 'DELETED', content = '' WHERE id = %s", (comment_id,))
-    await conn.commit()
+    await service.delete_comment(comment_id, current_user)
     return None
 
 
@@ -145,21 +81,9 @@ async def react_to_comment(
     comment_id: int,
     payload: ReactionCreate,
     current_user: CurrentUser = Depends(get_current_active_user),
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    service: CommentService = Depends(get_comment_service),
 ):
-    async with conn.cursor() as cur:
-        await cur.execute("SELECT 1 FROM comments WHERE id = %s AND status = 'VISIBLE'", (comment_id,))
-        if await cur.fetchone() is None:
-            raise HTTPException(status_code=404, detail="Comentario no encontrado")
-        await cur.execute(
-            """
-            INSERT INTO comment_reactions (comment_id, user_id, reaction)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE reaction = VALUES(reaction)
-            """,
-            (comment_id, current_user.id, payload.reaction),
-        )
-    await conn.commit()
+    await service.react_to_comment(comment_id, payload.reaction, current_user)
     return {"comment_id": comment_id, "reaction": payload.reaction}
 
 
@@ -168,19 +92,12 @@ async def report_comment(
     comment_id: int,
     payload: CommentReportCreate,
     current_user: CurrentUser = Depends(get_current_active_user),
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    service: CommentService = Depends(get_comment_service),
 ):
-    async with conn.cursor() as cur:
-        await cur.execute("SELECT 1 FROM comments WHERE id = %s", (comment_id,))
-        if await cur.fetchone() is None:
-            raise HTTPException(status_code=404, detail="Comentario no encontrado")
-        await cur.execute(
-            """
-            INSERT INTO content_reports (reporter_user_id, entity_type, entity_id, reason, details)
-            VALUES (%s, 'COMMENT', %s, %s, %s)
-            """,
-            (current_user.id, comment_id, payload.reason.strip(), payload.details),
-        )
-        report_id = cur.lastrowid
-    await conn.commit()
+    report_id = await service.report_comment(
+        comment_id=comment_id,
+        reason=payload.reason,
+        details=payload.details,
+        current_user=current_user,
+    )
     return {"id": report_id}
