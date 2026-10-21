@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-
 # imports internal
 from app.core.database import close_db_pool, init_db_pool
 from app.core.redis import close_redis_pool, init_redis_pool
@@ -27,6 +26,7 @@ from app.modules.users.router import router as users_router
 from app.modules.shop.router import router as shop_router
 from app.modules.chat.router import router as chat_router
 from app.modules.announcements.router import router as announcements_router
+
 
 load_dotenv()
 
@@ -50,16 +50,11 @@ app = FastAPI(
     openapi_url=None
 )
 
-# strip() previene que un espacio extra en .env rompa el preflight de CORS
-cors_origins_env = os.environ.get("CORS_ALLOW_ORIGINS", "")
 cors_origins = [
     origin.strip()
-    for origin in cors_origins_env.split(",")
+    for origin in os.getenv("CORS_ALLOW_ORIGINS", "").split(",")
     if origin.strip()
 ]
-if "*" in cors_origins:
-    raise ValueError("CORS_ALLOW_ORIGINS no puede contener '*' cuando se usan credenciales")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,

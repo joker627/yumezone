@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from functools import lru_cache
 from dotenv import load_dotenv
 
-load_dotenv()
+# Carga directa pasando únicamente el nombre del archivo
+load_dotenv(".env.local")
+
 
 # verifica variables de entorno
 def get_env_or_raise(key: str) -> str:
@@ -11,6 +13,7 @@ def get_env_or_raise(key: str) -> str:
     if value is None:
         raise ValueError(f"Falta la variable de entorno obligatoria: {key}")
     return value
+
 
 # config class
 @dataclass()
@@ -29,6 +32,7 @@ class Settings:
     redis_url: str
     cookie_secure: bool
 
+
 # caché de settings y carga de config desde .env
 @lru_cache()
 def get_settings() -> Settings:
@@ -44,6 +48,6 @@ def get_settings() -> Settings:
         jwt_secret=get_env_or_raise("JWT_SECRET"),
         jwt_algo=get_env_or_raise("JWT_ALGO"),
         jwt_exp=int(get_env_or_raise("JWT_EXP")),
-        redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        cookie_secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
+        redis_url=os.getenv("REDIS_URL"),
+        cookie_secure=os.getenv("COOKIE_SECURE").lower() == "true",
     )

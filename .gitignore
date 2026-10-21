@@ -15,7 +15,10 @@ frontend/assets/images/others
 # Backend
 .env
 *.env
+.env*.local
+*.env.local
 backend/.env
+backend/.env.local
 backend/scripts
 
 # Editor / OS
