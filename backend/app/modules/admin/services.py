@@ -40,7 +40,7 @@ class AdminService:
         ):
             raise HTTPException(
                 status_code=403,
-                detail="Solo el Superadmin puede cambiar el estado de una cuenta de Staff",
+                detail="Solo el Superadmin puede cambiar el estado de una cuenta de Administrador",
             )
 
         await self.repo.update_user_status(target_user_id, payload.status)

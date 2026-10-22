@@ -1,0 +1,269 @@
+/* Hero / Top Banner */
+.hero {
+  background-color: var(--neutral-900);
+  border: 1px solid var(--neutral-800);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.hero-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background-color: var(--neutral-800);
+  border: 1px solid var(--neutral-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--neutral-50);
+  margin: 0 0 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-subtitle {
+  font-size: 11px;
+  color: var(--neutral-400);
+  margin: 0;
+}
+
+.hero-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-switch-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--neutral-300);
+}
+
+/* Metrics Grid */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metric-card {
+  background-color: var(--neutral-900);
+  border: 1px solid var(--neutral-800);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 94px;
+  transition: border-color 0.15s ease;
+}
+
+.metric-card:hover {
+  border-color: var(--neutral-700);
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--neutral-500);
+  letter-spacing: 0.04em;
+}
+
+.metric-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--neutral-50);
+  letter-spacing: -0.02em;
+  margin: 4px 0 2px;
+}
+
+.metric-sub {
+  font-size: 11px;
+  color: var(--neutral-500);
+}
+
+.trend-up {
+  color: var(--teal-400);
+  font-weight: 600;
+}
+
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.summary-card {
+  margin-bottom: 0;
+}
+
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: var(--neutral-950);
+  border: 1px solid var(--neutral-800);
+  border-radius: var(--radius-sm);
+}
+
+.summary-item-title {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--neutral-100);
+}
+
+.summary-item-subtitle {
+  font-size: 10px;
+  color: var(--neutral-500);
+}
+
+.summary-empty {
+  color: var(--neutral-500);
+  font-size: 11px;
+  text-align: center;
+  padding: 18px;
+}
+
+.table-search-box {
+  position: relative;
+  width: 240px;
+}
+
+.table-filter-select {
+  width: 170px;
+  height: 32px;
+  padding: 0 8px;
+}
+
+.col-id {
+  width: 70px;
+  font-family: var(--font-mono);
+  color: var(--neutral-500);
+  font-size: 11px;
+}
+
+.col-actions {
+  text-align: right;
+}
+
+.col-actions-group {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.table-empty-cell {
+  text-align: center;
+  padding: 32px;
+  color: var(--neutral-500);
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background-color: var(--neutral-950);
+  border: 1px solid var(--neutral-800);
+  border-radius: var(--radius-sm);
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.setting-key {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--teal-400);
+  font-size: 12px;
+}
+
+.setting-desc {
+  font-size: 11px;
+  color: var(--neutral-400);
+}
+
+.setting-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-input {
+  width: 160px;
+  height: 28px;
+}
+
+.user-role-select {
+  width: 120px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.user-status-select {
+  width: 110px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.status-pill-footer {
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+.form-field-group {
+  margin-top: 10px;
+}
+
+.form-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}

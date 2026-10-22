@@ -1,0 +1,26 @@
+/* Iconos SVG Nativos de /assets/icons/svg/ */
+.icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: brightness(0) invert(0.85); /* Tono Slate-300 homogéneo */
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.icon.icon-sm { width: 14px; height: 14px; }
+.icon.icon-xs { width: 12px; height: 12px; }
+
+.icon.icon-teal {
+  filter: invert(72%) sepia(35%) saturate(760%) hue-rotate(117deg) brightness(96%) contrast(88%) !important;
+}
+
+.icon.icon-ruby {
+  filter: invert(40%) sepia(98%) saturate(1478%) hue-rotate(323deg) brightness(95%) contrast(98%) !important;
+}
+
+.icon.icon-amber {
+  filter: invert(80%) sepia(45%) saturate(800%) hue-rotate(1deg) brightness(102%) contrast(98%) !important;
+}
