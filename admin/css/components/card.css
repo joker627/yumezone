@@ -1,0 +1,37 @@
+/* Cards & Panels */
+.card {
+  background-color: var(--neutral-900);
+  border: 1px solid var(--neutral-800);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--neutral-50);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.card-desc {
+  font-size: 11px;
+  color: var(--neutral-500);
+  margin: 0;
+}

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Consola privada de administración web de YumeZone.">
+  <title>YumeZone Admin - Consola de Administración</title>
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/icons.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/sidebar.css">
+  <link rel="stylesheet" href="/css/components/status.css">
+  <link rel="stylesheet" href="/css/components/forms.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/table.css">
+  <link rel="stylesheet" href="/css/components/badge.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/switch.css">
+  <link rel="stylesheet" href="/css/components/toast.css">
+  <link rel="stylesheet" href="/css/pages/dashboard.css">
+</head>
+<body>
+
+  <!-- Encabezado Principal -->
+  <header id="header" class="header">
+    <div class="header-brand-group">
+      <button id="mobile-menu-btn" class="mobile-toggle" type="button" aria-label="Abrir menú">
+        <img src="/assets/icons/svg/menu.svg" class="icon" alt="">
+      </button>
+
+      <a class="brand" href="/pages/dashboard.html#inicio">
+        <img src="/assets/icons/logo.png" class="brand-logo" alt="YumeZone Logo">
+        <div class="brand-name">
+          Yume<span class="brand-accent">Zone</span>
+          <span class="brand-badge">Admin</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Buscador Rápido -->
+    <div class="search-box">
+      <input type="text" id="global-search" class="search-input" placeholder="Buscar usuario, obra o reporte...">
+      <img src="/assets/icons/svg/search.svg" class="icon icon-xs search-icon" alt="">
+    </div>
+
+    <!-- Estado y Menú de Administración -->
+    <div class="header-actions">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span id="api-status-text">Online</span>
+      </div>
+
+      <div class="user-menu">
+        <button class="avatar-btn" id="avatar-btn" type="button" title="Perfil">
+          <img src="/assets/icons/svg/user.svg" class="icon icon-sm" alt="Usuario">
+        </button>
+
+        <div class="dropdown-menu" id="dropdown-menu">
+          <div class="dropdown-header">
+            <div class="dropdown-name" id="user-display-name">Admin</div>
+            <div class="dropdown-role" id="user-display-role">ADMIN</div>
+          </div>
+          <button class="dropdown-item danger" id="btn-logout" type="button">
+            <img src="/assets/icons/svg/logout.svg" class="icon icon-sm" alt="">
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layout: Sidebar Lateral + Contenido Central -->
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Navegación Lateral -->
+    <aside id="sidebar" class="sidebar">
+      <nav class="nav-list">
+        <div class="nav-group">
+          <div class="nav-title">Principal</div>
+          <a class="nav-link active" href="#inicio" data-route="inicio">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/home.svg" class="icon" alt="">
+              <span>Panel de Inicio</span>
+            </div>
+            <span class="status-dot"></span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Gestión de la Web</div>
+          <a class="nav-link" href="#usuarios" data-route="usuarios">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/user.svg" class="icon" alt="">
+              <span>Usuarios & Rangos</span>
+            </div>
+          </a>
+          <a class="nav-link" href="#obras" data-route="obras">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/book.svg" class="icon" alt="">
+              <span>Catálogo de Obras</span>
+            </div>
+          </a>
+          <a class="nav-link" href="#ajustes" data-route="ajustes">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/settings.svg" class="icon" alt="">
+              <span>Ajustes de la Web</span>
+            </div>
+          </a>
+          <a class="nav-link" href="#anuncios" data-route="anuncios">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/bell.svg" class="icon" alt="">
+              <span>Anuncios Oficiales</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Moderación & Control</div>
+          <a class="nav-link" href="#reportes" data-route="reportes">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/flag.svg" class="icon" alt="">
+              <span>Reportes de Lectores</span>
+            </div>
+          </a>
+          <a class="nav-link" href="#auditoria" data-route="auditoria">
+            <div class="nav-link-content">
+              <img src="/assets/icons/svg/history.svg" class="icon" alt="">
+              <span>Auditoría de Admin</span>
+            </div>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Contenedor Principal de Vistas -->
+    <main id="content" class="content">
+
+      <!-- ==================== VISTA: INICIO ==================== -->
+      <section id="view-inicio" class="view-panel">
+        <!-- Hero de Directivas -->
+        <div class="hero">
+          <div class="hero-main">
+            <div class="hero-info">
+              <div class="hero-icon-wrap">
+                <img src="/assets/icons/svg/settings.svg" class="icon icon-teal" alt="">
+              </div>
+              <div>
+                <h1 class="hero-title">
+                  <span>Panel de Control Web YumeZone</span>
+                  <span id="maint-badge" class="badge active">
+                    <span class="status-dot"></span> Online
+                  </span>
+                </h1>
+                <p class="hero-subtitle">Supervisión general de la plataforma, actividad de lectores y directivas en vivo</p>
+              </div>
+            </div>
+
+            <div class="hero-controls">
+              <div class="hero-switch-box">
+                <span>Modo Mantenimiento:</span>
+                <label class="switch danger">
+                  <input type="checkbox" id="switch-maint">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="hero-switch-box">
+                <span>Registro de Lectores:</span>
+                <label class="switch">
+                  <input type="checkbox" id="switch-reg" checked>
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <button id="btn-refresh-inicio" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
+                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <span>Actualizar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Métricas Reales -->
+        <div class="metric-grid" id="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">Usuarios Totales</span>
+              <img src="/assets/icons/svg/user.svg" class="icon icon-xs" alt="">
+            </div>
+            <div class="metric-value" id="stat-total-users">—</div>
+            <div class="metric-sub"><span id="stat-active-users" class="trend-up">—</span> activos</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">Obras en Catálogo</span>
+              <img src="/assets/icons/svg/book.svg" class="icon icon-xs icon-amber" alt="">
+            </div>
+            <div class="metric-value" id="stat-total-works">—</div>
+            <div class="metric-sub">Títulos registrados</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">Capítulos Publicados</span>
+              <img src="/assets/icons/svg/bolt.svg" class="icon icon-xs icon-teal" alt="">
+            </div>
+            <div class="metric-value" id="stat-published-chapters">—</div>
+            <div class="metric-sub">Lectura disponible</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">Vistas (Últimas 24h)</span>
+              <img src="/assets/icons/svg/eye.svg" class="icon icon-xs" alt="">
+            </div>
+            <div class="metric-value" id="stat-views-24h">—</div>
+            <div class="metric-sub"><span id="stat-total-views">—</span> acumuladas</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">Comentarios Activos</span>
+              <img src="/assets/icons/svg/trending.svg" class="icon icon-xs" alt="">
+            </div>
+            <div class="metric-value" id="stat-total-comments">—</div>
+            <div class="metric-sub">Comunidad e interacción</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">Reportes Abiertos</span>
+              <img src="/assets/icons/svg/warning.svg" class="icon icon-xs icon-ruby" alt="">
+            </div>
+            <div class="metric-value" id="stat-open-reports">—</div>
+            <div class="metric-sub">Pendientes de atención</div>
+          </div>
+        </div>
+
+        <!-- 3 Tablas Resumen -->
+        <div class="summary-grid">
+          <!-- Últimas Obras -->
+          <div class="card summary-card">
+            <div class="card-header">
+              <div class="card-title">
+                <img src="/assets/icons/svg/book.svg" class="icon icon-sm icon-amber" alt="">
+                <span>Últimas Obras Añadidas</span>
+              </div>
+              <a href="#obras" class="btn btn-secondary btn-sm">Ver Todas</a>
+            </div>
+            <div id="recent-works-list" class="summary-list">
+              <div class="summary-empty">Cargando obras...</div>
+            </div>
+          </div>
+
+          <!-- Últimos Reportes -->
+          <div class="card summary-card">
+            <div class="card-header">
+              <div class="card-title">
+                <img src="/assets/icons/svg/warning.svg" class="icon icon-sm icon-ruby" alt="">
+                <span>Reportes Recientes</span>
+              </div>
+              <a href="#reportes" class="btn btn-secondary btn-sm">Moderar</a>
+            </div>
+            <div id="recent-reports-list" class="summary-list">
+              <div class="summary-empty">Cargando reportes...</div>
+            </div>
+          </div>
+
+          <!-- Actividad Reciente de Administración -->
+          <div class="card summary-card">
+            <div class="card-header">
+              <div class="card-title">
+                <img src="/assets/icons/svg/history.svg" class="icon icon-sm" alt="">
+                <span>Acciones Recientes de Admin</span>
+              </div>
+              <a href="#auditoria" class="btn btn-secondary btn-sm">Historial</a>
+            </div>
+            <div id="recent-audit-list" class="summary-list">
+              <div class="summary-empty">Cargando auditoría...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VISTA: USUARIOS ==================== -->
+      <section id="view-usuarios" class="view-panel" hidden>
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <div class="table-title">
+              <img src="/assets/icons/svg/user.svg" class="icon" alt="">
+              <span>Control de Usuarios & Asignación de Roles</span>
+              <span id="users-total-badge" class="badge active">Cargando...</span>
+            </div>
+            <div class="table-controls">
+              <div class="table-search-box">
+                <input type="text" id="users-search-input" class="search-input" placeholder="Buscar usuario o correo...">
+                <img src="/assets/icons/svg/search.svg" class="icon icon-xs search-icon" alt="">
+              </div>
+              <button id="btn-refresh-users" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
+                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="col-id">UID</th>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol en Plataforma</th>
+                  <th>Estado de Cuenta</th>
+                  <th>Registro</th>
+                  <th class="col-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr>
+                  <td colspan="7" class="table-empty-cell">
+                    Cargando usuarios...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <span id="users-pagination-info">Página 1</span>
+            <div class="pagination-btns">
+              <button id="btn-users-prev" class="btn btn-secondary btn-sm" type="button" disabled>Anterior</button>
+              <button id="btn-users-next" class="btn btn-secondary btn-sm" type="button">Siguiente</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VISTA: OBRAS ==================== -->
+      <section id="view-obras" class="view-panel" hidden>
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <div class="table-title">
+              <img src="/assets/icons/svg/book.svg" class="icon" alt="">
+              <span>Supervisión del Catálogo de Obras</span>
+              <span id="works-total-badge" class="badge active">Cargando...</span>
+            </div>
+            <div class="table-controls">
+              <div class="table-search-box">
+                <input type="text" id="works-search-input" class="search-input" placeholder="Buscar por título...">
+                <img src="/assets/icons/svg/search.svg" class="icon icon-xs search-icon" alt="">
+              </div>
+              <button id="btn-refresh-works" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
+                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="col-id">ID</th>
+                  <th>Título de la Obra</th>
+                  <th>Grupo Scan</th>
+                  <th>Capítulos</th>
+                </tr>
+              </thead>
+              <tbody id="works-table-body">
+                <tr>
+                  <td colspan="5" class="table-empty-cell">
+                    Cargando catálogo...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VISTA: AJUSTES ==================== -->
+      <section id="view-ajustes" class="view-panel" hidden>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">
+                <img src="/assets/icons/svg/settings.svg" class="icon icon-teal" alt="">
+                <span>Ajustes de la Plataforma Web</span>
+              </h2>
+              <p class="card-desc">Parámetros directos de la base de datos (tabla platform_settings)</p>
+            </div>
+            <button id="btn-refresh-settings" class="btn btn-secondary btn-sm" type="button">
+              <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+            </button>
+          </div>
+
+          <div id="settings-list-container" class="settings-list">
+            <div class="summary-empty">Cargando ajustes...</div>
+          </div>
+        </div>
+
+        <!-- Formulario para Guardar / Modificar Parámetro -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3 class="card-title">
+                <img src="/assets/icons/svg/copy.svg" class="icon" alt="">
+                <span>Modificar o Añadir Parámetro</span>
+              </h3>
+              <p class="card-desc">Directivas de comportamiento para el funcionamiento del portal</p>
+            </div>
+          </div>
+
+          <form id="setting-form">
+            <div class="form-grid-2">
+              <div>
+                <label for="setting-key-input" class="form-label">Clave (setting_key)</label>
+                <input type="text" id="setting-key-input" required class="search-input" placeholder="ej: allow_registrations">
+              </div>
+              <div>
+                <label for="setting-value-input" class="form-label">Valor (true, false o texto)</label>
+                <input type="text" id="setting-value-input" required class="search-input" placeholder="true">
+              </div>
+            </div>
+            <div class="form-field-group">
+              <label for="setting-desc-input" class="form-label">Descripción</label>
+              <input type="text" id="setting-desc-input" class="search-input" placeholder="Descripción de este ajuste...">
+            </div>
+            <div class="form-actions-bar">
+              <button type="submit" id="btn-save-setting" class="btn btn-primary">
+                <img src="/assets/icons/svg/check.svg" class="icon icon-xs" alt="">
+                <span>Guardar en BD</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ==================== VISTA: ANUNCIOS ==================== -->
+      <section id="view-anuncios" class="view-panel" hidden>
+        <!-- Formulario Publicar Anuncio -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">
+                <img src="/assets/icons/svg/bell.svg" class="icon icon-teal" alt="">
+                <span>Publicar Anuncio Oficial de la Web</span>
+              </h2>
+              <p class="card-desc">Notificaciones visibles en el feed y cabecera de la plataforma para los lectores</p>
+            </div>
+          </div>
+
+          <form id="announcement-form">
+            <div class="form-grid-4">
+              <div>
+                <label for="ann-title" class="form-label">Título del Anuncio</label>
+                <input type="text" id="ann-title" required class="search-input" placeholder="ej: Nueva actualización del lector web">
+              </div>
+              <div>
+                <label for="ann-type" class="form-label">Tipo de Notificación</label>
+                <select id="ann-type" class="search-input">
+                  <option value="sistema">Sistema (Oficial)</option>
+                  <option value="evento">Evento Comunitario</option>
+                  <option value="scan">Comunidad de Scan</option>
+                </select>
+              </div>
+              <div>
+                <label for="ann-type-label" class="form-label">Etiqueta (Badge)</label>
+                <input type="text" id="ann-type-label" required class="search-input" placeholder="ej: Mantenimiento, Novedad">
+              </div>
+              <div>
+                <label for="ann-source" class="form-label">Fuente / Emisor</label>
+                <input type="text" id="ann-source" class="search-input" value="Admin Oficial" placeholder="Admin, YumeZone">
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label for="ann-desc" class="form-label">Descripción / Mensaje</label>
+              <textarea id="ann-desc" rows="3" class="search-input form-textarea" placeholder="Mensaje visible para todos los lectores en la web..."></textarea>
+            </div>
+
+            <div class="form-actions-bar">
+              <button type="submit" id="btn-save-ann" class="btn btn-primary">
+                <img src="/assets/icons/svg/copy.svg" class="icon icon-xs" alt="">
+                <span>Publicar Anuncio</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tabla Anuncios Registrados -->
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <div class="table-title">
+              <img src="/assets/icons/svg/bell.svg" class="icon" alt="">
+              <span>Anuncios Registrados en la Web</span>
+              <span id="ann-count-badge" class="badge">0</span>
+            </div>
+            <div class="table-controls">
+              <button id="btn-refresh-ann" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
+                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="col-id">ID</th>
+                  <th>Título</th>
+                  <th>Tipo</th>
+                  <th>Etiqueta</th>
+                  <th>Emisor</th>
+                  <th>Fecha</th>
+                  <th class="col-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="ann-table-body">
+                <tr>
+                  <td colspan="7" class="table-empty-cell">
+                    Cargando anuncios...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VISTA: REPORTES ==================== -->
+      <section id="view-reportes" class="view-panel" hidden>
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <div class="table-title">
+              <img src="/assets/icons/svg/flag.svg" class="icon icon-ruby" alt="">
+              <span>Reportes de Contenido & Moderación</span>
+              <span id="reports-total-badge" class="badge danger">Cargando...</span>
+            </div>
+
+            <div class="table-controls">
+              <select id="reports-filter-select" class="search-input table-filter-select">
+                <option value="">Todos los Estados</option>
+                <option value="OPEN">Abierto (OPEN)</option>
+                <option value="REVIEWING">En Revisión (REVIEWING)</option>
+                <option value="RESOLVED">Resueltos (RESOLVED)</option>
+                <option value="DISMISSED">Descartados (DISMISSED)</option>
+              </select>
+              <button id="btn-refresh-reports" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
+                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="col-id">ID</th>
+                  <th>Tipo de Contenido</th>
+                  <th>Motivo del Reporte</th>
+                  <th>Lector</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th class="col-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="reports-table-body">
+                <tr>
+                  <td colspan="7" class="table-empty-cell">
+                    Cargando reportes...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VISTA: AUDITORÍA ==================== -->
+      <section id="view-auditoria" class="view-panel" hidden>
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <div class="table-title">
+              <img src="/assets/icons/svg/history.svg" class="icon" alt="">
+              <span>Historial de Auditoría de Administradores</span>
+              <span id="audit-count-badge" class="badge neutral">0 registros</span>
+            </div>
+            <div class="table-controls">
+              <button id="btn-refresh-audit" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
+                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Fecha / Hora</th>
+                  <th>Operador</th>
+                  <th>Acción Realizada</th>
+                  <th>Entidad Afectada</th>
+                  <th class="col-id">ID</th>
+                  <th>Detalles (Antes / Después)</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <tr>
+                  <td colspan="6" class="table-empty-cell">
+                    Cargando auditoría...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Pie de Página -->
+  <footer class="footer" id="footer">
+    <div>
+      <span><strong>YumeZone Admin</strong> &copy; 2026 &bull; Panel de Gestión Web Aislado</span>
+    </div>
+    <div>
+      <span class="status-pill status-pill-footer">
+        <span class="status-dot"></span> API v1 Conectada
+      </span>
+    </div>
+  </footer>
+
+  <!-- Contenedor de Alertas Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Plantillas HTML para rellenar elementos dinámicos mediante el script -->
+  <template id="tmpl-summary-item">
+    <div class="summary-item">
+      <div>
+        <div class="summary-item-title" data-field="title"></div>
+        <div class="summary-item-subtitle" data-field="subtitle"></div>
+      </div>
+      <span class="badge" data-field="badge"></span>
+    </div>
+  </template>
+
+  <template id="tmpl-user-row">
+    <tr>
+      <td class="col-id" data-field="id"></td>
+      <td>
+        <div class="summary-item-title" data-field="username"></div>
+        <span class="badge active" data-field="verified" hidden>✓ Verificado</span>
+      </td>
+      <td data-field="email"></td>
+      <td>
+        <select class="search-input user-role-select" data-field="role-select">
+          <option value="USER">USER</option>
+          <option value="ADMIN">ADMIN</option>
+          <option value="SUPERADMIN">SUPERADMIN</option>
+        </select>
+      </td>
+      <td>
+        <select class="search-input user-status-select" data-field="status-select">
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="SUSPENDED">SUSPENDED</option>
+          <option value="BLOCKED">BLOCKED</option>
+        </select>
+      </td>
+      <td data-field="created-at"></td>
+      <td class="col-actions">
+        <button class="btn btn-secondary btn-sm" data-action="save">Guardar</button>
+      </td>
+    </tr>
+  </template>
+
+  <template id="tmpl-work-row">
+    <tr>
+      <td class="col-id" data-field="id"></td>
+      <td>
+        <div class="summary-item-title" data-field="title"></div>
+        <div class="summary-item-subtitle" data-field="slug"></div>
+      </td>
+      <td><span class="badge neutral" data-field="scan-group"></span></td>
+      <td><span class="trend-up" data-field="chapters"></span> caps</td>
+    </tr>
+  </template>
+
+  <template id="tmpl-setting-row">
+    <div class="setting-row">
+      <div>
+        <div class="setting-key" data-field="key"></div>
+        <div class="setting-desc" data-field="desc"></div>
+      </div>
+      <div class="setting-actions">
+        <label class="switch" data-field="switch-wrap" hidden>
+          <input type="checkbox" data-field="switch-input">
+          <span class="switch-slider"></span>
+        </label>
+        <div data-field="text-wrap" class="setting-actions" hidden>
+          <input type="text" class="search-input setting-input" data-field="text-input">
+          <button class="btn btn-secondary btn-sm" data-action="save-setting">Actualizar</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tmpl-ann-row">
+    <tr>
+      <td class="col-id" data-field="id"></td>
+      <td>
+        <div class="summary-item-title" data-field="title"></div>
+        <div class="summary-item-subtitle" data-field="desc"></div>
+      </td>
+      <td><span class="badge" data-field="type"></span></td>
+      <td><span class="trend-up" data-field="type-label"></span></td>
+      <td class="summary-item-subtitle" data-field="source"></td>
+      <td class="summary-item-subtitle" data-field="created-at"></td>
+      <td class="col-actions">
+        <button class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>
+      </td>
+    </tr>
+  </template>
+
+  <template id="tmpl-report-row">
+    <tr>
+      <td class="col-id" data-field="id"></td>
+      <td><span class="badge neutral" data-field="target"></span></td>
+      <td>
+        <div class="summary-item-title" data-field="reason"></div>
+        <div class="summary-item-subtitle" data-field="details"></div>
+      </td>
+      <td data-field="reporter"></td>
+      <td class="summary-item-subtitle" data-field="created-at"></td>
+      <td><span class="badge" data-field="status"></span></td>
+      <td class="col-actions">
+        <div class="col-actions-group">
+          <button class="btn btn-primary btn-sm" data-action="resolve">Resolver</button>
+          <button class="btn btn-secondary btn-sm" data-action="dismiss">Descartar</button>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <template id="tmpl-audit-row">
+    <tr>
+      <td class="summary-item-subtitle" data-field="created-at"></td>
+      <td class="summary-item-title" data-field="operator"></td>
+      <td><span class="badge active" data-field="action"></span></td>
+      <td><span class="badge neutral" data-field="entity"></span></td>
+      <td class="col-id" data-field="id"></td>
+      <td class="col-id" data-field="details"></td>
+    </tr>
+  </template>
+
+  <script type="module" src="/js/pages/dashboard.js"></script>
+</body>
+</html>

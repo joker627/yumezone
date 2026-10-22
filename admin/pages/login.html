@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Acceso al panel de administración de YumeZone.">
+  <title>Acceso Administrador | YumeZone Admin</title>
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/icons.css">
+  <link rel="stylesheet" href="/css/components/status.css">
+  <link rel="stylesheet" href="/css/components/forms.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/badge.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/pages/login.css">
+</head>
+<body class="login-body">
+
+  <div class="login-container">
+    <div class="login-header">
+      <img src="/assets/icons/logo.png" width="48" height="48" alt="YumeZone" class="login-logo">
+      <h1 class="login-title">
+        Yume<span class="login-title-accent">Zone</span> Admin
+      </h1>
+      <p class="login-subtitle">Consola de Gestión Web para Administradores & Super Admin</p>
+    </div>
+
+    <div class="card login-card">
+      <div id="error-alert" class="badge danger login-error" role="alert" hidden></div>
+
+      <form id="admin-login-form" class="login-form">
+        <div>
+          <label for="admin-email" class="form-label">Correo Electrónico</label>
+          <div class="input-wrapper">
+            <input id="admin-email" type="email" required autocomplete="email" class="search-input" placeholder="admin@yumezone.com">
+            <img src="/assets/icons/svg/user.svg" class="icon icon-xs search-icon" alt="">
+          </div>
+        </div>
+
+        <div>
+          <label for="admin-password" class="form-label">Contraseña</label>
+          <div class="input-wrapper">
+            <input id="admin-password" type="password" required autocomplete="current-password" class="search-input input-password" placeholder="••••••••••••">
+            <img src="/assets/icons/svg/lock.svg" class="icon icon-xs search-icon" alt="">
+            <button type="button" id="toggle-pwd" class="toggle-password-btn" aria-label="Mostrar contraseña">
+              <img src="/assets/icons/svg/eye.svg" class="icon icon-xs" alt="">
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" id="btn-submit" class="btn btn-primary login-submit-btn">
+            <img src="/assets/icons/svg/login.svg" class="icon icon-xs" alt="">
+            <span id="btn-submit-label">Acceder a la Consola</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="login-footer">
+        <span class="login-status">
+          <span class="status-dot"></span>
+          <span>Validación API Admin</span>
+        </span>
+        <a href="/" class="login-link">Ir al Inicio</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/pages/login.js"></script>
+</body>
+</html>
