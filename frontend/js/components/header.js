@@ -1,9 +1,8 @@
 import { authRequest, apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
 import { safeUrl, IMG_FALLBACK, escapeHTML, formatTimeAgo, applyDataProgress } from '../shared/ui-utils.js';
-import { showToast } from '../shared/toast.js';
+import { flashToast } from '../shared/toast.js';
 import { initPresence, disconnectPresence } from '../shared/presence.js';
-import { renderSkeletonRows } from './loader.js';
-import { getHeaderTemplate } from './header-template.js';
+import { renderSkeletonRows } from './skeletons.js';
 
 async function copyToClipboard(text) {
   if (navigator.clipboard?.writeText) {
@@ -14,7 +13,6 @@ async function copyToClipboard(text) {
 
     }
   }
-
 
   const textArea = document.createElement('textarea');
   textArea.className = 'header-clipboard-helper';
@@ -36,14 +34,249 @@ async function copyToClipboard(text) {
   }
 }
 
-/** Header global con menú y búsqueda en vivo del catálogo. */
+// template header
+export function getHeaderTemplate() {
+  return `
+    <nav id="navigation" class="header" aria-label="NavegaciÃ³n principal">
+      <a id="brand" class="header-brand" href="/index.html">
+        <img id="logo" class="header-logo" src="/assets/icons/logo.png" alt="YumeZone" width="32" height="32">
+        <span class="header-brand-name">Yume<span>Zone</span></span>
+      </a>
+
+      <div id="navigation-content" class="header-content">
+        <div id="navigation-links" class="header-links">
+          <a id="home-link" class="header-link" href="/index.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Inicio</span>
+          </a>
+          <a id="explore-link" class="header-link" href="/pages/catalogo.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
+            <span>CatÃ¡logo</span>
+          </a>
+          <a id="novedades-link" class="header-link" href="/pages/novedades.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4"></path><path d="m4.93 4.93 2.83 2.83"></path><path d="M2 12h4"></path><path d="m4.93 19.07 2.83-2.83"></path><path d="M12 22v-4"></path><path d="m19.07 19.07-2.83-2.83"></path><path d="M22 12h-4"></path><path d="m19.07 4.93-2.83 2.83"></path></svg>
+            <span>Actualizaciones</span>
+          </a>
+          <a id="eventos-link" class="header-link" href="/pages/eventos.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
+            <span>Eventos</span>
+          </a>
+          <a id="ranking-link" class="header-link" href="/pages/ranking.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+            <span>Ranking</span>
+          </a>
+          <a id="scans-link" class="header-link" href="/pages/scans.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Scans</span>
+          </a>
+          <a id="sistema-link" class="header-link" href="/pages/sistema.html">
+            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg>
+            <span>Sistema</span>
+          </a>
+        </div>
+      </div>
+
+      <div id="search-container" class="header-search">
+        <button id="search-toggle" class="header-search-toggle" type="button"
+          aria-label="Abrir buscador" aria-expanded="false" aria-controls="search-panel">
+          <img class="header-icon" src="/assets/icons/svg/actions/search.svg" alt="" aria-hidden="true">
+        </button>
+        <div id="search-panel" class="header-search-panel" role="dialog"
+          aria-label="Buscar obras" aria-hidden="true">
+          <form id="search-form" class="header-search-form" action="/pages/catalogo.html" method="get" role="search">
+            <input id="search-input" name="q" class="header-search-input" type="text"
+              placeholder="Buscar obras o autores..." aria-label="Buscar obras o autores"
+              aria-controls="search-suggestions" aria-expanded="false"
+              aria-autocomplete="list" role="combobox"
+              autocomplete="off" spellcheck="false">
+            <button id="search-button" class="header-search-button" type="submit" aria-label="Ver obras">
+              <img class="header-icon" src="/assets/icons/svg/actions/search.svg" alt="" aria-hidden="true">
+            </button>
+            <button id="search-clear" class="header-search-clear" type="button"
+              aria-label="Limpiar bÃºsqueda" title="Limpiar bÃºsqueda" hidden>
+              <img src="/assets/icons/svg/actions/clear.svg" alt="" aria-hidden="true">
+            </button>
+          </form>
+          <div id="search-suggestions" class="header-search-suggestions"
+            role="listbox" aria-label="Sugerencias de obras" hidden></div>
+        </div>
+      </div>
+
+      <button id="menu-toggle" class="header-menu-toggle" type="button"
+        aria-label="Abrir menÃº" aria-expanded="false" aria-controls="navigation-content">
+        <img class="header-icon" src="/assets/icons/svg/navigation/menu.svg" alt="" aria-hidden="true">
+      </button>
+
+      <div class="header-menu-backdrop" data-menu-backdrop aria-hidden="true"></div>
+
+      <div id="guest-actions" class="header-guest-actions" data-auth-state="pending" hidden>
+        <a id="login-link" class="header-action" href="/pages/login.html">Entrar</a>
+        <a id="signup-link" class="header-action header-action-primary" href="/pages/registro.html">
+          Registro
+        </a>
+      </div>
+
+      <div id="user-actions" class="header-actions" data-auth-state="pending" hidden>
+        <div class="header-user-stats" id="header-user-stats" hidden>
+          <div class="header-bell-wrapper">
+            <button id="header-bell" class="header-bell" aria-label="Notificaciones" aria-expanded="false" aria-controls="notifications-menu">
+              <img src="/assets/icons/svg/user/bell.svg" alt="" aria-hidden="true">
+              <span id="bell-dot" class="header-bell-badge" hidden>0</span>
+            </button>
+            <div id="notifications-menu" class="header-notifications-menu" role="menu" aria-label="Notificaciones" hidden>
+              <div class="header-notifications-header">
+                <h3>Notificaciones</h3>
+                <div class="header-notifications-actions">
+                  <button type="button" id="notifications-read-all" class="header-notifications-readall" hidden>Marcar todo leÃ­do</button>
+                  <button type="button" id="notifications-clear-all" class="header-notifications-clearall" hidden>Limpiar</button>
+                </div>
+              </div>
+              <div id="notifications-list" class="header-notifications-list">
+                <div class="header-notifications-empty">No hay notificaciones</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="header-profile" class="header-profile" hidden>
+          <button id="profile-toggle" class="header-profile-toggle" type="button"
+            aria-label="Abrir menÃº de perfil" aria-expanded="false" aria-controls="profile-menu">
+            <div class="header-avatar-ring">
+              <span id="profile-initials" class="header-profile-initials" aria-hidden="true">Y</span>
+              <img id="profile-avatar" class="header-profile-avatar" alt="" hidden>
+              <img id="profile-avatar-frame" class="header-avatar-frame" alt="" hidden>
+              <span class="header-avatar-status"></span>
+            </div>
+          </button>
+          <div id="profile-menu" class="header-profile-menu" role="menu"
+            aria-label="MenÃº de perfil" hidden>
+            <div class="header-profile-card">
+              <div class="header-profile-card-top">
+                <div class="header-profile-avatar-thumb">
+                  <span id="profile-card-initials" class="header-profile-card-initials">Y</span>
+                  <img id="profile-card-avatar" class="header-profile-card-avatar" alt="" hidden>
+                  <img id="profile-card-avatar-frame" class="header-avatar-frame" alt="" hidden>
+                </div>
+                <div class="header-profile-user-texts">
+                  <div class="header-profile-name-row">
+                    <strong id="profile-menu-name" class="header-profile-name"></strong>
+                    <span id="profile-menu-role" class="header-profile-badge">USER</span>
+                  </div>
+                  <span id="profile-menu-email" class="header-profile-email"></span>
+                </div>
+              </div>
+
+              <!-- Selector interactivo de Identificador -->
+              <div class="header-profile-id-box">
+                <button id="toggle-ident-mode" class="header-profile-ident-pill" type="button"
+                  title="Clic para alternar entre @Usuario e ID de usuario" aria-label="Modo actual: @Usuario. Clic para cambiar a ID">
+                  <span id="ident-badge" class="header-profile-ident-tag">@USER</span>
+                  <span id="profile-menu-id" class="header-profile-id-val">@usuario</span>
+                  <span class="header-profile-swap-icon" aria-hidden="true" title="Alternar">
+                    <img src="/assets/icons/svg/actions/swap.svg" class="header-profile-swap-icon-img" alt="" aria-hidden="true">
+                  </span>
+                </button>
+                <button id="copy-profile-id" class="header-profile-copy-btn" type="button"
+                  aria-label="Copiar identificador al portapapeles" title="Copiar al portapapeles">
+                  <span class="header-profile-copy-icon-wrap" aria-hidden="true">
+                    <img src="/assets/icons/svg/actions/copy.svg" class="header-copy-icon-default" alt="" aria-hidden="true">
+                    <img src="/assets/icons/svg/actions/check.svg" class="header-copy-icon-check" alt="" aria-hidden="true">
+                  </span>
+                  <span id="copy-btn-text" class="header-profile-copy-text">Copiar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Progreso y GamificaciÃ³n -->
+            <div class="header-profile-gamification">
+              <div class="header-stats-dd-head">
+                <div class="header-stats-dd-level-badge" id="stats-dd-level-badge"><span class="is-loading is-loading--sm"></span></div>
+                <div class="header-stats-dd-level-info">
+                  <div class="header-stats-dd-level-title" id="stats-dd-level-title"><span class="is-loading is-loading--lg"></span></div>
+                  <div class="header-stats-dd-xp-label" id="stats-dd-xp-label"><span class="is-loading is-loading--md"></span></div>
+                </div>
+              </div>
+
+              <div class="header-stats-dd-bar-wrap">
+                <div class="header-stats-dd-bar">
+                  <div class="header-stats-dd-bar-fill" id="stats-dd-bar-fill"></div>
+                </div>
+                <div class="header-stats-dd-bar-sub" id="stats-dd-xp-remaining"><span class="is-loading is-loading--lg"></span></div>
+              </div>
+
+              <div class="header-stats-dd-grid">
+                <div class="header-stats-dd-card">
+                  <div class="header-stats-dd-card-top">
+                    <img src="/assets/icons/svg/gamification/fire.svg" alt="" width="14" height="14">
+                    <span class="header-stats-dd-card-label">Racha Activa</span>
+                  </div>
+                  <div class="header-stats-dd-card-val" id="stats-dd-streak-val"><span class="is-loading is-loading--sm"></span></div>
+                  <div class="header-stats-dd-card-hint" id="stats-dd-streak-hint">Lee diario para mantenerla</div>
+                </div>
+
+                <div class="header-stats-dd-card">
+                  <div class="header-stats-dd-card-top">
+                    <img src="/assets/icons/svg/gamification/coin.svg" alt="" width="14" height="14">
+                    <span class="header-stats-dd-card-label">Yume Coins</span>
+                  </div>
+                  <div class="header-stats-dd-card-val" id="stats-dd-coins-val"><span class="is-loading is-loading--sm"></span></div>
+                  <div class="header-stats-dd-card-hint">Canjeables en la tienda</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="header-profile-links">
+              <a href="/pages/usuario.html" id="header-public-profile-link" class="header-profile-link" role="menuitem">
+                <img src="/assets/icons/svg/user/user.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
+                <span>Mi perfil pÃºblico</span>
+              </a>
+              <a href="/pages/scans.html" class="header-profile-link" role="menuitem">
+                <img src="/assets/icons/svg/user/users.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
+                <span>Clanes & Scans</span>
+              </a>
+              <a href="/pages/tienda.html" class="header-profile-link" role="menuitem">
+                <img src="/assets/icons/svg/navigation/shop.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
+                <span>Tienda</span>
+              </a>
+              <a href="/pages/biblioteca.html" class="header-profile-link" role="menuitem">
+                <img src="/assets/icons/svg/navigation/library.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
+                <span>Mi biblioteca</span>
+              </a>
+              <a href="/pages/usuario.html?edit=1" class="header-profile-link" role="menuitem">
+                <img src="/assets/icons/svg/user/settings.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
+                <span>Ajustes de cuenta</span>
+              </a>
+            </div>
+
+            <button id="logout-button" class="header-profile-logout" type="button" role="menuitem">
+              <img src="/assets/icons/svg/user/logout.svg" alt="" aria-hidden="true">
+              <span>Cerrar sesiÃ³n</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  `;
+}
+
+// inicializar header
 export function renderSiteHeader(container) {
   if (!container) throw new Error('renderSiteHeader: container requerido.');
 
-  container.innerHTML = getHeaderTemplate();
+  // evitar duplicados
+  if (container.dataset.mounted === 'true') {
+    return () => {};
+  }
+  container.dataset.mounted = 'true';
+
+  // inyectar header
+  if (!container.dataset.rendered || !container.querySelector('#scans-link')) {
+    container.innerHTML = getHeaderTemplate();
+    container.dataset.rendered = 'true';
+  }
+
   container.removeAttribute('aria-busy');
 
-  /* Referencias DOM */
   const menuToggle = document.getElementById('menu-toggle');
   const navigationContent = document.getElementById('navigation-content');
   const menuBackdrop = container.querySelector('[data-menu-backdrop]');
@@ -99,7 +332,7 @@ export function renderSiteHeader(container) {
   const notificationsClearAll = document.getElementById('notifications-clear-all');
   const bellWrapper = container.querySelector('.header-bell-wrapper');
 
-  // Referencias a los marcos del anillo (avatar frames)
+  // marcos avatar
   const profileAvatarFrame = document.getElementById('profile-avatar-frame');
   const profileCardAvatarFrame = document.getElementById('profile-card-avatar-frame');
 
@@ -113,7 +346,7 @@ export function renderSiteHeader(container) {
     throw new Error('Header: estructura del DOM incompleta.');
   }
 
-  /* Estado */
+  // estado
   let menuOpenScrollY = 0;
   let searchDebounceTimer = null;
   let searchController = null;
@@ -125,14 +358,14 @@ export function renderSiteHeader(container) {
   const profileController = new AbortController();
 
   const ICONS = {
-    menu: '/assets/icons/svg/menu.svg',
-    close: '/assets/icons/svg/x.svg',
-    notification: '/assets/icons/svg/bell.svg',
-    system: '/assets/icons/svg/info.svg',
-    success: '/assets/icons/svg/check.svg',
+    menu: '/assets/icons/svg/navigation/menu.svg',
+    close: '/assets/icons/svg/actions/x.svg',
+    notification: '/assets/icons/svg/user/bell.svg',
+    system: '/assets/icons/svg/content/info.svg',
+    success: '/assets/icons/svg/actions/check.svg',
   };
 
-  /* MENÚ MÓVIL */
+  // menÃº mÃ³vil
   function isMenuOpen() {
     return navigationContent.classList.contains('header-content-open');
   }
@@ -142,7 +375,7 @@ export function renderSiteHeader(container) {
     navigationContent.classList.add('header-content-open');
     menuBackdrop.classList.add('header-menu-backdrop-visible');
     menuToggle.setAttribute('aria-expanded', 'true');
-    menuToggle.setAttribute('aria-label', 'Cerrar menú');
+    menuToggle.setAttribute('aria-label', 'Cerrar menÃº');
     const img = menuToggle.querySelector('img');
     if (img) img.src = ICONS.close;
     document.body.classList.add('menu-open');
@@ -153,7 +386,7 @@ export function renderSiteHeader(container) {
     navigationContent.classList.remove('header-content-open');
     menuBackdrop.classList.remove('header-menu-backdrop-visible');
     menuToggle.setAttribute('aria-expanded', 'false');
-    menuToggle.setAttribute('aria-label', 'Abrir menú');
+    menuToggle.setAttribute('aria-label', 'Abrir menÃº');
     const img = menuToggle.querySelector('img');
     if (img) img.src = ICONS.menu;
     document.body.classList.remove('menu-open');
@@ -164,7 +397,7 @@ export function renderSiteHeader(container) {
     isMenuOpen() ? closeMenu() : openMenu();
   }
 
-  /* BUSCADOR */
+  // buscador
   function isSearchOpen() {
     return searchPanel.classList.contains('header-search-panel-open');
   }
@@ -175,7 +408,7 @@ export function renderSiteHeader(container) {
     searchToggle.setAttribute('aria-expanded', 'true');
     searchToggle.setAttribute('aria-label', 'Cerrar buscador');
     searchClear.hidden = !searchInput.value;
-    // Esperamos al frame para que la animación no corte el focus
+    // foco buscador
     requestAnimationFrame(() => searchInput.focus());
     if (searchInput.value.trim()) queueSuggestions();
   }
@@ -217,7 +450,7 @@ export function renderSiteHeader(container) {
     const query = searchInput.value.trim();
     const targetUrl = buildSearchUrl(query);
 
-    // Si ya estamos en catalogo.html, actualizamos sin recarga y disparamos popstate instantáneo
+    // actualizar url catalogo
     if (window.location.pathname.endsWith('/catalogo.html') || window.location.pathname.endsWith('/catalogo')) {
       window.history.pushState({}, '', `${targetUrl.pathname}${targetUrl.search}`);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -256,32 +489,23 @@ export function renderSiteHeader(container) {
     showSuggestions();
   }
 
-  function getWorkUrl(work) {
-    if (work.slug) return `/pages/obra.html?slug=${encodeURIComponent(work.slug)}`;
-    return buildSearchUrl(work.title || '').href;
-  }
-
-  function getUserUrl(user) {
-    return `/pages/usuario.html?id=${encodeURIComponent(user.username || user.user_code)}`;
-  }
-
-  function createSuggestion(item, index, isUser = false) {
+  function createSuggestion(item, index) {
     const link = document.createElement('a');
     link.className = 'header-search-suggestion';
-    link.href = isUser ? getUserUrl(item) : getWorkUrl(item);
+    link.href = item.url;
     link.id = `search-suggestion-${index}`;
     link.setAttribute('role', 'option');
     link.setAttribute('aria-selected', 'false');
 
-    if (isUser && !item.avatar_url) {
+    if (item.type === 'user' && !item.image_url) {
       const initial = document.createElement('span');
       initial.className = 'header-search-suggestion-initials';
-      initial.textContent = (item.username || 'U').substring(0, 2).toUpperCase();
+      initial.textContent = (item.title || 'U').substring(0, 2).toUpperCase();
       link.append(initial);
     } else {
       const cover = document.createElement('img');
-      cover.className = isUser ? 'header-search-suggestion-avatar' : 'header-search-suggestion-cover';
-      cover.src = safeUrl(isUser ? item.avatar_url : item.cover_url, IMG_FALLBACK);
+      cover.className = item.type === 'user' ? 'header-search-suggestion-avatar' : 'header-search-suggestion-cover';
+      cover.src = safeUrl(item.image_url, IMG_FALLBACK);
       cover.alt = '';
       cover.loading = 'lazy';
       link.append(cover);
@@ -291,23 +515,33 @@ export function renderSiteHeader(container) {
     copy.className = 'header-search-suggestion-copy';
     const title = document.createElement('span');
     title.className = 'header-search-suggestion-title';
-    title.textContent = isUser ? (item.username || 'Usuario') : (item.title || 'Obra sin título');
+    title.textContent = item.title;
     copy.append(title);
 
-    const details = isUser
-      ? [(item.user_code ? `ID: ${item.user_code}` : null)]
-      : [item.alternative_title, item.author];
-
-    const filteredDetails = details.filter((value, idx, values) => value && values.indexOf(value) === idx).slice(0, 2);
-    if (filteredDetails.length) {
+    if (item.subtitle) {
       const subtitle = document.createElement('span');
       subtitle.className = 'header-search-suggestion-meta';
-      subtitle.textContent = filteredDetails.join(' · ');
+      subtitle.textContent = item.subtitle;
       copy.append(subtitle);
     }
 
     link.append(copy);
     return link;
+  }
+
+  // esqueletos de sugerencias (.header-search-suggestion)
+  function showSuggestionSkeletons(isUser = false) {
+    const thumbClass = isUser ? 'header-search-suggestion-avatar' : 'header-search-suggestion-cover';
+    const row = `
+      <div class="header-search-suggestion is-skeleton" aria-hidden="true">
+        <span class="${thumbClass} yz-skeleton"></span>
+        <span class="header-search-suggestion-copy">
+          <span class="header-search-suggestion-title"><span class="is-loading is-loading--block is-loading--w80"></span></span>
+          <span class="header-search-suggestion-meta"><span class="is-loading is-loading--md"></span></span>
+        </span>
+      </div>`;
+    searchSuggestions.innerHTML = row.repeat(4);
+    showSuggestions();
   }
 
   function queueSuggestions() {
@@ -319,54 +553,37 @@ export function renderSiteHeader(container) {
       hideSuggestions();
       return;
     }
-    if (query.length < 2) {
-      setSuggestionStatus('Escribe un carácter más para buscar.');
-      return;
-    }
-
-    const isUserSearch = query.startsWith('@');
-    const actualQuery = isUserSearch ? query.substring(1).trim() : query;
-    if (isUserSearch && actualQuery.length < 1) {
-      setSuggestionStatus('Escribe el nombre del usuario después de @.');
+    if (query.length < 2 && !query.startsWith('@')) {
+      setSuggestionStatus('Escribe un carÃ¡cter mÃ¡s para buscar.');
       return;
     }
 
     const requestId = ++searchRequestId;
-    setSuggestionStatus(isUserSearch ? 'Buscando usuarios…' : 'Buscando en todo el catálogo…');
+    showSuggestionSkeletons(query.startsWith('@'));
     searchDebounceTimer = window.setTimeout(async () => {
       const controller = new AbortController();
       searchController = controller;
 
-      const endpoint = isUserSearch
-        ? `/users/search?q=${encodeURIComponent(actualQuery)}`
-        : `/works/?q=${encodeURIComponent(actualQuery)}&per_page=7`;
-
       try {
-        const result = await apiRequest(endpoint, {
+        const items = await apiRequest(`/works/search/suggest?q=${encodeURIComponent(query)}&limit=7`, {
           signal: controller.signal,
         });
         if (requestId !== searchRequestId || query !== searchInput.value.trim()) return;
 
-        const items = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
-        if (!items.length) {
-          setSuggestionStatus(isUserSearch ? 'No se encontraron usuarios.' : 'No encontramos obras con esa búsqueda.');
+        if (!Array.isArray(items) || !items.length) {
+          setSuggestionStatus(query.startsWith('@') ? 'No se encontraron usuarios.' : 'No encontramos resultados con esa bÃºsqueda.');
           return;
         }
 
-        const options = items.map((item, index) => createSuggestion(item, index, isUserSearch));
+        const options = items.map((item, index) => createSuggestion(item, index));
 
-        let footer = null;
-        if (!isUserSearch) {
-          footer = document.createElement('a');
+        if (!query.startsWith('@')) {
+          const footer = document.createElement('a');
           footer.className = 'header-search-all';
-          footer.href = buildSearchUrl(actualQuery).href;
-          const total = Number(result.pagination?.items?.total ?? items.length);
-          footer.textContent = `Ver ${total} ${total === 1 ? 'obra' : 'obras'}`;
+          footer.href = buildSearchUrl(query).href;
+          footer.textContent = `Ver todas las obras para "${query}"`;
           footer.setAttribute('role', 'option');
           footer.setAttribute('aria-selected', 'false');
-        }
-
-        if (footer) {
           searchSuggestions.replaceChildren(...options, footer);
         } else {
           searchSuggestions.replaceChildren(...options);
@@ -374,7 +591,6 @@ export function renderSiteHeader(container) {
         showSuggestions();
       } catch (error) {
         if (error.name === 'AbortError' || requestId !== searchRequestId) return;
-        console.error('[search] No se pudieron cargar las sugerencias:', error);
         setSuggestionStatus('No se pudo conectar con el buscador.', true);
       }
     }, 220);
@@ -390,7 +606,10 @@ export function renderSiteHeader(container) {
     const isOpen = !profileMenu.hidden;
     profileMenu.hidden = isOpen;
     profileToggle.setAttribute('aria-expanded', String(!isOpen));
-    if (!isOpen) closeNotificationsMenu();
+    if (!isOpen) {
+      closeNotificationsMenu();
+      closeStatsDropdown();
+    }
   }
 
   function updateIdentDisplay() {
@@ -421,7 +640,7 @@ export function renderSiteHeader(container) {
     updateIdentDisplay();
   }
 
-  /* NOTIFICACIONES */
+  // notificaciones
   let currentUnreadCount = 0;
 
   function updateBellBadge(count) {
@@ -439,47 +658,19 @@ export function renderSiteHeader(container) {
     }
   }
 
-  function getNotificationIconHtml(type) {
-    const normType = (type || 'system').toLowerCase();
-    if (normType === 'chapter' || normType === 'manga' || normType === 'obra') {
-      return `
-        <div class="header-notification-icon type-chapter" aria-hidden="true">
-          <img src="/assets/icons/svg/book.svg" width="16" height="16" alt="">
-        </div>
-      `;
-    }
-    if (normType === 'reward') {
-      return `
-        <div class="header-notification-icon type-reward" aria-hidden="true">
-          <img src="/assets/icons/svg/award.svg" width="16" height="16" alt="">
-        </div>
-      `;
-    }
-    if (normType === 'level') {
-      return `
-        <div class="header-notification-icon type-level" aria-hidden="true">
-          <img src="/assets/icons/svg/star.svg" width="16" height="16" alt="">
-        </div>
-      `;
-    }
-    if (normType === 'streak') {
-      return `
-        <div class="header-notification-icon type-streak" aria-hidden="true">
-          <img src="/assets/icons/svg/fire.svg" width="16" height="16" alt="">
-        </div>
-      `;
-    }
-    if (normType === 'comment' || normType === 'reply' || normType === 'chat' || normType.includes('chat_') || normType.includes('mention')) {
-      return `
-        <div class="header-notification-icon type-comment" aria-hidden="true">
-          <img src="/assets/icons/svg/comment.svg" width="16" height="16" alt="">
-        </div>
-      `;
-    }
-    // Default system / announcement
+  function getNotificationIconHtml(iconType = 'system') {
+    const icons = {
+      chapter: '/assets/icons/svg/content/book.svg',
+      reward: '/assets/icons/svg/gamification/award.svg',
+      level: '/assets/icons/svg/gamification/star.svg',
+      streak: '/assets/icons/svg/gamification/fire.svg',
+      comment: '/assets/icons/svg/content/comment.svg',
+      system: '/assets/icons/svg/content/info.svg',
+    };
+    const src = icons[iconType] || icons.system;
     return `
-      <div class="header-notification-icon type-system" aria-hidden="true">
-        <img src="/assets/icons/svg/info.svg" width="16" height="16" alt="">
+      <div class="header-notification-icon type-${escapeHTML(iconType)}" aria-hidden="true">
+        <img src="${src}" width="16" height="16" alt="">
       </div>
     `;
   }
@@ -488,9 +679,9 @@ export function renderSiteHeader(container) {
     return `
       <div class="header-notifications-empty">
         <div class="header-notifications-empty-icon" aria-hidden="true">
-          <img src="/assets/icons/svg/bell.svg" width="22" height="22" alt="">
+          <img src="/assets/icons/svg/user/bell.svg" width="22" height="22" alt="">
         </div>
-        <p class="header-notifications-empty-title">¡Estás al día!</p>
+        <p class="header-notifications-empty-title">Â¡EstÃ¡s al dÃ­a!</p>
         <p class="header-notifications-empty-desc">No tienes notificaciones pendientes.</p>
       </div>
     `;
@@ -512,7 +703,6 @@ export function renderSiteHeader(container) {
       if (notificationsReadAll) notificationsReadAll.hidden = items.length === 0;
       if (notificationsClearAll) notificationsClearAll.hidden = items.length === 0;
 
-      // Si es actualización en segundo plano y el menú está cerrado, no redibujar el DOM
       if (silent && notificationsMenu.hidden) {
         return;
       }
@@ -524,27 +714,10 @@ export function renderSiteHeader(container) {
 
       notificationsList.innerHTML = '';
       items.forEach(item => {
-        let payload = item.payload;
-        if (typeof payload === 'string') {
-          try {
-            payload = JSON.parse(payload);
-          } catch {
-            payload = { title: payload };
-          }
-        }
-        payload = payload || {};
-
-        const title = payload.title || payload.message || payload.text || 'Notificación';
-        const desc = payload.body || payload.description || (payload.title && payload.message && payload.title !== payload.message ? payload.message : '');
-        const timeAgo = formatTimeAgo(item.created_at);
-
-        // Resolver posible URL destino para mejorar el flujo de navegación
-        let targetUrl = payload.url || payload.link || null;
-        if (!targetUrl && payload.work_slug) {
-          targetUrl = `/pages/obra.html?slug=${encodeURIComponent(payload.work_slug)}`;
-        } else if (!targetUrl && payload.chapter_id) {
-          targetUrl = `/pages/leer.html?capitulo=${encodeURIComponent(payload.chapter_id)}`;
-        }
+        const title = item.title || 'NotificaciÃ³n';
+        const desc = item.description || '';
+        const timeAgo = item.time_ago || formatTimeAgo(item.created_at);
+        const targetUrl = item.target_url || null;
 
         const itemEl = document.createElement('div');
         itemEl.className = `header-notification-item unread${targetUrl ? ' has-link' : ''}`;
@@ -553,7 +726,7 @@ export function renderSiteHeader(container) {
           itemEl.setAttribute('title', 'Clic para ver el contenido');
         }
 
-        const iconHtml = getNotificationIconHtml(item.type);
+        const iconHtml = getNotificationIconHtml(item.icon_type);
 
         itemEl.innerHTML = `
           ${iconHtml}
@@ -562,11 +735,11 @@ export function renderSiteHeader(container) {
             ${desc ? `<span class="header-notification-desc">${escapeHTML(desc)}</span>` : ''}
             <span class="header-notification-time">
               <span>${escapeHTML(timeAgo)}</span>
-              ${targetUrl ? `<span class="header-notification-link-tag">· Ver →</span>` : ''}
+              ${targetUrl ? `<span class="header-notification-link-tag">Â· Ver â†’</span>` : ''}
             </span>
           </div>
-          <button type="button" class="header-notification-dismiss" title="Descartar notificación" aria-label="Descartar notificación">
-            <img src="/assets/icons/svg/x.svg" width="14" height="14" alt="" aria-hidden="true">
+          <button type="button" class="header-notification-dismiss" title="Descartar notificaciÃ³n" aria-label="Descartar notificaciÃ³n">
+            <img src="/assets/icons/svg/actions/x.svg" width="14" height="14" alt="" aria-hidden="true">
           </button>
         `;
 
@@ -593,13 +766,13 @@ export function renderSiteHeader(container) {
           }, 180);
         };
 
-        // Al hacer clic en la X de descartar: se elimina directamente
+        // descartar notificacion
         dismissBtn?.addEventListener('click', (e) => {
           e.stopPropagation();
           removeWithAnimation();
         });
 
-        // Al hacer clic en el cuerpo de la notificación: se elimina y navega al contenido
+        // abrir notificacion
         itemEl.addEventListener('click', (e) => {
           if (e.target.closest('.header-notification-dismiss')) return;
 
@@ -648,7 +821,7 @@ export function renderSiteHeader(container) {
     try {
       await apiRequest('/notifications/read-all', { method: 'PATCH' });
     } catch (error) {
-      console.warn('Error al marcar todas las notificaciones como leídas:', error);
+      console.warn('Error al marcar todas las notificaciones como leÃ­das:', error);
     }
   }
 
@@ -679,13 +852,13 @@ export function renderSiteHeader(container) {
     userActions.dataset.authState = 'guest';
     userActions.hidden = true;
 
-    // Ocultar marcos de avatar
+    // ocultar marcos de avatar
     if (profileAvatarFrame) profileAvatarFrame.hidden = true;
     if (profileCardAvatarFrame) profileCardAvatarFrame.hidden = true;
 
     closeProfileMenu();
     try { localStorage.removeItem('user'); } catch { }
-    /* Actualizar bottom nav */
+    // actualizar bottom nav
     window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { user: null } }));
   }
 
@@ -704,7 +877,7 @@ export function renderSiteHeader(container) {
     }
     profileEmail.textContent = user.email || '';
     profileRole.textContent = user.platform_role || 'USER';
-    profileToggle.setAttribute('aria-label', `Perfil de ${name}. Abrir menú`);
+    profileToggle.setAttribute('aria-label', `Perfil de ${name}. Abrir menÃº`);
     profileInitials.textContent = Array.from(name.trim())[0]?.toLocaleUpperCase() || 'Y';
     if (profileCardInitials) {
       profileCardInitials.textContent = Array.from(name.trim())[0]?.toLocaleUpperCase() || 'Y';
@@ -717,49 +890,42 @@ export function renderSiteHeader(container) {
       publicProfileLink.href = publicId ? `/pages/usuario.html?id=${encodeURIComponent(publicId)}` : '/pages/usuario.html';
     }
 
-    // Stats principales
-    const xp = user.xp || 0;
-    const coins = user.coins || 0;
+    // calcular nivel y xp
+    const lvl = user.level_info || {
+      level: user.level || Math.floor((user.xp || 0) / 1000) + 1,
+      current_level_xp: (user.xp || 0) % 1000,
+      percentage: Math.floor((((user.xp || 0) % 1000) / 1000) * 100),
+      remaining_xp: 1000 - ((user.xp || 0) % 1000),
+      current_title: user.level_title || 'Iniciado del Cultivo'
+    };
     const streak = user.streak_days || 0;
-    const currentLevel = Math.floor(xp / 1000) + 1;
-    const levelXp = xp % 1000;
-    const pct = Math.floor((levelXp / 1000) * 100);
+    const coins = user.coins || 0;
 
     if (headerStreak) headerStreak.textContent = `${streak}d`;
-    if (headerLevel) headerLevel.textContent = `Nv. ${currentLevel}`;
+    if (headerLevel) headerLevel.textContent = `Nv. ${lvl.level}`;
     if (headerStatPill) {
-      headerStatPill.title = `Nivel ${currentLevel} · Racha: ${streak}d · Clic para ver estadísticas`;
+      headerStatPill.title = `Nivel ${lvl.level} Â· Racha: ${streak}d Â· Clic para ver estadÃ­sticas`;
     }
 
-    // Anillo de progreso del avatar en el header (conic-gradient fluido)
+    // anillo xp
     if (avatarRing) {
-      avatarRing.style.setProperty('--avatar-xp-pct', `${pct}%`);
-      avatarRing.title = `Nivel ${currentLevel} (${pct}% XP) · ${levelXp}/1000 XP`;
+      avatarRing.style.setProperty('--avatar-xp-pct', `${lvl.percentage}%`);
+      avatarRing.title = `Nivel ${lvl.level} (${lvl.percentage}% XP) Â· ${lvl.current_level_xp}/1000 XP`;
     }
 
-    // Desplegable de progreso del Header
-    if (statsDdLevelBadge) statsDdLevelBadge.textContent = `Nv. ${currentLevel}`;
-    if (statsDdLevelTitle) {
-      const titles = [
-        [5, 'Lector Principiante'],
-        [15, 'Lector Frecuente'],
-        [30, 'Lector Avanzado'],
-        [50, 'Maestro Lector'],
-        [100, 'Lector Legendario'],
-      ];
-      const found = titles.find(([maxLvl]) => currentLevel < maxLvl);
-      statsDdLevelTitle.textContent = found ? found[1] : 'Soberano de las Historias';
-    }
-    if (statsDdXpLabel) statsDdXpLabel.textContent = `${levelXp} / 1000 XP`;
-    if (statsDdBarFill) statsDdBarFill.style.width = `${pct}%`;
+    // dropdown progreso
+    if (statsDdLevelBadge) statsDdLevelBadge.textContent = `Nv. ${lvl.level}`;
+    if (statsDdLevelTitle) statsDdLevelTitle.textContent = lvl.current_title;
+    if (statsDdXpLabel) statsDdXpLabel.textContent = `${lvl.current_level_xp} / 1000 XP`;
+    if (statsDdBarFill) statsDdBarFill.style.width = `${lvl.percentage}%`;
     if (statsDdXpRemaining) {
-      statsDdXpRemaining.textContent = `Faltan ${1000 - levelXp} XP para Nivel ${currentLevel + 1}`;
+      statsDdXpRemaining.textContent = `Faltan ${lvl.remaining_xp} XP para Nivel ${lvl.level + 1}`;
     }
     if (statsDdStreakVal) {
-      statsDdStreakVal.textContent = `${streak} ${streak === 1 ? 'día' : 'días'}`;
+      statsDdStreakVal.textContent = `${streak} ${streak === 1 ? 'dÃ­a' : 'dÃ­as'}`;
     }
     if (statsDdCoinsVal) {
-      statsDdCoinsVal.textContent = `${coins.toLocaleString()} G`;
+      statsDdCoinsVal.textContent = `${coins.toLocaleString()} YC`;
     }
 
     const avatarUrl = safeUrl(user.avatar_url, '');
@@ -791,7 +957,7 @@ export function renderSiteHeader(container) {
       }
     }
 
-    // Marco del anillo del avatar (avatar frame)
+    // marco cosmetico
     const frameUrl = safeUrl(user.anillo_url || user.avatar_frame_url, '');
     if (frameUrl) {
       if (profileAvatarFrame) {
@@ -815,11 +981,11 @@ export function renderSiteHeader(container) {
       }
     }
 
-    /* Actualizar bottom nav con datos del usuario */
+    // sincronizar usuario
     window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { user } }));
   }
 
-  /* STATS DROPDOWN */
+  // stats dropdown
   function isStatsDropdownOpen() {
     return statsDropdownMenu && !statsDropdownMenu.hidden;
   }
@@ -845,42 +1011,13 @@ export function renderSiteHeader(container) {
     isStatsDropdownOpen() ? closeStatsDropdown() : openStatsDropdown();
   }
 
-  function checkStreakNotification(user) {
-    if (!user) return;
-    const todayKey = new Date().toISOString().slice(0, 10);
-    const storageKey = `yume_streak_notified_${user.id || 'me'}_${todayKey}`;
-
-    if (sessionStorage.getItem(storageKey)) return;
-
-    const event = user.streak_event;
-    if (!event) return;
-
-    if (event === 'increased') {
-      const days = user.streak_days || 1;
-      const msg = user.streak_message || `¡Racha aumentada! Llevas ${days} días consecutivos leyendo 🔥`;
-      showToast(msg, 'success', 5000);
-      sessionStorage.setItem(storageKey, '1');
-    } else if (event === 'lost') {
-      const prev = user.previous_streak || 0;
-      const msg = user.streak_message || (prev > 1
-        ? `¡Has perdido tu racha de ${prev} días! Tu racha se ha reiniciado a 1 día 💔`
-        : '¡Tu racha se ha reiniciado a 1 día! 💔');
-      showToast(msg, 'warning', 6500);
-      sessionStorage.setItem(storageKey, '1');
-    } else if (event === 'started') {
-      const msg = user.streak_message || '¡Comenzaste tu racha diaria! Día 1 completado 🔥';
-      showToast(msg, 'success', 4500);
-      sessionStorage.setItem(storageKey, '1');
-    }
-  }
-
   async function loadProfile() {
     if (!getAccessToken()) {
       showGuestActions();
       return;
     }
 
-    // Renderizado inmediato optimista si ya existe sesión en caché local
+    // cache usuario
     try {
       const cached = JSON.parse(localStorage.getItem('user') || 'null');
       if (cached && (cached.id || cached.username)) {
@@ -896,8 +1033,7 @@ export function renderSiteHeader(container) {
         } catch { }
         showProfile(user);
         window.dispatchEvent(new CustomEvent('auth:user-synced', { detail: { user } }));
-        checkStreakNotification(user);
-        // Cargar conteo rápido inicial al autenticar
+        // conteo notificaciones
         apiRequest('/notifications/?unread_only=true').then(res => {
           const count = res?.unread_count ?? (res?.data ? res.data.length : 0);
           updateBellBadge(count);
@@ -913,7 +1049,7 @@ export function renderSiteHeader(container) {
     }
   }
 
-  /* HANDLERS */
+  // handlers
   function onMenuToggleClick() {
     if (!isMenuOpen()) {
       closeSearch();
@@ -962,9 +1098,8 @@ export function renderSiteHeader(container) {
     }
   }
 
-
   function onLinkClick() {
-    // Al navegar, cerramos todo por limpieza visual
+
     closeMenu();
     closeSearch();
   }
@@ -1036,7 +1171,7 @@ export function renderSiteHeader(container) {
     copyToClipboard(textToCopy).then(() => {
       copyProfileId.setAttribute('aria-label', `${isUserMode ? 'Usuario' : 'ID'} copiado`);
       copyProfileId.classList.add('copied');
-      if (copyBtnText) copyBtnText.textContent = '¡Copiado!';
+      if (copyBtnText) copyBtnText.textContent = 'Â¡Copiado!';
       window.setTimeout(() => {
         copyProfileId.setAttribute('aria-label', 'Copiar al portapapeles');
         copyProfileId.classList.remove('copied');
@@ -1056,11 +1191,12 @@ export function renderSiteHeader(container) {
     clearAccessToken();
     profileUser = null;
     showGuestActions();
+    flashToast('SesiÃ³n cerrada', 'info');
     window.location.assign('/index.html');
   }
 
   function onOutsideClick(e) {
-    // Cerrar menú si el click fue fuera
+    // cerrar menu externo
     if (
       isMenuOpen() &&
       !navigationContent.contains(e.target) &&
@@ -1068,7 +1204,7 @@ export function renderSiteHeader(container) {
     ) {
       closeMenu();
     }
-    // Cerrar buscador si el click fue fuera
+    // cerrar buscador externo
     if (
       isSearchOpen() &&
       !searchPanel.contains(e.target) &&
@@ -1082,14 +1218,29 @@ export function renderSiteHeader(container) {
     if (!notificationsMenu.hidden && !bellWrapper.contains(e.target)) {
       closeNotificationsMenu();
     }
-    if (statsDropdownMenu && !statsDropdownMenu.hidden && !headerStatWrapper.contains(e.target)) {
+    if (statsDropdownMenu && !statsDropdownMenu.hidden && (!headerStatWrapper || !headerStatWrapper.contains(e.target))) {
       closeStatsDropdown();
     }
   }
 
-  function onEscape(e) {
+  function onGlobalKeyDown(e) {
+    const tag = e.target?.tagName?.toLowerCase() || '';
+    const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
+    if (!isTyping && ((e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'))) {
+      e.preventDefault();
+      if (!isSearchOpen()) {
+        closeStatsDropdown();
+        closeProfileMenu();
+        closeNotificationsMenu();
+        openSearch();
+      } else {
+        searchInput.focus();
+      }
+      return;
+    }
+
     if (e.key !== 'Escape') return;
-    // Prioridad: buscador → menú
+    // cerrar con escape
     if (isSearchOpen()) {
       closeSearch({ returnFocus: true });
       return;
@@ -1113,13 +1264,13 @@ export function renderSiteHeader(container) {
 
   function onScroll() {
     if (!isMenuOpen()) return;
-    // Solo cerramos si el usuario hizo un scroll significativo (>20px)
+    // cerrar al hacer scroll
     if (Math.abs(window.scrollY - menuOpenScrollY) > 20) {
       closeMenu();
     }
   }
 
-  /* BIND */
+  // bind
   menuToggle.addEventListener('click', onMenuToggleClick);
   navigationLinks.forEach((link) => link.addEventListener('click', onLinkClick));
   menuBackdrop.addEventListener('click', onBackdropClick);
@@ -1131,7 +1282,8 @@ export function renderSiteHeader(container) {
   searchInput.addEventListener('input', onSearchInput);
   searchInput.addEventListener('keydown', onSearchKeydown);
   searchClear.addEventListener('click', onSearchClearClick);
-  profileToggle.addEventListener('click', () => {
+  profileToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
     closeStatsDropdown();
     onProfileToggleClick();
   });
@@ -1141,7 +1293,8 @@ export function renderSiteHeader(container) {
   copyProfileId.addEventListener('click', onCopyProfileId);
   logoutButton.addEventListener('click', onLogoutClick);
   if (bellToggle) {
-    bellToggle.addEventListener('click', () => {
+    bellToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       closeStatsDropdown();
       toggleNotificationsMenu();
     });
@@ -1178,30 +1331,11 @@ export function renderSiteHeader(container) {
   document.addEventListener('click', handleGlobalDrawerClick);
   window.addEventListener('yume:drawer', onGlobalDrawerEvent);
   document.addEventListener('click', onOutsideClick);
-  document.addEventListener('keydown', onEscape);
+  document.addEventListener('keydown', onGlobalKeyDown);
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  function highlightActiveRoute() {
-    const currentPath = window.location.pathname.toLowerCase();
-    navigationLinks.forEach((link) => {
-      const href = link.getAttribute('href')?.toLowerCase() || '';
-      const cleanHref = href.split('?')[0];
-      const isHome = (cleanHref === '/index.html' || cleanHref === '/' || cleanHref === '') && (currentPath === '/' || currentPath === '/index.html' || currentPath === '');
-      const isCurrent = isHome || (cleanHref !== '/index.html' && cleanHref !== '/' && cleanHref !== '' && currentPath.endsWith(cleanHref));
+  // eventos notificaciones
 
-      if (isCurrent) {
-        link.classList.add('header-link-active');
-        link.setAttribute('aria-current', 'page');
-      } else {
-        link.classList.remove('header-link-active');
-        link.removeAttribute('aria-current');
-      }
-    });
-  }
-
-  // Sistema de Notificaciones Reactivo por Disparador (Event-Driven)
-  // Se actualiza en vivo al realizar acciones, al abrir el menú o volver a la pestaña,
-  // eliminando consultas continuas por segundos.
   function onNotificationTrigger() {
     if (!getAccessToken() || destroyed) return;
     loadNotifications(true);
@@ -1239,7 +1373,6 @@ export function renderSiteHeader(container) {
     }
   });
 
-  highlightActiveRoute();
   loadProfile();
   initPresence();
 
@@ -1269,7 +1402,7 @@ export function renderSiteHeader(container) {
     document.removeEventListener('click', handleGlobalDrawerClick);
     window.removeEventListener('yume:drawer', onGlobalDrawerEvent);
     document.removeEventListener('click', onOutsideClick);
-    document.removeEventListener('keydown', onEscape);
+    document.removeEventListener('keydown', onGlobalKeyDown);
     window.removeEventListener('scroll', onScroll);
 
     clearSearchRequest();
@@ -1278,3 +1411,4 @@ export function renderSiteHeader(container) {
     document.body.classList.remove('menu-open');
   };
 }
+

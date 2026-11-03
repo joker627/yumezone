@@ -4,6 +4,7 @@ from typing import Optional
 
 # imports external
 from datetime import datetime, date
+from app.modules.users.schemas import LevelInfo
 
 
 # validate data user for response
@@ -31,6 +32,11 @@ class UserBase(BaseModel):
     previous_streak: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    level: int = 1
+    level_title: str = "Iniciado del Cultivo"
+    level_progress_pct: int = 0
+    remaining_xp: int = 1000
+    level_info: Optional[LevelInfo] = None
 
 
 # validate user login

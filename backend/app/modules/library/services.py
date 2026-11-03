@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from fastapi import HTTPException
 
 from app.modules.library.repository import LibraryRepository
@@ -54,7 +54,7 @@ class LibraryService:
         )
         if not updated:
             if notify_new_chapters:
-                await self.repository.add_work(user_id, work_id, "FOLLOWING")
+                await self.repository.add_work(user_id, work_id, "READING")
                 await self.repository.update_notification_preference(user_id, work_id, True)
                 return True
             raise HTTPException(
@@ -64,14 +64,11 @@ class LibraryService:
         return notify_new_chapters
 
     async def save_reading_history(
-        self, user_id: int, work_id: int, chapter_id: int, page: int
+        self, user_id: int, work_id: int, chapter_id: int, page: int = 1, completed: bool = False
     ) -> None:
-        total_pages = await self.repository.get_chapter_page_count(work_id, chapter_id)
-        if total_pages is None:
-            raise HTTPException(status_code=404, detail="El capítulo no pertenece a la obra indicada")
-        if total_pages and page > total_pages:
-            raise HTTPException(status_code=422, detail="La página indicada no existe en el capítulo")
-        await self.repository.save_reading_history(user_id, work_id, chapter_id, page)
+        await self.repository.save_reading_history(
+            user_id, work_id, chapter_id, page, completed=completed
+        )
 
     async def set_work_rating(self, user_id: int, work_id: int, rating: float):
         if rating < 0.5 or rating > 10.0:

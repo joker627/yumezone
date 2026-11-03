@@ -12,7 +12,7 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Catálogo General -->
+  <!-- CatÃ¡logo General -->
   <url>
     <loc>https://yumezone.page/pages/catalogo.html</loc>
     <lastmod>2026-10-21</lastmod>
@@ -20,7 +20,7 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Novedades y Últimos Capítulos -->
+  <!-- Novedades y Ãšltimos CapÃ­tulos -->
   <url>
     <loc>https://yumezone.page/pages/novedades.html</loc>
     <lastmod>2026-10-21</lastmod>
@@ -28,13 +28,22 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Ranking y Obras Más Populares -->
+  <!-- Ranking y Obras MÃ¡s Populares -->
   <url>
     <loc>https://yumezone.page/pages/ranking.html</loc>
     <lastmod>2026-10-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Clanes & Scans de TraducciÃ³n -->
+  <url>
+    <loc>https://yumezone.page/pages/scans.html</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
 
   <!-- Tienda y Billetera de Monedas -->
   <url>
@@ -44,15 +53,7 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- Comunidad -->
-  <url>
-    <loc>https://yumezone.page/pages/comunidad.html</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Obras Reales en el Catálogo de la Base de Datos -->
+  <!-- Obras Reales en el CatÃ¡logo de la Base de Datos -->
   <url>
     <loc>https://yumezone.page/pages/obra.html?slug=solo-leveling</loc>
     <lastmod>2026-10-21</lastmod>
@@ -124,6 +125,13 @@
     <lastmod>2026-10-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <!-- Bitácora / Registro de cambios -->
+  <url>
+    <loc>https://yumezone.page/pages/sistema.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
 
 </urlset>

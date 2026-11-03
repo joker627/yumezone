@@ -1,4 +1,4 @@
-/* Base visual: elimina diferencias innecesarias del navegador y previene overflow horizontal */
+/* base visual */
 *, *::before, *::after {
   box-sizing: border-box;
 }

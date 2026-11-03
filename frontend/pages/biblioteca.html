@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
   <link rel="stylesheet" href="/css/pages/biblioteca.css">
 </head>
 <body>
@@ -24,14 +25,14 @@
           <h1 id="library-title">Mi biblioteca</h1>
           <p id="library-summary" class="library-summary" aria-live="polite"><span class="is-loading is-loading--md"></span></p>
         </div>
-          <a class="library-explore-link" href="/pages/catalogo.html">Explorar Catálogo</a>
+        <a class="library-explore-link" href="/pages/catalogo.html">Explorar Catálogo</a>
       </div>
     </section>
 
     <section id="library-auth-prompt" class="library-message library-auth-prompt" hidden>
       <p class="library-message-eyebrow">Tu lectura te espera</p>
       <h2>Inicia sesión para ver tu biblioteca</h2>
-      <p>Guarda tus obras favoritas, organiza lo que estás leyendo y vuelve a ellas cuando quieras.</p>
+      <p>Guarda tus obras preferidas, organiza lo que estás leyendo y vuelve a ellas cuando quieras.</p>
       <div class="library-message-actions">
         <a class="library-primary-link" href="/pages/login.html?next=%2Fpages%2Fbiblioteca.html">Iniciar sesión</a>
         <a class="library-secondary-link" href="/pages/registro.html?next=%2Fpages%2Fbiblioteca.html">Crear cuenta</a>
@@ -44,86 +45,22 @@
       <button id="library-retry" class="library-secondary-link" type="button">Reintentar</button>
     </section>
 
-    <section id="library-loading" role="status" aria-label="Cargando tu biblioteca">
-      <div class="yz-skeleton-grid yz-skeleton-grid--library">
-        <div class="yz-skeleton-library-card" aria-hidden="true">
-          <div class="yz-skeleton yz-skeleton-cover"></div>
-          <div class="yz-skeleton-info">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-            <div class="yz-skeleton yz-skeleton-progress"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
-          </div>
-        </div>
-        <div class="yz-skeleton-library-card" aria-hidden="true">
-          <div class="yz-skeleton yz-skeleton-cover"></div>
-          <div class="yz-skeleton-info">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-            <div class="yz-skeleton yz-skeleton-progress"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
-          </div>
-        </div>
-        <div class="yz-skeleton-library-card" aria-hidden="true">
-          <div class="yz-skeleton yz-skeleton-cover"></div>
-          <div class="yz-skeleton-info">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-            <div class="yz-skeleton yz-skeleton-progress"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
-          </div>
-        </div>
-        <div class="yz-skeleton-library-card" aria-hidden="true">
-          <div class="yz-skeleton yz-skeleton-cover"></div>
-          <div class="yz-skeleton-info">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-            <div class="yz-skeleton yz-skeleton-progress"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
-          </div>
-        </div>
-        <div class="yz-skeleton-library-card" aria-hidden="true">
-          <div class="yz-skeleton yz-skeleton-cover"></div>
-          <div class="yz-skeleton-info">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-            <div class="yz-skeleton yz-skeleton-progress"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
-          </div>
-        </div>
-        <div class="yz-skeleton-library-card" aria-hidden="true">
-          <div class="yz-skeleton yz-skeleton-cover"></div>
-          <div class="yz-skeleton-info">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-            <div class="yz-skeleton yz-skeleton-progress"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <section id="library-loading" data-skeleton="library" data-skeleton-count="6" role="status" aria-label="Cargando tu biblioteca"></section>
 
     <section id="library-content" class="library-content" hidden>
       <div class="library-toolbar">
         <div id="library-filters" class="library-filters" role="group" aria-label="Filtrar biblioteca">
-          <button class="library-filter is-active" type="button" data-library-filter="ALL" aria-pressed="true">Todas <span data-library-count="ALL">0</span></button>
-          <button class="library-filter" type="button" data-library-filter="READING" aria-pressed="false">Leyendo <span data-library-count="READING">0</span></button>
-          <button class="library-filter" type="button" data-library-filter="FOLLOWING" aria-pressed="false">Siguiendo <span data-library-count="FOLLOWING">0</span></button>
-          <button class="library-filter" type="button" data-library-filter="READ_LATER" aria-pressed="false">Leer después <span data-library-count="READ_LATER">0</span></button>
-          <button class="library-filter" type="button" data-library-filter="FAVORITE" aria-pressed="false">Favoritos <span data-library-count="FAVORITE">0</span></button>
-          <button class="library-filter" type="button" data-library-filter="COMPLETED" aria-pressed="false">Completados <span data-library-count="COMPLETED">0</span></button>
-          <button class="library-filter" type="button" data-library-filter="DROPPED" aria-pressed="false">Pausados <span data-library-count="DROPPED">0</span></button>
+          <button class="library-filter is-active" type="button" data-library-filter="ALL" aria-pressed="true">✨ Todos <span data-library-count="ALL"><span class="is-loading is-loading--xs"></span></span></button>
+          <button class="library-filter" type="button" data-library-filter="READING" aria-pressed="false">📖 Leyendo <span data-library-count="READING"><span class="is-loading is-loading--xs"></span></span></button>
+          <button class="library-filter" type="button" data-library-filter="COMPLETED" aria-pressed="false">✅ Completado <span data-library-count="COMPLETED"><span class="is-loading is-loading--xs"></span></span></button>
+          <button class="library-filter" type="button" data-library-filter="ON_HOLD" aria-pressed="false">⏸ En espera <span data-library-count="ON_HOLD"><span class="is-loading is-loading--xs"></span></span></button>
+          <button class="library-filter" type="button" data-library-filter="PLAN_TO_READ" aria-pressed="false">📅 Planeado <span data-library-count="PLAN_TO_READ"><span class="is-loading is-loading--xs"></span></span></button>
+          <button class="library-filter" type="button" data-library-filter="DROPPED" aria-pressed="false">❌ Abandonado <span data-library-count="DROPPED"><span class="is-loading is-loading--xs"></span></span></button>
         </div>
         <div class="library-tools">
           <label class="library-search" for="library-search-input">
-            <img src="/assets/icons/svg/search.svg" alt="" aria-hidden="true">
-            <input id="library-search-input" type="search" placeholder="Buscar en mi biblioteca" autocomplete="off">
+            <img src="/assets/icons/svg/actions/search.svg" alt="" aria-hidden="true">
+            <input id="library-search-input" type="search" placeholder="Buscar por título o autor..." autocomplete="off">
           </label>
           <label class="library-sort-label" for="library-sort">Ordenar</label>
           <select id="library-sort" class="library-sort">
@@ -143,6 +80,8 @@
       </section>
     </section>
   </main>
+  <footer id="site-footer" class="site-footer"></footer>
+  <script type="module" src="/js/components/components-loader.js"></script>
   <script type="module" src="/js/pages/biblioteca.js"></script>
 </body>
 </html>

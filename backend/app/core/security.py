@@ -6,7 +6,7 @@ import jwt
 from pwdlib import PasswordHash
 
 # imports internal
-from app.core.settings.config import get_settings
+from app.core.config import get_settings
 
 pwd_context = PasswordHash.recommended()
 settings = get_settings()

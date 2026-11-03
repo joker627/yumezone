@@ -26,8 +26,6 @@ class HeroStats(BaseModel):
     rating_average: float
     rating_count: int
     rating_count_formatted: str
-    followers_count: int
-    followers_count_formatted: str
     favorites_count: int
     total_views: int
     trending_score: float
@@ -100,6 +98,7 @@ class HeroItem(BaseModel):
     next_chapter: NextChapter
     actions: HeroActions
     carousel_info: CarouselInfo
+    user_rating: Optional[float] = None
 
 
 class HeroResponse(BaseModel):

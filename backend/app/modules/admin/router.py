@@ -17,7 +17,7 @@ from app.modules.admin.schemas import (
 from app.modules.admin.services import AdminService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter()
+router = APIRouter(prefix="/admin", tags=["Administración"])
 
 
 def get_admin_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> AdminService:

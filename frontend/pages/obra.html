@@ -36,200 +36,293 @@
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/rating-modal.css">
   <link rel="stylesheet" href="/css/pages/obra.css">
 </head>
 <body>
   <header id="header"></header>
   <main id="work-detail" class="work-detail" aria-busy="true">
     <a class="work-detail-back" href="/pages/catalogo.html">Volver al catálogo</a>
+
     <section id="work-error" class="work-detail-message" role="alert" hidden>
       <h1 id="work-error-title">No pudimos cargar la obra</h1>
       <p id="work-error-copy"></p>
       <button id="work-retry" type="button">Reintentar</button>
     </section>
-    <div id="work-skeleton" class="work-skeleton" aria-hidden="true">
-      <section class="work-detail-hero">
-        <div class="work-detail-hero-shade"></div>
-        <div class="work-detail-main">
-          <div class="work-detail-cover-wrap yz-skeleton"></div>
-          <div class="work-detail-copy">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--hero-title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--sub"></div>
-            <div class="work-detail-genres">
-              <div class="yz-skeleton yz-skeleton-pill"></div>
-              <div class="yz-skeleton yz-skeleton-pill"></div>
-              <div class="yz-skeleton yz-skeleton-pill"></div>
-            </div>
-            <div class="work-detail-taxonomy">
-              <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w50"></div>
-            </div>
-            <div class="work-detail-actions">
-              <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--w50"></div>
-              <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--w50"></div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <div class="work-detail-columns">
-        <section class="work-detail-panel">
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-          <div class="work-skeleton-lines">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w80"></div>
-          </div>
-        </section>
-        <section class="work-detail-panel">
-          <div class="work-detail-chapters-heading">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-          </div>
-          <div class="yz-skeleton-rows">
-            <div class="yz-skeleton-chapter">
-              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
-            </div>
-            <div class="yz-skeleton-chapter">
-              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
-            </div>
-            <div class="yz-skeleton-chapter">
-              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
-            </div>
-            <div class="yz-skeleton-chapter">
-              <div class="yz-skeleton yz-skeleton-chapter-title"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-date"></div>
-              <div class="yz-skeleton yz-skeleton-chapter-circle"></div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
+    <div id="work-skeleton" class="work-skeleton" data-skeleton="work-detail" data-skeleton-count="4" aria-hidden="true"></div>
+
     <div id="work-content" class="work-content" hidden>
-      <section class="work-detail-hero" aria-labelledby="work-title">
-        <img id="work-banner" class="work-detail-banner" alt="" hidden>
-        <div class="work-detail-hero-shade" aria-hidden="true"></div>
-        <div class="work-detail-main">
-          <div class="work-detail-cover-wrap">
-            <img id="work-cover" class="work-detail-cover" alt="" hidden>
+      <!-- ===================================================================
+           1. HERO SUPERIOR (PORTADA + TÍTULO + GÉNEROS + SINOPSIS INTEGRADA)
+           =================================================================== -->
+      <section class="work-hero-card" aria-labelledby="work-title">
+        <img id="work-banner" class="work-hero-banner-bg" alt="" hidden>
+        <div class="work-hero-backdrop" aria-hidden="true"></div>
+
+        <div class="work-hero-inner">
+          <!-- Columna Portada -->
+          <div class="work-hero-cover-wrap">
+            <span class="work-hero-format-pill" id="work-cover-format">MANHWA</span>
+            <img id="work-cover" class="work-hero-cover" alt="" hidden>
+            <span class="work-hero-status-pill" id="work-cover-status">EN EMISIÓN</span>
           </div>
-          <div class="work-detail-copy">
-            <p class="work-detail-eyebrow">Detalle de obra</p>
-            <h1 id="work-title"></h1>
-            <p id="work-alternative-title" class="work-detail-alternative" hidden></p>
-            <p id="work-author" class="work-detail-author"></p>
-            <div id="work-genres" class="work-detail-genres" aria-label="Géneros"></div>
-            <div id="work-taxonomy" class="work-detail-taxonomy"></div>
-            <div id="work-stats" class="work-detail-stats"></div>
-            <div class="work-detail-actions">
-              <a id="work-start-reading" class="work-detail-read" href="#chapters" hidden>
-                Ver capítulos
-              </a>
-              <button id="work-add-library" class="work-detail-read work-detail-read--secondary" hidden>
-                Añadir a biblioteca
+
+          <!-- Columna Información Principal -->
+          <div class="work-hero-meta">
+            <h1 id="work-title" class="work-hero-title"></h1>
+
+            <!-- Fila Título Alternativo -->
+            <div class="work-hero-alt-row" id="work-alt-wrap" hidden>
+              <span class="work-alt-tag">TÍTULO ALTERNATIVO</span>
+              <span id="work-alternative-title" class="work-alt-value"></span>
+              <button type="button" class="work-copy-btn" id="work-copy-title-btn" title="Copiar título">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
+            </div>
+
+            <!-- Fila Autor & Scan -->
+            <div class="work-hero-author-row">
+              <span id="work-author" class="work-hero-author"></span>
+              <span class="work-meta-dot" id="work-scan-dot" hidden>·</span>
+              <span id="work-scan-group" class="work-hero-scan" hidden></span>
+            </div>
+
+            <!-- Fila Valoración unificada & Lecturas en el Hero -->
+            <div class="work-hero-stats-row">
+              <button type="button" class="work-hero-rating-pill" id="work-hero-rate-btn" title="Calificar esta obra (1.0 - 10.0)">
+                <span class="work-hero-star-icon">★</span>
+                <strong class="work-hero-rating-val" id="work-hero-rating-avg">0.0</strong>
+                <span class="work-hero-rating-count" id="work-hero-rating-count">(0)</span>
+                <span class="work-hero-rating-sep" aria-hidden="true">·</span>
+                <span class="work-hero-rate-text" id="work-hero-rate-btn-text">Calificar</span>
+              </button>
+              <div class="work-hero-views-wrap" title="Lecturas totales">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span id="work-hero-views-text">0 lecturas</span>
+              </div>
+            </div>
+
+            <!-- Fila Géneros -->
+            <div id="work-genres" class="work-hero-genres" aria-label="Géneros"></div>
+
+            <!-- Sinopsis integrada directamente en el Hero -->
+            <div class="work-hero-synopsis-box">
+              <h3 class="work-hero-synopsis-heading">Sinopsis</h3>
+              <p id="work-synopsis" class="work-hero-synopsis-text"></p>
+            </div>
+
+            <!-- DATOS de la comunidad integrados en el Hero -->
+            <div class="work-hero-community-stats" id="work-community-stats" aria-label="Estadísticas de lectores">
+              <div class="work-community-stats-pills" id="work-community-pills">
+                <div class="work-data-pill work-data-pill--reading" title="Usuarios leyendo actualmente">
+                  <span class="work-data-pill-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg>
+                  </span>
+                  <span class="work-data-pill-count" id="work-stat-reading">0</span>
+                  <span class="work-data-pill-label">LEYENDO</span>
+                </div>
+                <div class="work-data-pill work-data-pill--plan" title="Usuarios con la obra pendiente o planeada">
+                  <span class="work-data-pill-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </span>
+                  <span class="work-data-pill-count" id="work-stat-plan">0</span>
+                  <span class="work-data-pill-label">POR LEER</span>
+                </div>
+                <div class="work-data-pill work-data-pill--completed" title="Usuarios que completaron la lectura">
+                  <span class="work-data-pill-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                  </span>
+                  <span class="work-data-pill-count" id="work-stat-completed">0</span>
+                  <span class="work-data-pill-label">COMPLETADO</span>
+                </div>
+                <div class="work-data-pill work-data-pill--onhold" title="Usuarios con la obra en pausa o espera">
+                  <span class="work-data-pill-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="10" y1="9" x2="10" y2="15"/><line x1="14" y1="9" x2="14" y2="15"/></svg>
+                  </span>
+                  <span class="work-data-pill-count" id="work-stat-onhold">0</span>
+                  <span class="work-data-pill-label">EN ESPERA</span>
+                </div>
+                <div class="work-data-pill work-data-pill--dropped" title="Usuarios que abandonaron la obra">
+                  <span class="work-data-pill-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  </span>
+                  <span class="work-data-pill-count" id="work-stat-dropped">0</span>
+                  <span class="work-data-pill-label">ABANDONADO</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div class="work-detail-columns">
-        <section class="work-detail-panel work-detail-synopsis" aria-labelledby="work-synopsis-title">
-          <p class="work-detail-eyebrow">Sinopsis</p>
-          <h2 id="work-synopsis-title">Sobre esta obra</h2>
-          <p id="work-synopsis"></p>
-        </section>
-        <section id="chapters" class="work-detail-panel work-detail-chapters" aria-labelledby="work-chapters-title">
-          <div class="work-detail-chapters-heading">
-            <div>
-              <p class="work-detail-eyebrow">Lectura</p>
-              <h2 id="work-chapters-title">Capítulos</h2>
-            </div>
-            <div class="work-detail-chapters-meta">
-              <span id="work-read-count" class="work-chapter-read-count">0 leídos</span>
-              <span class="work-chapter-count-dot">·</span>
-              <span id="work-chapter-count" class="work-chapter-count"></span>
-            </div>
-          </div>
+      <!-- ===================================================================
+           2. LAYOUT PARTIDO PRINCIPAL (COLUMNA IZQUIERDA + COLUMNA DERECHA)
+           =================================================================== -->
+      <div class="work-grid-container">
 
-          <!-- Barra de herramientas de capítulos: Búsqueda, rangos y marcar todo -->
-          <div class="work-chapters-toolbar" id="work-chapters-toolbar" hidden>
-            <div class="work-chapters-search-wrap">
-              <img src="/assets/icons/svg/search.svg" alt="" aria-hidden="true">
-              <input type="text" id="work-chapter-search" placeholder="Buscar capítulo (ej. 1, 10, prólogo)..." aria-label="Buscar capítulo">
-              <button type="button" id="work-chapter-search-clear" class="work-chapter-search-clear" hidden title="Limpiar búsqueda">&times;</button>
+        <!-- =======================
+             COLUMNA IZQUIERDA (~62%)
+             ======================= -->
+        <div class="work-col-left">
+
+          <!-- Tarjeta: Capítulos (Directo al grano, con Orange Underline + Paginación) -->
+          <section class="work-chapters-box" id="chapters" aria-labelledby="work-chapters-title">
+            <!-- Header con título y % completado -->
+            <div class="work-chapters-box-head">
+              <h2 id="work-chapters-title" class="work-chapters-main-title">
+                <span id="work-chapter-count">0</span> CAPÍTULOS
+                <span class="work-chapters-title-bar" aria-hidden="true"></span>
+              </h2>
+              <span id="work-user-progress-pct" class="work-chapters-pct-badge">0% completado</span>
             </div>
-            <div class="work-chapters-actions-bar">
-              <div class="work-chapter-ranges" id="work-chapter-ranges" role="tablist" aria-label="Rangos de capítulos"></div>
-              <button type="button" class="work-chapter-mark-all-btn" id="work-mark-all-btn" title="Marcar todos los capítulos">
-                <img src="/assets/icons/svg/check.svg" alt="" aria-hidden="true">
-                <span>Marcar leídos</span>
+
+            <!-- Toolbar con buscador e inversión de orden -->
+            <div class="work-chapters-box-toolbar" id="work-chapters-toolbar">
+              <div class="work-chapters-search-wrap">
+                <svg class="work-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="work-chapter-search" placeholder="Ir al capítulo (ej. 1, 10, prólogo)..." aria-label="Buscar capítulo">
+                <button type="button" id="work-chapter-search-clear" class="work-chapter-search-clear" hidden title="Limpiar búsqueda">&times;</button>
+              </div>
+
+              <div class="work-chapters-toolbar-actions">
+                <button id="work-sort-btn" class="work-sort-btn" type="button" aria-label="Cambiar orden de capítulos" title="Cambiar orden">
+                  <span class="work-sort-icon">🔻</span>
+                  <span id="work-sort-label">Nuevos</span>
+                </button>
+                <button type="button" class="work-mark-all-btn" id="work-mark-all-btn" title="Marcar todos los capítulos">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Marcar leídos</span>
+                </button>
+              </div>
+            </div>
+
+            <p id="work-no-chapters" class="work-detail-empty" hidden>Todavía no hay capítulos publicados.</p>
+
+            <!-- Tabla de Capítulos -->
+            <div id="work-chapters-table" class="work-chapters-table-wrap" hidden>
+              <div class="work-chapters-table-head">
+                <span class="work-th-name">CAPÍTULOS</span>
+                <span class="work-th-date">FECHA</span>
+              </div>
+              <ol id="work-chapter-list" class="work-chapters-rows"></ol>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- =======================
+             COLUMNA DERECHA (~38%)
+             ======================= -->
+        <aside class="work-col-right" aria-label="Acciones y comunidad">
+
+          <!-- 1. Fila de Acciones Primarias -->
+          <div class="work-actions-group">
+            <div class="work-actions-top-row">
+              <a id="work-start-reading" class="work-btn-cta-read" href="#chapters" hidden>
+                <span class="work-cta-icon">▶</span>
+                <span id="work-start-reading-text">Leer capítulo 1</span>
+              </a>
+
+              <!-- Dropdown Biblioteca (5 Estados) -->
+              <div class="work-library-dropdown-wrap" id="work-library-wrap">
+                <button id="work-add-library" class="work-btn-library-dropdown" type="button" aria-haspopup="true" aria-expanded="false" hidden>
+                  <span id="work-library-icon">📖</span>
+                  <span id="work-library-text">Leyendo</span>
+                  <svg class="work-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="work-library-menu" id="work-library-menu" role="menu" hidden>
+                  <p class="work-library-menu-label">Tu estado de lectura:</p>
+                  <button type="button" class="work-library-option" data-status="READING" role="menuitem">
+                    <span class="work-status-indicator work-status-indicator--reading"></span>
+                    <span>📖 Leyendo</span>
+                  </button>
+                  <button type="button" class="work-library-option" data-status="PLAN_TO_READ" role="menuitem">
+                    <span class="work-status-indicator work-status-indicator--plan_to_read"></span>
+                    <span>📅 Planeado</span>
+                  </button>
+                  <button type="button" class="work-library-option" data-status="COMPLETED" role="menuitem">
+                    <span class="work-status-indicator work-status-indicator--completed"></span>
+                    <span>✅ Completado</span>
+                  </button>
+                  <button type="button" class="work-library-option" data-status="ON_HOLD" role="menuitem">
+                    <span class="work-status-indicator work-status-indicator--on_hold"></span>
+                    <span>⏸ En espera</span>
+                  </button>
+                  <button type="button" class="work-library-option" data-status="DROPPED" role="menuitem">
+                    <span class="work-status-indicator work-status-indicator--dropped"></span>
+                    <span>❌ Abandonado</span>
+                  </button>
+                  <div class="work-library-menu-divider" id="work-library-menu-divider" hidden></div>
+                  <button type="button" class="work-library-option work-library-option--remove" id="work-library-remove-btn" role="menuitem" hidden>
+                    <span>🗑️ Quitar de mi biblioteca</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Botón compartir -->
+              <button type="button" class="work-icon-btn" id="work-share-btn" title="Compartir obra">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               </button>
             </div>
           </div>
 
-          <p id="work-no-chapters" class="work-detail-empty" hidden>Todavía no hay capítulos publicados.</p>
-          <div id="work-chapters-table" class="work-chapters-table" hidden>
-            <div class="work-chapters-table-header">
-              <button id="work-sort-btn" class="work-chapters-sort-btn" type="button" aria-label="Cambiar orden de capítulos" title="Cambiar orden">
-                <img class="sort-icon-arrow" src="/assets/icons/svg/swap.svg" alt="" aria-hidden="true">
-                <span id="work-sort-label">Capítulos (Recientes primero)</span>
-              </button>
-              <span class="work-chapters-date-th">FECHA</span>
+          <!-- 2. Tarjeta Comentarios -->
+          <section class="work-side-card work-side-card--comments" id="work-comments-box" aria-labelledby="work-comments-box-title">
+            <div class="work-side-card-head">
+              <div class="work-side-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <h3 id="work-comments-box-title" class="work-comments-h3">Comentarios <span id="work-comments-count" class="work-comments-badge">0</span></h3>
+              </div>
+              <div class="work-comments-filter-wrap">
+                <span class="work-comments-filter-label">Relevante ▾</span>
+              </div>
             </div>
-            <ol id="work-chapter-list" class="work-chapter-list"></ol>
-          </div>
-        </section>
+
+            <!-- Formulario de Comentario -->
+            <div class="work-comment-form-box" id="work-comment-form-box">
+              <div class="work-comment-card">
+                <textarea id="work-comment-input" class="work-comment-textarea" placeholder="Escribe un comentario público... (Ctrl+Enter para enviar)" maxlength="3000" rows="2"></textarea>
+                <div class="work-comment-card-footer">
+                  <label class="work-comment-spoiler-toggle" title="Marcar contenido con spoiler">
+                    <input type="checkbox" id="work-comment-spoiler-check">
+                    <span>⚠️ Spoiler</span>
+                  </label>
+                  <button type="button" class="work-comment-send-btn" id="work-comment-submit-btn" title="Publicar comentario">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    <span>Comentar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de Hilos de Comentarios -->
+            <div class="work-comments-threads" id="work-comments-list" role="feed" aria-busy="false" data-skeleton="comments" data-skeleton-count="3">
+              <!-- Renderizado dinámicamente -->
+            </div>
+          </section>
+
+        </aside>
       </div>
 
-      <!-- Sección de Comentarios Permanentes con Hilos (Threads) -->
-      <section class="work-comments-section" aria-labelledby="work-comments-title">
-        <div class="work-comments-header">
-          <div class="work-comments-header-left">
-            <div class="work-comments-icon">
-              <img src="/assets/icons/svg/comment.svg" alt="" aria-hidden="true">
-            </div>
-            <div>
-              <h2 id="work-comments-title" class="work-comments-title">Comentarios de la Obra</h2>
-              <p class="work-comments-subtitle">Debates, opiniones y teorías de la comunidad sobre esta serie</p>
-            </div>
-          </div>
-          <span class="work-comments-counter-badge" id="work-comments-count">0 comentarios</span>
+      <!-- ===================================================================
+           3. SECCIÓN INFERIOR: TE PODRÍAN INTERESAR
+           =================================================================== -->
+      <section class="work-recommended-section" aria-labelledby="work-rec-title">
+        <div class="work-rec-header">
+          <h2 id="work-rec-title" class="work-rec-title">Te podrían interesar</h2>
+          <p class="work-rec-subtitle">Más historias con temas parecidos</p>
         </div>
-
-        <!-- Formulario principal para nuevo comentario raíz -->
-        <div class="work-comment-form-card">
-          <div class="work-comment-form-head">
-            <span class="work-comment-user-chip" id="work-comment-current-user">Escribe como lector</span>
-            <label class="work-comment-spoiler-toggle">
-              <input type="checkbox" id="work-comment-spoiler-check">
-              <span>⚠️ Contiene Spoilers</span>
-            </label>
-          </div>
-          <textarea id="work-comment-input" class="work-comment-textarea" placeholder="¿Qué opinas de esta obra? Comparte tus teorías, puntos fuertes o detalles..." maxlength="3000" rows="3"></textarea>
-          <div class="work-comment-form-footer">
-            <span class="work-comment-hint">Respeta las normas de la comunidad. Usa la casilla spoiler para giros de trama.</span>
-            <button type="button" class="work-comment-submit-btn" id="work-comment-submit-btn">
-              <img src="/assets/icons/svg/send.svg" alt="" aria-hidden="true">
-              <span>Publicar comentario</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Lista de hilos de comentarios -->
-        <div class="work-comments-threads" id="work-comments-list" role="feed" aria-busy="false">
-          <!-- Renderizado dinámicamente -->
+        <div class="work-rec-grid" id="work-recommended-grid">
+          <!-- Renderizado dinámicamente desde el catálogo -->
         </div>
       </section>
+
     </div>
   </main>
+  <footer id="site-footer" class="site-footer"></footer>
+  <script type="module" src="/js/components/components-loader.js"></script>
   <script type="module" src="/js/pages/obra.js"></script>
 </body>
 </html>

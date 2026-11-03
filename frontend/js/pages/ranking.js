@@ -1,10 +1,6 @@
 import { apiRequest } from '../shared/auth.js';
 import { renderRankCard } from '../components/cards.js';
-import { renderRankingSkeletons } from '../components/loader.js';
-import { renderSiteHeader } from '../components/header.js';
-
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
+import { renderRankingSkeletons } from '../components/skeletons.js';
 
 async function loadRanking(period = 'all') {
   const container = document.getElementById('ranking-results');

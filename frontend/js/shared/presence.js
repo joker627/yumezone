@@ -29,13 +29,11 @@ async function sendHeartbeat() {
     lastPingTime = Date.now();
     await apiRequest('/chat/heartbeat', { method: 'POST' });
   } catch {
-    // Silencioso para no interferir con la navegación del usuario
+
   }
 }
 
-/**
- * Inicializa el sistema de presencia en tiempo real en la página.
- */
+// iniciar presencia
 export function initPresence() {
   if (isPresenceInitialized) {
     if (getAccessToken()) sendHeartbeat();
@@ -47,14 +45,14 @@ export function initPresence() {
     sendHeartbeat();
   }
 
-  // Renovar heartbeat cada 25 segundos mientras esté activo
+  // intervalo heartbeat
   if (presenceInterval) clearInterval(presenceInterval);
   presenceInterval = setInterval(() => {
     if (document.hidden || !getAccessToken()) return;
     sendHeartbeat();
   }, 25000);
 
-  // Al regresar a la pestaña o ventana
+  // visibilidad pestana
   window.addEventListener('visibilitychange', () => {
     if (!document.hidden && getAccessToken()) {
       if (Date.now() - lastPingTime > 15000) {
@@ -69,7 +67,7 @@ export function initPresence() {
     }
   });
 
-  // Al cerrar la pestaña o salir del sitio, eliminar presencia de inmediato
+  // cerrar presencia
   window.addEventListener('beforeunload', () => {
     sendOfflineBeacon();
   });
@@ -79,9 +77,7 @@ export function initPresence() {
   });
 }
 
-/**
- * Desconecta la presencia activa explícitamente (ej. al cerrar sesión).
- */
+// desconectar presencia
 export function disconnectPresence() {
   if (presenceInterval) {
     clearInterval(presenceInterval);

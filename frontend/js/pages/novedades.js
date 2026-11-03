@@ -1,10 +1,6 @@
 import { apiRequest } from '../shared/auth.js';
 import { renderLaunchItem } from '../components/cards.js';
-import { renderNovedadesSkeletons } from '../components/loader.js';
-import { renderSiteHeader } from '../components/header.js';
-
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
+import { renderNovedadesSkeletons } from '../components/skeletons.js';
 
 async function loadNovedades() {
   const container = document.getElementById('novedades-results');

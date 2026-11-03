@@ -1,870 +1,1053 @@
-import { apiRequest, authRequest, getAccessToken } from '../shared/auth.js';
-import { renderSiteHeader } from '../components/header.js';
-import { escapeHTML, formatTimeAgo } from '../shared/ui-utils.js';
+import { apiRequest, getAccessToken } from '../shared/auth.js';
+import { esc as escapeHtml, resolveIconPath, formatChapterNumber } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
-import {
-  renderProfileWorkSkeletons,
-  renderBadgeSkeletons,
-  renderGenresSkeleton,
-  renderSkeletonRows
-} from '../components/loader.js';
+import { renderCoinTxSkeletons } from '../components/skeletons.js';
 
-/* Header */
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
+let currentProfileData = null;
+let cachedCoinTransactions = [];
+let ownerInventory = [];
+let currentLibraryTab = 'READING';
 
-/* Skeletons */
-const favoritesSkeleton = document.getElementById('favorite-works-container');
-if (favoritesSkeleton) favoritesSkeleton.innerHTML = renderProfileWorkSkeletons(4);
-const activitySkeleton = document.getElementById('activity-feed-container');
-if (activitySkeleton) activitySkeleton.innerHTML = renderSkeletonRows(4);
-const badgesSkeleton = document.getElementById('badges-container');
-if (badgesSkeleton) badgesSkeleton.innerHTML = renderBadgeSkeletons(4);
-const genresSkeleton = document.getElementById('genres-content-wrap');
-if (genresSkeleton) genresSkeleton.innerHTML = renderGenresSkeleton();
+const DEFAULT_BANNER_PRESETS = [
+  { name: 'Clásico Oscuro (Por defecto)', url: '' }
+];
 
-const profileView = document.getElementById('user-profile-view');
-const errorContainer = document.getElementById('user-error');
-const errorTitle = document.getElementById('user-error-title');
-const errorDesc = document.getElementById('user-error-desc');
-const privateView = document.getElementById('private-profile-view');
+const DEFAULT_FRAME_PRESETS = [
+  { name: 'Sin marco', url: '' }
+];
 
-/* Helpers */
-function getIconImg(name, size = 18, className = '') {
-  return `<img src="/assets/icons/svg/${name}.svg" alt="" width="${size}" height="${size}" class="${className}" aria-hidden="true"/>`;
-}
-
-function showError(title, desc) {
-  if (errorContainer) {
-    if (errorTitle) errorTitle.textContent = title;
-    if (errorDesc) errorDesc.textContent = desc;
-    errorContainer.hidden = false;
-  }
-  if (profileView) profileView.hidden = true;
-}
-
-/* Flags */
-const COUNTRY_FLAGS = {
-  'CO': '🇨🇴',
-  'MX': '🇲🇽',
-  'AR': '🇦🇷',
-  'ES': '🇪🇸',
-  'CL': '🇨🇱',
-  'PE': '🇵🇪',
-  'VE': '🇻🇪',
-  'EC': '🇪🇨',
-  'GT': '🇬🇹',
-  'CU': '🇨🇺',
-  'BO': '🇧🇴',
-  'DO': '🇩🇴',
-  'HN': '🇭🇳',
-  'PY': '🇵🇾',
-  'SV': '🇸🇻',
-  'NI': '🇳🇮',
-  'CR': '🇨🇷',
-  'PA': '🇵🇦',
-  'UY': '🇺🇾',
-  'PR': '🇵🇷',
-  'US': '🇺🇸',
-  'JP': '🇯🇵',
-  'KR': '🇰🇷',
-  'BR': '🇧🇷',
-  'FR': '🇫🇷',
-  'DE': '🇩🇪',
-  'IT': '🇮🇹',
-  'GB': '🇬🇧',
-  'CA': '🇨🇦'
+const COUNTRY_MAP = {
+  CO: { flag: '🇨🇴', name: 'Colombia' },
+  MX: { flag: '🇲🇽', name: 'México' },
+  AR: { flag: '🇦🇷', name: 'Argentina' },
+  ES: { flag: '🇪🇸', name: 'España' },
+  CL: { flag: '🇨🇱', name: 'Chile' },
+  PE: { flag: '🇵🇪', name: 'Perú' },
+  VE: { flag: '🇻🇪', name: 'Venezuela' },
+  EC: { flag: '🇪🇨', name: 'Ecuador' },
+  UY: { flag: '🇺🇾', name: 'Uruguay' },
+  PY: { flag: '🇵🇾', name: 'Paraguay' },
+  BO: { flag: '🇧🇴', name: 'Bolivia' },
+  CR: { flag: '🇨🇷', name: 'Costa Rica' },
+  PA: { flag: '🇵🇦', name: 'Panamá' },
+  DO: { flag: '🇩🇴', name: 'Rep. Dominicana' },
+  GT: { flag: '🇬🇹', name: 'Guatemala' },
+  SV: { flag: '🇸🇻', name: 'El Salvador' },
+  HN: { flag: '🇭🇳', name: 'Honduras' },
+  NI: { flag: '🇳🇮', name: 'Nicaragua' },
+  PR: { flag: '🇵🇷', name: 'Puerto Rico' },
+  US: { flag: '🇺🇸', name: 'Estados Unidos' },
+  BR: { flag: '🇧🇷', name: 'Brasil' },
+  JP: { flag: '🇯🇵', name: 'Japón' },
+  KR: { flag: '🇰🇷', name: 'Corea del Sur' }
 };
 
+async function resolveIdentifier() {
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
 
-function formatMemberDate(dateStr) {
-  if (!dateStr) return 'MIEMBRO REGISTRADO';
+  if (params.get('u')) return params.get('u');
+  if (params.get('id')) return params.get('id');
+
+  if (path.startsWith('/@')) return decodeURIComponent(path.substring(2));
+  if (path.startsWith('/u/')) return decodeURIComponent(path.substring(3));
+
+  if (getAccessToken()) {
+    try {
+      const me = await apiRequest('/auth/me');
+      if (me) return me.username || me.user_code || String(me.id);
+    } catch (_) {}
+  }
+  return null;
+}
+
+function getFallbackAvatar(name) {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'U')}&background=00bfa6&color=fff&size=256`;
+}
+
+function formatRoleLabel(role) {
+  const map = {
+    SUPERADMIN: 'Super Admin',
+    ADMIN: 'Administrador',
+    SCAN: 'Líder Scan',
+    USER: 'Lector'
+  };
+  return map[role] || role;
+}
+
+function formatScanRole(role) {
+  const map = {
+    LEADER: 'Líder',
+    CO_LEADER: 'Co-Líder',
+    UPLOADER: 'Uploader',
+    EDITOR: 'Editor',
+    TRANSLATOR: 'Traductor'
+  };
+  return map[role] || role || 'Miembro';
+}
+
+function formatCategoryLabel(cat) {
+  const map = {
+    BANNER: 'Portada',
+    FRAME: 'Anillo',
+    TITLE: 'Título',
+    BADGE: 'Insignia',
+    AVATAR: 'Avatar'
+  };
+  return map[(cat || '').toUpperCase()] || cat || 'Cosmético';
+}
+
+function getRelativeTime(dateStr) {
+  if (!dateStr) return 'Hace poco';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Hace poco';
+
+  const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return 'Hace unos segundos';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `Hace ${diffMin} min`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `Hace ${diffHours} h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `Hace ${diffDays} d`;
+
+  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+async function loadProfile() {
+  const identifier = await resolveIdentifier();
+  if (!identifier) {
+    window.location.href = '/pages/login.html';
+    return;
+  }
+
   try {
-    const d = new Date(dateStr);
-    const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-    return `MIEMBRO DESDE ${months[d.getMonth()]} DE ${d.getFullYear()}`;
-  } catch {
-    return 'MIEMBRO REGISTRADO';
+    const cleanId = identifier.replace(/^@/, '');
+    const user = await apiRequest(`/users/${encodeURIComponent(cleanId)}`);
+    currentProfileData = user;
+    ownerInventory = Array.isArray(user.inventory_items) ? user.inventory_items : [];
+    renderProfile(user);
+  } catch (err) {
+    console.error('Error cargando perfil:', err);
+    renderNotFound();
   }
 }
 
+async function loadOwnerInventory() {
+  try {
+    const items = await apiRequest('/shop/inventory');
+    if (Array.isArray(items)) {
+      ownerInventory = items;
+    }
+  } catch (_) {}
+}
 
-function renderUser(user) {
-  displayedUser = user;
-  if (errorContainer) errorContainer.hidden = true;
-  if (profileView) profileView.hidden = false;
+function renderProfile(user) {
+  document.title = `${user.username} (@${user.user_code}) | YumeZone`;
 
-  document.querySelectorAll('[class*="is-loading"]').forEach(el => {
-    el.classList.remove(...[...el.classList].filter(c => c.startsWith('is-loading')));
-  });
+  // banner de portada
+  const bannerEl = document.getElementById('profile-banner-bg');
+  if (bannerEl) {
+    if (user.banner_url) {
+      bannerEl.style.backgroundImage = `url('${user.banner_url}')`;
+      bannerEl.classList.add('has-custom-banner');
+    } else {
+      bannerEl.style.backgroundImage = '';
+      bannerEl.classList.remove('has-custom-banner');
+    }
+  }
 
-  const username = user.username || 'Lector';
-  document.title = `${username} | Perfil en YumeZone`;
+  // avatar y marco cosmético
+  const avatarEl = document.getElementById('user-avatar');
+  if (avatarEl) {
+    avatarEl.classList.remove('yz-skeleton');
+    avatarEl.alt = user.username || '';
+    avatarEl.src = user.avatar_url || getFallbackAvatar(user.username);
+    avatarEl.onerror = () => {
+      avatarEl.src = getFallbackAvatar(user.username);
+    };
+  }
 
-  /* User info */
-  const usernameEl = document.getElementById('user-username');
-  if (usernameEl) usernameEl.textContent = username.toUpperCase();
+  const frameUrl = user.anillo_url || user.avatar_frame_url || '';
+  const frameEl = document.getElementById('user-avatar-frame');
+  const avatarBox = document.getElementById('profile-avatar-box');
+  if (frameEl && avatarBox) {
+    if (frameUrl) {
+      frameEl.src = frameUrl;
+      frameEl.style.display = 'block';
+      avatarBox.classList.add('has-frame');
+    } else {
+      frameEl.src = '';
+      frameEl.style.display = 'none';
+      avatarBox.classList.remove('has-frame');
+    }
+  }
+
+  // nombre, handle, rol y título activo
+  const displayNameEl = document.getElementById('user-display-name');
+  if (displayNameEl) displayNameEl.textContent = user.username;
+
+  const handleEl = document.getElementById('user-handle');
+  if (handleEl) handleEl.textContent = `@${user.user_code}`;
+
+  const role = (user.platform_role || 'USER').toUpperCase();
+  const verifiedBadge = document.getElementById('verified-badge');
+  if (verifiedBadge) {
+    verifiedBadge.style.display = (role === 'ADMIN' || role === 'SUPERADMIN' || role === 'SCAN' || user.scan_group)
+      ? 'inline-flex'
+      : 'none';
+  }
+
+  const rolePill = document.getElementById('user-role-pill');
+  if (rolePill) {
+    if (role !== 'USER') {
+      rolePill.style.display = 'inline-flex';
+      rolePill.textContent = formatRoleLabel(role);
+      rolePill.className = `profile-role-badge role-${role.toLowerCase()}`;
+    } else {
+      rolePill.style.display = 'none';
+    }
+  }
+
+  // nivel y rango xp
+  const lvl = user.level_info || {
+    level: Math.floor((user.xp || 0) / 1000) + 1,
+    current_level_xp: (user.xp || 0) % 1000,
+    remaining_xp: 1000 - ((user.xp || 0) % 1000),
+    percentage: Math.round((((user.xp || 0) % 1000) / 1000) * 100),
+    current_title: 'Iniciado del Cultivo',
+    next_title: 'Lector Novato'
+  };
+
+  const levelBadge = document.getElementById('user-level-badge');
+  if (levelBadge) levelBadge.textContent = `Nv. ${lvl.level}`;
 
   const activeTitleEl = document.getElementById('user-active-title');
   if (activeTitleEl) {
-    activeTitleEl.textContent = user.active_title || user.level_info?.current_title || 'Cazador Novato';
-  }
-
-  const handleEl = document.getElementById('user-handle');
-  if (handleEl) handleEl.textContent = `@${user.username?.toLowerCase() || 'lector'}`;
-
-  const codeValEl = document.getElementById('user-code-val');
-  if (codeValEl) codeValEl.textContent = user.user_code || `ID #${user.id}`;
-
-  const createdValEl = document.getElementById('user-created-val');
-  if (createdValEl) createdValEl.textContent = formatMemberDate(user.created_at);
-
-  /* Avatar & Frame */
-  const avatarImg = document.getElementById('user-avatar-img');
-  const avatarFallback = document.getElementById('user-avatar-fallback');
-  const avatarFrame = document.getElementById('user-avatar-frame');
-  const avatarSkeleton = document.getElementById('user-avatar-skeleton');
-
-  if (avatarSkeleton) avatarSkeleton.hidden = true;
-
-  if (user.avatar_url) {
-    if (avatarImg) {
-      avatarImg.src = user.avatar_url;
-      avatarImg.hidden = false;
-      avatarImg.classList.remove('hidden');
-    }
-    if (avatarFallback) avatarFallback.hidden = true;
-  } else {
-    if (avatarImg) avatarImg.hidden = true;
-    if (avatarFallback) {
-      avatarFallback.textContent = (username[0] || 'Y').toUpperCase();
-      avatarFallback.hidden = false;
-      avatarFallback.classList.remove('hidden');
-    }
-  }
-
-  if (avatarFrame) {
-    const frameSrc = user.anillo_url || user.avatar_frame_url;
-    if (frameSrc) {
-      avatarFrame.src = frameSrc;
-      avatarFrame.hidden = false;
-      avatarFrame.classList.remove('hidden');
+    const titleToShow = user.active_title || lvl.current_title;
+    if (titleToShow) {
+      activeTitleEl.textContent = titleToShow;
+      activeTitleEl.style.display = 'inline-flex';
     } else {
-      avatarFrame.hidden = true;
+      activeTitleEl.style.display = 'none';
     }
   }
 
-  /* Banner */
-  const bannerBg = document.getElementById('profile-banner-bg');
-  if (bannerBg) {
-    bannerBg.style.backgroundImage = `url('${escapeHTML(user.banner_url || '/assets/images/banner-default.jpg')}')`;
+  const rankNameEl = document.getElementById('user-rank-name');
+  if (rankNameEl) rankNameEl.textContent = user.active_title || lvl.current_title;
+
+  const xpNumbersEl = document.getElementById('user-xp-numbers');
+  if (xpNumbersEl) xpNumbersEl.textContent = `${lvl.current_level_xp.toLocaleString()} / 1,000 XP`;
+
+  const xpFillEl = document.getElementById('user-xp-fill');
+  if (xpFillEl) xpFillEl.style.width = `${Math.min(100, Math.max(0, lvl.percentage))}%`;
+
+  const nextRankHint = document.getElementById('user-next-rank-hint');
+  if (nextRankHint) {
+    nextRankHint.textContent = `Faltan ${lvl.remaining_xp.toLocaleString()} XP para Nv. ${lvl.level + 1} · ${lvl.next_title}`;
   }
 
-  /* XP & Level */
-  const xp = user.xp || 0;
-  const lvlInfo = user.level_info || {
-    level: Math.floor(xp / 1000) + 1,
-    current_level_xp: xp % 1000,
-    remaining_xp: 1000 - (xp % 1000),
-    percentage: Math.min(100, Math.floor(((xp % 1000) / 1000) * 100)),
-    current_title: 'Lector Novato',
-    next_title: 'Cazador Errante'
-  };
+  // país, fecha de ingreso y scan
+  const countryCode = (user.country || 'CO').toUpperCase();
+  const countryData = COUNTRY_MAP[countryCode] || { flag: '🌎', name: countryCode };
+  const flagEl = document.getElementById('user-country-flag');
+  const countryNameEl = document.getElementById('user-country-name');
+  if (flagEl) flagEl.textContent = countryData.flag;
+  if (countryNameEl) countryNameEl.textContent = countryData.name;
 
-  /* Role & Badge */
-  const role = (user.platform_role || 'USER').toUpperCase();
-  const rolePill = document.getElementById('user-role-pill');
-  const verifiedIcon = document.getElementById('user-verified-icon');
-  const topVerifiedBadge = document.getElementById('badge-verified-top');
-  const topVerifiedText = document.getElementById('badge-verified-text');
-  const topRoleBadge = document.getElementById('badge-role-top');
-  const topRoleText = document.getElementById('badge-role-text');
+  const joinedEl = document.getElementById('user-joined');
+  if (joinedEl && user.created_at) {
+    const date = new Date(user.created_at);
+    const formatted = date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    joinedEl.innerHTML = `<img src="/assets/icons/svg/navigation/history.svg" class="icon-svg icon-xs" alt="" /> <span>Desde ${formatted}</span>`;
+  } else if (joinedEl) {
+    joinedEl.replaceChildren();
+  }
 
-  const ROLE_MAP = {
-    'SUPERADMIN': { display: 'Super Administrador', verified: 'Staff Webmaster' },
-    'ADMIN': { display: 'Staff Administrador', verified: 'Staff Oficial' },
-    'MODERATOR': { display: 'Moderador', verified: 'Moderador Oficial' },
-  };
+  // mostrar scan
+  const scanCard = document.getElementById('user-scan-card');
+  const scanSidebarWidget = document.getElementById('scan-sidebar-widget');
+  if (user.scan_group && user.scan_group.name) {
+    const scanUrl = `/pages/grupos.html?slug=${encodeURIComponent(user.scan_group.slug)}`;
+    const scanLogoUrl = user.scan_group.logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.scan_group.name)}&background=6c5ce7&color=fff`;
+    const scanRoleLabel = formatScanRole(user.scan_group.role);
 
-  let roleDisplay = 'Lector';
-  let isVerified = false;
-
-  if (ROLE_MAP[role]) {
-    roleDisplay = ROLE_MAP[role].display;
-    isVerified = true;
-    if (topVerifiedBadge && topVerifiedText) {
-      topVerifiedText.textContent = ROLE_MAP[role].verified;
-      topVerifiedBadge.classList.remove('hidden');
+    if (scanCard) {
+      scanCard.style.display = 'inline-flex';
+      scanCard.href = scanUrl;
+      const scanLogo = document.getElementById('user-scan-logo');
+      if (scanLogo) scanLogo.src = scanLogoUrl;
+      const scanName = document.getElementById('user-scan-name');
+      if (scanName) scanName.textContent = user.scan_group.name;
+      const scanRole = document.getElementById('user-scan-role');
+      if (scanRole) scanRole.textContent = scanRoleLabel;
     }
-    if (topRoleBadge) topRoleBadge.classList.add('hidden');
-  } else if (user.scan_group) {
-    roleDisplay = `${user.scan_group.role || 'Scan'} • ${user.scan_group.name}`;
-    isVerified = true;
-    if (topVerifiedBadge && topVerifiedText) {
-      topVerifiedText.textContent = `Scan • ${user.scan_group.name}`;
-      topVerifiedBadge.classList.remove('hidden');
+
+    if (scanSidebarWidget) {
+      scanSidebarWidget.style.display = 'block';
+      const sbRole = document.getElementById('sidebar-scan-role');
+      if (sbRole) sbRole.textContent = scanRoleLabel;
+      const sbLogo = document.getElementById('sidebar-scan-logo');
+      if (sbLogo) sbLogo.src = scanLogoUrl;
+      const sbName = document.getElementById('sidebar-scan-name');
+      if (sbName) sbName.textContent = user.scan_group.name;
+      const sbWorks = document.getElementById('sidebar-scan-works');
+      if (sbWorks) sbWorks.textContent = `${Number(user.scan_group.works_count || 0)} obras publicadas`;
+      const sbLink = document.getElementById('sidebar-scan-link');
+      if (sbLink) sbLink.href = scanUrl;
     }
-    if (topRoleBadge) topRoleBadge.classList.add('hidden');
   } else {
-    if (topVerifiedBadge) topVerifiedBadge.classList.add('hidden');
-    if (lvlInfo.level >= 5 && topRoleBadge && topRoleText) {
-      topRoleText.textContent = `${lvlInfo.current_title} (Nv. ${lvlInfo.level})`;
-      topRoleBadge.classList.remove('hidden');
-    } else if (topRoleBadge) {
-      topRoleBadge.classList.add('hidden');
-    }
+    if (scanCard) scanCard.style.display = 'none';
+    if (scanSidebarWidget) scanSidebarWidget.style.display = 'none';
   }
 
-  if (rolePill) rolePill.textContent = roleDisplay;
-  if (verifiedIcon) verifiedIcon.classList.toggle('hidden', !isVerified);
-
-  // Biografía
+  // biografía
   const bioEl = document.getElementById('user-bio');
   if (bioEl) {
-    bioEl.textContent = user.bio ? user.bio : 'Sin biografía disponible aún.';
-  }
-
-  const levelBadge = document.getElementById('user-level-badge');
-  if (levelBadge) levelBadge.textContent = `Nv. ${lvlInfo.level}`;
-
-  const xpTitle = document.getElementById('xp-level-title');
-  if (xpTitle) xpTitle.textContent = `Nivel ${lvlInfo.level}: ${lvlInfo.current_title}`;
-
-  const xpNext = document.getElementById('xp-next-level');
-  if (xpNext) xpNext.textContent = `→ Siguiente: Nv. ${lvlInfo.level + 1} ${lvlInfo.next_title}`;
-
-  const xpNumbers = document.getElementById('xp-numbers-label');
-  if (xpNumbers) xpNumbers.textContent = `${(lvlInfo.current_level_xp || 0).toLocaleString()} XP`;
-
-  const xpPct = document.getElementById('xp-pct-label');
-  if (xpPct) xpPct.textContent = `${lvlInfo.percentage || 0}% Completado`;
-
-  const xpRemaining = document.getElementById('xp-remaining-label');
-  if (xpRemaining) xpRemaining.textContent = `FALTAN ${(lvlInfo.remaining_xp || 0).toLocaleString()}`;
-
-  const xpBar = document.getElementById('xp-progress-bar');
-  if (xpBar) xpBar.style.width = `${lvlInfo.percentage || 0}%`;
-
-  // Bandera de País 
-  const flagEl = document.getElementById('user-country-flag');
-  if (flagEl) {
-    const countryCode = (user.country || 'CO').toUpperCase();
-    flagEl.textContent = COUNTRY_FLAGS[countryCode] || '🇨🇴';
-    flagEl.title = `País: ${countryCode}`;
-  }
-
-
-  // Estadísticas reales
-  const stats = user.stats || {};
-  const statChapters = document.getElementById('stat-chapters');
-  if (statChapters) statChapters.textContent = (stats.total_chapters_read || 0).toLocaleString();
-
-  const statFollowing = document.getElementById('stat-following');
-  if (statFollowing) statFollowing.textContent = (stats.following_count || 0).toLocaleString();
-
-  const statStreak = document.getElementById('stat-streak');
-  if (statStreak) statStreak.textContent = `${user.streak_days || 0} Días`;
-
-  const statCoins = document.getElementById('stat-coins');
-  if (statCoins) statCoins.textContent = (user.coins || 0).toLocaleString();
-
-  const statComments = document.getElementById('stat-comments');
-  if (statComments) statComments.textContent = (stats.total_comments || 0).toLocaleString();
-
-  const statCompleted = document.getElementById('stat-completed');
-  if (statCompleted) statCompleted.textContent = (stats.completed_works || 0).toLocaleString();
-
-  /* Scan Card */
-  const scanCard = document.getElementById('user-scan-card');
-  if (scanCard) {
-    if (user.scan_group) {
-      scanCard.hidden = false;
-      const scanNameEl = document.getElementById('user-scan-name');
-      if (scanNameEl) scanNameEl.textContent = user.scan_group.name || 'Grupo Scan';
-      const scanRoleEl = document.getElementById('user-scan-role');
-      if (scanRoleEl) scanRoleEl.textContent = `Rol: ${user.scan_group.role || 'Miembro'}`;
-      const scanLogoEl = document.getElementById('user-scan-logo');
-      if (scanLogoEl && user.scan_group.logo_url) scanLogoEl.src = user.scan_group.logo_url;
-      const scanLinkEl = document.getElementById('user-scan-link');
-      if (scanLinkEl && user.scan_group.slug) {
-        scanLinkEl.href = `/pages/catalogo.html?scan=${encodeURIComponent(user.scan_group.slug)}`;
-      }
+    if (user.bio && user.bio.trim()) {
+      bioEl.textContent = user.bio;
+      bioEl.classList.remove('is-empty');
     } else {
-      scanCard.hidden = true;
+      bioEl.textContent = user.is_owner
+        ? 'Aún no has escrito una biografía. Haz clic en "Editar perfil" para personalizar tu presentación.'
+        : 'Este lector prefiere mantener el misterio y aún no ha escrito una biografía.';
+      bioEl.classList.add('is-empty');
     }
   }
 
-  /* Render Sections */
-  renderWorkCards(user.favorite_works || [], 'favorite-works-container', 'Sin obras en biblioteca aún', 'Este lector todavía no ha agregado obras a sus favoritos o seguimiento.');
-  renderWorkCards(user.favorite_works || [], 'library-feed-container', 'Biblioteca vacía', 'El lector no tiene obras guardadas en su biblioteca actualmente.');
-  renderBadges(user.badges || []);
-  renderActivityFeed(user.recent_activity || []);
-  renderCommentsFeed(user.recent_activity || []);
-  renderGenresBreakdown(user.genres_breakdown || [], stats.total_chapters_read || 0);
+  // controles de dueño vs visitante
+  const editBtn = document.getElementById('edit-profile-btn');
+  const quickAvatarEditBtn = document.getElementById('quick-avatar-edit-btn');
+  const visitorMoreMenu = document.getElementById('visitor-more-menu');
+  const ownerCoinActions = document.getElementById('owner-coin-actions');
+  const ownerLibraryLink = document.getElementById('owner-library-link');
 
-  /* Owner actions */
-  const isOwner = Boolean(user.is_owner || (currentUser && currentUser.id === user.id));
-  const editBtn = document.getElementById('btn-edit-profile');
-  if (editBtn) editBtn.classList.toggle('hidden', !isOwner);
+  if (user.is_owner) {
+    if (editBtn) editBtn.style.display = 'inline-flex';
+    if (quickAvatarEditBtn) quickAvatarEditBtn.style.display = 'inline-flex';
+    if (visitorMoreMenu) visitorMoreMenu.style.display = 'none';
+    if (ownerCoinActions) ownerCoinActions.style.display = 'inline-flex';
+    if (ownerLibraryLink) ownerLibraryLink.style.display = 'inline-flex';
+  } else {
+    if (editBtn) editBtn.style.display = 'none';
+    if (quickAvatarEditBtn) quickAvatarEditBtn.style.display = 'none';
+    if (visitorMoreMenu) visitorMoreMenu.style.display = 'block';
+    if (ownerCoinActions) ownerCoinActions.style.display = 'none';
+    if (ownerLibraryLink) ownerLibraryLink.style.display = 'none';
+  }
 
-  const isPrivateLocked = Boolean(user.is_private && user.is_hidden);
-  if (privateView) privateView.hidden = !isPrivateLocked;
-  const profileContent = document.getElementById('profile-content');
-  if (profileContent) profileContent.classList.toggle('profile-content--locked', isPrivateLocked);
+  // privacidad
+  const privateNotice = document.getElementById('private-notice');
+  const publicContent = document.getElementById('profile-public-content');
+  const statsStrip = document.getElementById('stats-strip-section');
+
+  if (user.is_hidden) {
+    if (privateNotice) privateNotice.style.display = 'flex';
+    if (publicContent) publicContent.style.display = 'none';
+    if (statsStrip) statsStrip.style.display = 'none';
+    return;
+  } else {
+    if (privateNotice) privateNotice.style.display = 'none';
+    if (publicContent) publicContent.style.display = 'grid';
+    if (statsStrip) statsStrip.style.display = 'grid';
+  }
+
+  // 5 estadísticas clave
+  const stats = user.stats || {};
+  const setStat = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = Number(val || 0).toLocaleString();
+  };
+  setStat('stat-chapters', stats.total_chapters_read);
+  setStat('stat-following', stats.favorites_count);
+  setStat('stat-completed', stats.completed_works);
+  setStat('stat-streak', user.streak_days);
+  setStat('stat-coins', user.coins);
+
+  // vitrina por pestañas de biblioteca
+  const allWorks = user.favorite_works || [];
+  const readingCount = allWorks.filter((w) => w.status === 'READING' || w.status === 'LIKED' || w.status === 'FAVORITE').length;
+  const completedCount = allWorks.filter((w) => w.status === 'COMPLETED').length;
+  const pendingCount = allWorks.filter((w) => w.status === 'PLAN_TO_READ' || w.status === 'READ_LATER').length;
+
+  setStat('tab-count-reading', readingCount);
+  setStat('tab-count-completed', stats.completed_works ?? completedCount);
+  setStat('tab-count-pending', stats.pending_works ?? pendingCount);
+
+  renderLibraryShowcaseTab(currentLibraryTab);
+
+  // sidebar: colección cosmética y medallas
+  renderInventoryShowcase(user.inventory_items || [], user.is_owner);
+  renderBadgesShowcase(user.badges || [], document.getElementById('badges-showcase-container'));
 }
 
-/* Works Feed */
-function renderWorkCards(works, containerId, emptyTitle, emptyDesc) {
-  const container = document.getElementById(containerId);
-  if (containerId === 'favorite-works-container') {
-    const countBadge = document.getElementById('fav-count-badge');
-    if (countBadge) countBadge.textContent = works.length;
-  }
-  if (!container) return;
+function renderLibraryShowcaseTab(statusFilter) {
+  currentLibraryTab = statusFilter;
+  const container = document.getElementById('library-showcase-container');
+  if (!container || !currentProfileData) return;
 
-  if (!works.length) {
+  const allWorks = currentProfileData.favorite_works || [];
+  const isOwner = Boolean(currentProfileData.is_owner);
+
+  const filtered = allWorks
+    .filter((w) => {
+      if (statusFilter === 'READING') return w.status === 'READING' || w.status === 'LIKED' || w.status === 'FAVORITE';
+      if (statusFilter === 'PLAN_TO_READ') return w.status === 'PLAN_TO_READ' || w.status === 'READ_LATER';
+      return w.status === statusFilter;
+    })
+    .slice(0, 6);
+
+  const emptyMessages = {
+    READING: {
+      title: 'Sin obras en lectura',
+      desc: isOwner
+        ? 'Agrega tus mangas y manhwas a la biblioteca con estado "Leyendo" para verlos en tu vitrina.'
+        : 'Este usuario aún no tiene obras marcadas como "Leyendo".'
+    },
+    COMPLETED: {
+      title: 'Sin obras completadas',
+      desc: isOwner
+        ? 'Cuando termines una obra y la marques como "Completado" en tu biblioteca, aparecerá aquí.'
+        : 'Este lector aún no tiene obras marcadas como completadas.'
+    },
+    PLAN_TO_READ: {
+      title: 'Sin obras planeadas',
+      desc: isOwner
+        ? 'Guarda obras como "Planeado" para organizar tus próximas lecturas.'
+        : 'Este lector no tiene obras en su lista de pendientes.'
+    }
+  };
+
+  if (filtered.length === 0) {
+    const msg = emptyMessages[statusFilter] || emptyMessages.READING;
     container.innerHTML = `
-      <div class="profile-empty-card profile-empty-card--span">
-        ${getIconImg('book', 24)}
-        <h4 class="profile-title profile-empty-title">${escapeHTML(emptyTitle)}</h4>
-        <p class="profile-bio-text profile-empty-desc">${escapeHTML(emptyDesc)}</p>
-        <a href="/pages/catalogo.html" class="profile-btn profile-btn--primary">Explorar Catálogo</a>
+      <div class="profile-empty-state" style="grid-column: 1 / -1;">
+        <img src="/assets/icons/svg/content/book.svg" class="icon-svg icon-lg" alt="" />
+        <h4>${msg.title}</h4>
+        <p>${msg.desc}</p>
+        ${isOwner ? '<a href="/pages/catalogo.html" class="btn btn-primary btn-sm">Explorar Catálogo</a>' : ''}
       </div>
     `;
     return;
   }
 
-  container.innerHTML = works.map((work, idx) => {
-    const ratingVal = work.rating ? parseFloat(work.rating).toFixed(1) : '10.0';
-    const chaptersRead = work.chapters_read || 0;
-    const totalChapters = work.total_chapters || 0;
-    const progressLabel = totalChapters > 0 ? `Leído: ${chaptersRead}/${totalChapters} caps` : `${chaptersRead} caps leídos`;
-    const coverUrl = work.cover_url || '/assets/images/placeholder-cover.jpg';
-    const obraUrl = `/pages/obra.html?slug=${encodeURIComponent(work.slug)}`;
+  const statusMeta = {
+    READING: { label: 'Leyendo', cls: 'status-reading' },
+    LIKED: { label: 'Leyendo', cls: 'status-reading' },
+    FAVORITE: { label: 'Leyendo', cls: 'status-reading' },
+    COMPLETED: { label: 'Completado', cls: 'status-completed' },
+    PLAN_TO_READ: { label: 'Planeado', cls: 'status-plan' },
+    READ_LATER: { label: 'Planeado', cls: 'status-plan' },
+    ON_HOLD: { label: 'En espera', cls: 'status-onhold' },
+    DROPPED: { label: 'Abandonado', cls: 'status-dropped' }
+  };
+
+  container.innerHTML = filtered.map((w) => {
+    const cover = w.cover_url || `https://placehold.co/240x340/16151d/00bfa6?text=${encodeURIComponent(w.title || 'Obra')}`;
+    const st = statusMeta[w.status] || { label: 'Guardada', cls: 'status-liked' };
+    const readCount = Number(w.chapters_read || 0);
+    const totalCount = Number(w.total_chapters || 0);
+    const pct = totalCount > 0 ? Math.min(100, Math.round((readCount / totalCount) * 100)) : 0;
+    const workUrl = `/pages/obra.html?slug=${encodeURIComponent(w.slug)}`;
+    const hasResume = isOwner && w.last_chapter_id;
+    const resumeNum = w.last_chapter_number != null ? parseFloat(w.last_chapter_number) : null;
+    const resumeCapStr = resumeNum != null ? formatChapterNumber(resumeNum) : '';
+    const resumeUrl = hasResume
+      ? `/pages/leer.html?obra=${encodeURIComponent(w.slug)}${resumeCapStr ? '&capitulo=' + encodeURIComponent(resumeCapStr) : ''}&chapter_id=${encodeURIComponent(w.last_chapter_id)}`
+      : workUrl;
 
     return `
-      <div class="profile-work-card">
-        <a href="${obraUrl}" class="profile-work-thumb">
-          <img src="${escapeHTML(coverUrl)}" alt="${escapeHTML(work.title)}" onerror="this.src='/assets/images/placeholder-cover.jpg'"/>
-          <span class="profile-work-rank-tag">#${idx + 1}</span>
+      <article class="showcase-work-card">
+        <a href="${workUrl}" class="showcase-work-card__cover">
+          <img src="${escapeHtml(cover)}" alt="${escapeHtml(w.title)}" loading="lazy" />
+          <span class="showcase-work-card__status ${st.cls}">${st.label}</span>
+          ${w.rating ? `<span class="showcase-work-card__rating">★ ${Number(w.rating).toFixed(1)}</span>` : ''}
         </a>
-        <div class="profile-work-info">
+        <div class="showcase-work-card__body">
           <div>
-            <span class="profile-work-format">${escapeHTML(work.format_name || 'Obra')}</span>
-            <a href="${obraUrl}" class="profile-work-title">${escapeHTML(work.title)}</a>
-            <div class="profile-work-rating">
-              ${getIconImg('star', 12)}
-              <span>${ratingVal}</span>
-              ${work.author ? `<span class="profile-work-author-text">• ${escapeHTML(work.author)}</span>` : ''}
-            </div>
-            ${work.genres ? `<div class="profile-work-genres">${escapeHTML(work.genres)}</div>` : ''}
+            <span class="showcase-work-card__format">${escapeHtml(w.format_name || 'Manga')}</span>
+            <h4 class="showcase-work-card__title" title="${escapeHtml(w.title)}">
+              <a href="${workUrl}">${escapeHtml(w.title)}</a>
+            </h4>
           </div>
-          <div class="profile-work-bottom">
-            <span>${progressLabel}</span>
-            <a href="${obraUrl}">Ver obra →</a>
+          <div class="showcase-work-card__progress">
+            <div class="showcase-work-card__progress-meta">
+              <span>Progreso</span>
+              <strong>${readCount}${totalCount > 0 ? ` / ${totalCount}` : ''} caps</strong>
+            </div>
+            <div class="showcase-work-card__bar">
+              <div class="showcase-work-card__bar-fill" style="width: ${pct}%;"></div>
+            </div>
+            ${hasResume ? `
+              <a href="${resumeUrl}" class="showcase-work-card__resume">
+                <img src="/assets/icons/svg/actions/play.svg" class="icon-svg icon-xs" alt="" />
+                <span>Reanudar${resumeNum !== null ? ` Cap. ${resumeNum}` : ''}</span>
+              </a>
+            ` : ''}
           </div>
         </div>
-      </div>
+      </article>
     `;
   }).join('');
 }
 
-/* Badges */
-function renderBadges(badges) {
-  const container = document.getElementById('badges-container');
-  const ratioBadge = document.getElementById('badges-unlocked-ratio');
+function renderInventoryShowcase(items, isOwner = false) {
+  const container = document.getElementById('inventory-showcase-container');
   if (!container) return;
 
-  const unlockedCount = badges.filter(b => b.unlocked).length;
-  if (ratioBadge) ratioBadge.textContent = `${unlockedCount}/${badges.length}`;
+  if (!items || items.length === 0) {
+    container.innerHTML = `
+      <div class="inventory-empty">
+        <p class="profile-muted-note">
+          ${isOwner
+            ? 'Aún no has adquirido anillos, portadas ni títulos en la Tienda.'
+            : 'Este usuario aún no tiene cosméticos en su colección.'}
+        </p>
+        ${isOwner ? '<a href="/pages/tienda.html" class="btn btn-secondary btn-sm">Ir a la Tienda</a>' : ''}
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.slice(0, 6).map((item) => {
+    const cat = (item.category || '').toUpperCase();
+    const isEquipped = Boolean(item.is_equipped);
+    const rarity = (item.rarity || 'RARE').toLowerCase();
+
+    let previewHtml = '';
+    if (cat === 'BANNER' && item.preview_url) {
+      previewHtml = `<span class="inv-item__thumb inv-item__thumb--banner" style="background-image: url('${escapeHtml(item.preview_url)}');"></span>`;
+    } else if (cat === 'FRAME' && item.preview_url) {
+      previewHtml = `<span class="inv-item__thumb inv-item__thumb--frame"><img src="${escapeHtml(item.preview_url)}" alt="${escapeHtml(item.name)}" /></span>`;
+    } else {
+      previewHtml = `<span class="inv-item__thumb inv-item__thumb--title"><img src="/assets/icons/svg/gamification/award.svg" class="icon-svg icon-sm" alt="" /></span>`;
+    }
+
+    return `
+      <div class="inv-item-row ${isEquipped ? 'is-equipped' : ''}">
+        ${previewHtml}
+        <div class="inv-item__info">
+          <div class="inv-item__title-line">
+            <strong class="inv-item__name">${escapeHtml(item.name)}</strong>
+            <span class="inv-item__rarity rarity-${rarity}">${escapeHtml(formatCategoryLabel(cat))}</span>
+          </div>
+          <span class="inv-item__status">${isEquipped ? 'Equipado actualmente' : 'En colección'}</span>
+        </div>
+        ${isOwner ? `
+          <button
+            type="button"
+            class="btn btn-sm ${isEquipped ? 'btn-secondary' : 'btn-primary'} inv-equip-btn"
+            data-item-id="${item.item_id}"
+            data-category="${escapeHtml(cat)}"
+            data-equipped="${isEquipped ? '1' : '0'}"
+          >
+            ${isEquipped ? 'Quitar' : 'Equipar'}
+          </button>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  if (isOwner) {
+    container.querySelectorAll('.inv-equip-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const itemId = Number(btn.dataset.itemId);
+        const category = btn.dataset.category || 'BANNER';
+        const isEquipped = btn.dataset.equipped === '1';
+
+        btn.disabled = true;
+        try {
+          if (isEquipped) {
+            await apiRequest(`/shop/unequip?category=${encodeURIComponent(category)}`, { method: 'POST' });
+            showToast('Cosmético desequipado');
+          } else {
+            await apiRequest(`/shop/equip/${itemId}`, { method: 'POST' });
+            showToast('¡Cosmético equipado en tu perfil!');
+          }
+          await loadProfile();
+        } catch (err) {
+          showToast(err.message || 'No se pudo actualizar el cosmético');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+}
+
+function renderBadgesShowcase(badges, container) {
+  if (!container) return;
+
+  const unlockedCount = badges.filter((b) => b.unlocked).length;
+  const counterEl = document.getElementById('badges-unlocked-count');
+  if (counterEl) counterEl.textContent = `${unlockedCount} / ${badges.length}`;
 
   if (!badges.length) {
-    container.innerHTML = `<p class="profile-bio-text profile-bio-text--centered">No hay medallas disponibles.</p>`;
+    container.innerHTML = `<p class="profile-muted-note">No hay logros disponibles.</p>`;
     return;
   }
 
-  container.innerHTML = badges.map(b => {
-    const isUnlocked = Boolean(b.unlocked);
-    const itemClass = isUnlocked ? 'profile-badge-item profile-badge-item--unlocked' : 'profile-badge-item profile-badge-item--locked';
-    const iconBoxClass = isUnlocked ? 'profile-badge-icon profile-badge-icon--unlocked' : 'profile-badge-icon profile-badge-icon--locked';
-    const iconSvg = getIconImg(b.icon || 'award', 18);
-
-    return `
-      <div class="${itemClass}">
-        <div class="${iconBoxClass}">${iconSvg}</div>
-        <div class="profile-badge-details">
-          <div class="profile-badge-name-row">
-            <span class="profile-badge-name">${escapeHTML(b.name)}</span>
-            <span class="profile-badge-tier">${escapeHTML(b.tier || 'Bronce')}</span>
-          </div>
-          <p class="profile-badge-desc">${escapeHTML(b.description)}</p>
-          <div class="profile-badge-status ${isUnlocked ? 'profile-badge-status--unlocked' : 'profile-badge-status--locked'}">
-            ${isUnlocked ? '✓ Desbloqueado' : escapeHTML(b.progress || 'Bloqueado')}
-          </div>
-        </div>
+  container.innerHTML = badges.map((b) => `
+    <div class="badge-tile ${b.unlocked ? `is-unlocked tier-${b.tier || 'bronze'}` : 'is-locked'}" title="${escapeHtml(b.description)} (${escapeHtml(b.progress)})">
+      <div class="badge-tile__icon">
+        <img src="${resolveIconPath(b.icon)}" class="icon-svg icon-sm" alt="${escapeHtml(b.name)}" />
       </div>
-    `;
-  }).join('');
+      <div class="badge-tile__info">
+        <strong class="badge-tile__name">${escapeHtml(b.name)}</strong>
+        <span class="badge-tile__progress">${escapeHtml(b.progress)}</span>
+      </div>
+    </div>
+  `).join('');
 }
 
-/* Activity Feed */
-function renderActivityFeed(activities) {
-  const container = document.getElementById('activity-feed-container');
-  if (!container) return;
-
-  if (!activities.length) {
-    container.innerHTML = `
-      <div class="profile-empty-card">
-        ${getIconImg('book', 24)}
-        <h4 class="profile-title profile-empty-title">Sin actividad reciente</h4>
-        <p class="profile-bio-text">El lector aún no ha registrado lecturas o comentarios públicos.</p>
+function renderNotFound() {
+  const main = document.querySelector('.profile-container');
+  if (!main) return;
+  main.innerHTML = `
+    <div class="profile-private-card" style="display: flex; margin-top: 2rem;">
+      <div class="profile-private-card__icon">
+        <img src="/assets/icons/svg/user/user.svg" class="icon-svg icon-lg" alt="" />
       </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = activities.map(act => {
-    const timeAgo = formatTimeAgo(act.created_at);
-    const isRead = act.type === 'READ';
-
-    if (isRead) {
-      const chapterLabel = act.chapter_number ? `Capítulo ${parseFloat(act.chapter_number)}` : 'Capítulo';
-      const chapterTitle = act.chapter_title ? ` - ${act.chapter_title}` : '';
-      return `
-        <div class="profile-activity-card">
-          <div class="profile-activity-header">
-            <div class="profile-activity-user-box">
-              <div class="profile-activity-icon profile-activity-icon--read">${getIconImg('book', 18)}</div>
-              <div>
-                <div class="profile-activity-header">
-                  <span class="profile-activity-verb">Leyó</span>
-                  <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link profile-activity-link-margin">
-                    ${escapeHTML(act.work_title)}
-                  </a>
-                </div>
-                <div class="profile-activity-time">${timeAgo}</div>
-              </div>
-            </div>
-            <span class="profile-activity-type-tag">Lectura</span>
-          </div>
-
-          <div class="profile-activity-chapter-box">
-            <div class="profile-activity-row-content">
-              ${act.work_cover_url ? `<img src="${escapeHTML(act.work_cover_url)}" class="profile-activity-cover" alt="" onerror="this.classList.add('hidden')"/>` : ''}
-              <div class="profile-work-info">
-                <div class="profile-activity-title-trunc">${escapeHTML(chapterLabel + chapterTitle)}</div>
-                <div class="profile-activity-sub-trunc">${escapeHTML(act.work_title)}</div>
-              </div>
-            </div>
-            <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-btn profile-btn--secondary profile-activity-btn">Leer</a>
-          </div>
-        </div>
-      `;
-    } else {
-      return `
-        <div class="profile-activity-card">
-          <div class="profile-activity-header">
-            <div class="profile-activity-user-box">
-              <div class="profile-activity-icon profile-activity-icon--comment">${getIconImg('comment', 18)}</div>
-              <div>
-                <div class="profile-activity-header">
-                  <span class="profile-activity-verb">Comentó en</span>
-                  <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link profile-activity-link-margin">
-                    ${escapeHTML(act.work_title)}
-                  </a>
-                </div>
-                <div class="profile-activity-time">${timeAgo}</div>
-              </div>
-            </div>
-            <span class="profile-activity-type-tag">Comentario</span>
-          </div>
-          <div class="profile-activity-comment-box">"${escapeHTML(act.content || '')}"</div>
-        </div>
-      `;
-    }
-  }).join('');
-}
-
-
-function renderCommentsFeed(activities) {
-  const container = document.getElementById('comments-feed-container');
-  if (!container) return;
-
-  const comments = activities.filter(a => a.type === 'COMMENT' && a.content);
-  if (!comments.length) {
-    container.innerHTML = `
-      <div class="profile-empty-card">
-        ${getIconImg('comment', 24)}
-        <h4 class="profile-title profile-empty-title">Sin comentarios públicos</h4>
-        <p class="profile-bio-text">Este lector aún no ha realizado comentarios en los capítulos u obras.</p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = comments.map(act => {
-    const timeAgo = formatTimeAgo(act.created_at);
-    return `
-      <div class="profile-activity-card">
-        <div class="profile-activity-header">
-          <div class="profile-activity-user-box">
-            <div class="profile-activity-icon profile-activity-icon--comment">
-              ${getIconImg('comment', 18)}
-            </div>
-
-            <div>
-              <div class="profile-activity-work-text">
-                <span class="profile-activity-work-meta">Comentó en</span>
-                <a href="/pages/obra.html?slug=${encodeURIComponent(act.work_slug)}" class="profile-activity-title-link">
-                  ${escapeHTML(act.work_title || 'Obra')}
-                </a>
-              </div>
-              <div class="profile-activity-time">${timeAgo}</div>
-            </div>
-          </div>
-          <span class="profile-activity-type-tag">Comentario</span>
-        </div>
-        <div class="profile-activity-comment-box">
-          "${escapeHTML(act.content || '')}"
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderGenresBreakdown(genres, totalCaps) {
-  const wrap = document.getElementById('genres-content-wrap');
-  const capsLabel = document.getElementById('sidebar-total-caps');
-  if (capsLabel) capsLabel.textContent = `${totalCaps} Caps`;
-
-  if (!wrap) return;
-
-  if (!genres.length) {
-    wrap.innerHTML = `<p class="profile-bio-text profile-genres-empty">Sin suficientes lecturas para generar gráfico de géneros.</p>`;
-    return;
-  }
-
-  // Colores para los 4 segmentos
-  const colors = ['#39c6a5', '#f0c75e', '#f43f5e', '#64748b'];
-
-  let offset = 0;
-  const svgCircles = genres.map((g, idx) => {
-    const color = colors[idx % colors.length];
-    const pct = g.percentage || 0;
-    const dash = (pct * 0.88).toFixed(1);
-    const circle = `<circle cx="18" cy="18" r="14" fill="none" stroke="${color}" stroke-width="4.5" stroke-dasharray="${dash} 100" stroke-dashoffset="-${offset}"></circle>`;
-    offset += parseFloat(dash);
-    return circle;
-  }).join('');
-
-  const legendItems = genres.map((g, idx) => {
-    const colorIdx = idx % colors.length;
-    return `
-      <div class="profile-legend-item">
-        <span class="profile-legend-label">
-          <span class="profile-legend-dot profile-legend-dot--${colorIdx}"></span>
-          ${escapeHTML(g.name)}
-        </span>
-        <span class="profile-legend-pct">${g.percentage}%</span>
-      </div>
-    `;
-  }).join('');
-
-  wrap.innerHTML = `
-    <div class="profile-donut-layout">
-      <div class="profile-donut-svg-wrap">
-        <svg class="profile-donut-svg" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4.5"></circle>
-          ${svgCircles}
-        </svg>
-        <div class="profile-donut-center-text">
-          <span class="profile-donut-pct">${genres[0]?.percentage || 0}%</span>
-          <span class="profile-donut-top-genre">${escapeHTML(genres[0]?.name || '')}</span>
-        </div>
-      </div>
-      <div class="profile-donut-legend">
-        ${legendItems}
-      </div>
+      <h3 class="profile-private-card__title">Usuario no encontrado</h3>
+      <p class="profile-private-card__desc">El perfil que buscas no existe o ha cambiado su identificador.</p>
+      <a href="/" class="btn btn-primary btn-sm" style="margin-top: 0.75rem;">Volver al Inicio</a>
     </div>
   `;
 }
 
-function initInteractiveFeatures() {
-  // Follow button toggle
-  const followBtn = document.getElementById('btn-follow');
-  const followText = document.getElementById('follow-text');
-  let isFollowing = false;
+// modal editar perfil
 
-  if (followBtn) {
-    followBtn.addEventListener('click', () => {
-      isFollowing = !isFollowing;
-      if (isFollowing) {
-        followBtn.classList.remove('profile-btn--primary');
-        followBtn.classList.add('profile-btn--secondary');
-        if (followText) followText.textContent = 'Siguiendo';
-        showToast('¡Ahora sigues a este lector!', 'success');
-      } else {
-        followBtn.classList.add('profile-btn--primary');
-        followBtn.classList.remove('profile-btn--secondary');
-        if (followText) followText.textContent = 'Seguir';
-        showToast('Has dejado de seguir a este lector.', 'info');
-      }
-    });
+function buildCosmeticPresets() {
+  const bannerGrid = document.getElementById('banner-presets-grid');
+  const frameGrid = document.getElementById('frame-presets-grid');
+  const bannerInput = document.getElementById('edit-banner');
+  const frameInput = document.getElementById('edit-anillo');
+  const activeTitleSelect = document.getElementById('edit-active-title');
+
+  // selector titulos
+  if (activeTitleSelect) {
+    const currentTitle = currentProfileData?.active_title || '';
+    const autoRankTitle = currentProfileData?.level_info?.current_title || 'Iniciado del Cultivo';
+    const invTitles = ownerInventory
+      .filter((i) => (i.category === 'TITLE' || i.category === 'BADGE') && i.name)
+      .map((i) => i.name);
+
+    const uniqueTitles = [...new Set(invTitles)];
+    activeTitleSelect.innerHTML = [
+      `<option value="">Automático por nivel (${escapeHtml(autoRankTitle)})</option>`,
+      ...uniqueTitles.map((t) => `<option value="${escapeHtml(t)}" ${t === currentTitle ? 'selected' : ''}>${escapeHtml(t)}</option>`)
+    ].join('');
   }
 
-  /* Menu */
-  const dotsBtn = document.getElementById('menu-dots-btn');
-  const menuDropdown = document.getElementById('dropdown-profile-menu');
-  if (dotsBtn && menuDropdown) {
-    dotsBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuDropdown.hidden = !menuDropdown.hidden;
-    });
-    document.addEventListener('click', () => {
-      menuDropdown.hidden = true;
-    });
-  }
+  // selector banners
+  const invBanners = ownerInventory
+    .filter((i) => i.category === 'BANNER' && i.preview_url)
+    .map((i) => ({ name: i.name, url: i.preview_url }));
 
-  /* Share */
-  const shareBtn = document.getElementById('btn-share');
-  const shareLabel = document.getElementById('btn-share-label');
-  if (shareBtn) {
-    shareBtn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        const originalText = shareLabel ? shareLabel.textContent : 'Compartir';
-        if (shareLabel) shareLabel.textContent = '¡Copiado!';
-        showToast('Enlace de perfil copiado al portapapeles', 'success');
-        setTimeout(() => {
-          if (shareLabel) shareLabel.textContent = originalText;
-        }, 2000);
-      } catch {
-        showToast('Enlace: ' + window.location.href, 'info');
-      }
-    });
-  }
+  const allBanners = [...DEFAULT_BANNER_PRESETS];
+  invBanners.forEach((b) => {
+    if (!allBanners.some((existing) => existing.url === b.url)) {
+      allBanners.push(b);
+    }
+  });
 
-  /* Tabs */
-  const profileTabs = document.getElementById('profile-tabs');
-  const tabBtns = profileTabs ? profileTabs.querySelectorAll('.profile-tab-btn') : [];
-  const panes = {
-    activity: document.getElementById('pane-activity'),
-    library: document.getElementById('pane-library'),
-    comments: document.getElementById('pane-comments')
-  };
+  if (bannerGrid && bannerInput) {
+    const currentBanner = bannerInput.value.trim();
+    bannerGrid.innerHTML = allBanners.map((b) => {
+      const isSelected = currentBanner === b.url;
+      return `
+        <button type="button" class="cosmetic-preset-btn ${isSelected ? 'active' : ''}" data-banner-url="${escapeHtml(b.url)}">
+          <span class="cosmetic-preset-btn__thumb" style="${b.url ? `background-image: url('${escapeHtml(b.url)}');` : ''}"></span>
+          <span class="cosmetic-preset-btn__label">${escapeHtml(b.name)}</span>
+        </button>
+      `;
+    }).join('');
 
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetTab = btn.getAttribute('data-tab') || 'activity';
-
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      Object.entries(panes).forEach(([key, pane]) => {
-        if (!pane) return;
-        pane.hidden = (key !== targetTab);
+    bannerGrid.querySelectorAll('.cosmetic-preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        bannerInput.value = btn.dataset.bannerUrl || '';
+        bannerGrid.querySelectorAll('.cosmetic-preset-btn').forEach((el) => el.classList.remove('active'));
+        btn.classList.add('active');
+        updateLivePreview();
       });
+    });
+  }
+
+  // selector marcos
+  const invFrames = ownerInventory
+    .filter((i) => i.category === 'FRAME' && i.preview_url)
+    .map((i) => ({ name: i.name, url: i.preview_url }));
+
+  const allFrames = [...DEFAULT_FRAME_PRESETS];
+  invFrames.forEach((f) => {
+    if (!allFrames.some((existing) => existing.url === f.url)) {
+      allFrames.push(f);
+    }
+  });
+
+  if (frameGrid && frameInput) {
+    const currentFrame = frameInput.value.trim();
+    frameGrid.innerHTML = allFrames.map((f) => {
+      const isSelected = currentFrame === f.url;
+      return `
+        <button type="button" class="cosmetic-preset-btn cosmetic-preset-btn--frame ${isSelected ? 'active' : ''}" data-frame-url="${escapeHtml(f.url)}">
+          <span class="cosmetic-preset-btn__frame-preview">
+            ${f.url ? `<img src="${escapeHtml(f.url)}" alt="${escapeHtml(f.name)}" />` : `<span class="no-frame-dot">✕</span>`}
+          </span>
+          <span class="cosmetic-preset-btn__label">${escapeHtml(f.name)}</span>
+        </button>
+      `;
+    }).join('');
+
+    frameGrid.querySelectorAll('.cosmetic-preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        frameInput.value = btn.dataset.frameUrl || '';
+        frameGrid.querySelectorAll('.cosmetic-preset-btn').forEach((el) => el.classList.remove('active'));
+        btn.classList.add('active');
+        updateLivePreview();
+      });
+    });
+  }
+}
+
+function updateLivePreview() {
+  const username = document.getElementById('edit-username')?.value.trim() || currentProfileData?.username || 'Usuario';
+  const bio = document.getElementById('edit-bio')?.value.trim() || 'Sin biografía configurada.';
+  const avatarUrl = document.getElementById('edit-avatar')?.value.trim() || getFallbackAvatar(username);
+  const bannerUrl = document.getElementById('edit-banner')?.value.trim() || '';
+  const frameUrl = document.getElementById('edit-anillo')?.value.trim() || '';
+  const activeTitle = document.getElementById('edit-active-title')?.value.trim() || currentProfileData?.level_info?.current_title || '';
+
+  const previewBanner = document.getElementById('preview-banner-box');
+  if (previewBanner) {
+    previewBanner.style.backgroundImage = bannerUrl ? `url('${bannerUrl}')` : '';
+  }
+
+  const previewAvatar = document.getElementById('preview-avatar-img');
+  if (previewAvatar) {
+    previewAvatar.classList.remove('yz-skeleton');
+    previewAvatar.alt = username || '';
+    previewAvatar.src = avatarUrl;
+    previewAvatar.onerror = () => {
+      previewAvatar.src = getFallbackAvatar(username);
+    };
+  }
+
+  const previewFrame = document.getElementById('preview-frame-img');
+  if (previewFrame) {
+    if (frameUrl) {
+      previewFrame.src = frameUrl;
+      previewFrame.style.display = 'block';
+    } else {
+      previewFrame.style.display = 'none';
+    }
+  }
+
+  const previewName = document.getElementById('preview-username-text');
+  if (previewName) previewName.textContent = username;
+
+  const previewTitle = document.getElementById('preview-title-pill');
+  if (previewTitle) {
+    if (activeTitle) {
+      previewTitle.textContent = activeTitle;
+      previewTitle.style.display = 'inline-flex';
+    } else {
+      previewTitle.style.display = 'none';
+    }
+  }
+
+  const previewBio = document.getElementById('preview-bio-text');
+  if (previewBio) previewBio.textContent = bio;
+}
+
+async function openEditModal(initialTab = 'identity') {
+  if (!currentProfileData) return;
+
+  await loadOwnerInventory();
+
+  const modal = document.getElementById('edit-profile-modal');
+  const usernameInput = document.getElementById('edit-username');
+  const countrySelect = document.getElementById('edit-country');
+  const bioInput = document.getElementById('edit-bio');
+  const bioCounter = document.getElementById('bio-char-counter');
+  const avatarInput = document.getElementById('edit-avatar');
+  const bannerInput = document.getElementById('edit-banner');
+  const anilloInput = document.getElementById('edit-anillo');
+  const privateInput = document.getElementById('edit-private');
+  const errorBox = document.getElementById('edit-error');
+
+  if (usernameInput) usernameInput.value = currentProfileData.username || '';
+  if (countrySelect) countrySelect.value = (currentProfileData.country || 'CO').toUpperCase();
+  if (bioInput) {
+    bioInput.value = currentProfileData.bio || '';
+    if (bioCounter) bioCounter.textContent = `${bioInput.value.length} / 250`;
+  }
+  if (avatarInput) avatarInput.value = currentProfileData.avatar_url || '';
+  if (bannerInput) bannerInput.value = currentProfileData.banner_url || '';
+  if (anilloInput) anilloInput.value = currentProfileData.anillo_url || currentProfileData.avatar_frame_url || '';
+  if (privateInput) privateInput.checked = Boolean(currentProfileData.is_private);
+  if (errorBox) errorBox.style.display = 'none';
+
+  buildCosmeticPresets();
+  updateLivePreview();
+  switchEditModalTab(initialTab);
+
+  if (modal) modal.classList.add('active');
+}
+
+function switchEditModalTab(tabName) {
+  document.querySelectorAll('.edit-modal-tab').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.editTab === tabName);
+  });
+  document.getElementById('edit-pane-identity')?.classList.toggle('active', tabName === 'identity');
+  document.getElementById('edit-pane-appearance')?.classList.toggle('active', tabName === 'appearance');
+}
+
+function setupModalEvents() {
+  const modal = document.getElementById('edit-profile-modal');
+  const openBtn = document.getElementById('edit-profile-btn');
+  const quickAvatarBtn = document.getElementById('quick-avatar-edit-btn');
+  const closeBtn = document.getElementById('close-modal-btn');
+  const cancelBtn = document.getElementById('cancel-modal-btn');
+  const form = document.getElementById('edit-profile-form');
+  const errorBox = document.getElementById('edit-error');
+
+  if (openBtn) openBtn.addEventListener('click', () => openEditModal('identity'));
+  if (quickAvatarBtn) quickAvatarBtn.addEventListener('click', () => openEditModal('appearance'));
+
+  const closeModal = () => modal?.classList.remove('active');
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  document.querySelectorAll('.edit-modal-tab').forEach((btn) => {
+    btn.addEventListener('click', () => switchEditModalTab(btn.dataset.editTab));
+  });
+
+  const bioInput = document.getElementById('edit-bio');
+  const bioCounter = document.getElementById('bio-char-counter');
+  if (bioInput && bioCounter) {
+    bioInput.addEventListener('input', () => {
+      bioCounter.textContent = `${bioInput.value.length} / 250`;
+      updateLivePreview();
+    });
+  }
+
+  ['edit-username', 'edit-active-title', 'edit-avatar'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', updateLivePreview);
+    document.getElementById(id)?.addEventListener('change', updateLivePreview);
+  });
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (errorBox) errorBox.style.display = 'none';
+
+      const saveBtn = document.getElementById('save-profile-btn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+      }
+
+      const payload = {
+        username: document.getElementById('edit-username')?.value.trim(),
+        country: document.getElementById('edit-country')?.value || 'CO',
+        active_title: document.getElementById('edit-active-title')?.value.trim() || null,
+        bio: document.getElementById('edit-bio')?.value.trim() || '',
+        avatar_url: document.getElementById('edit-avatar')?.value.trim() || null,
+        banner_url: document.getElementById('edit-banner')?.value.trim() || null,
+        anillo_url: document.getElementById('edit-anillo')?.value.trim() || null,
+        is_private: Boolean(document.getElementById('edit-private')?.checked)
+      };
+
+      try {
+        const updated = await apiRequest('/users/me', {
+          method: 'PUT',
+          body: payload
+        });
+
+        currentProfileData = updated;
+        ownerInventory = Array.isArray(updated.inventory_items) ? updated.inventory_items : ownerInventory;
+        renderProfile(updated);
+
+        closeModal();
+        showToast('Perfil actualizado correctamente');
+      } catch (err) {
+        if (errorBox) {
+          errorBox.textContent = err.message || 'No se pudo actualizar el perfil.';
+          errorBox.style.display = 'block';
+        }
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Guardar Cambios';
+        }
+      }
+    });
+  }
+}
+
+function setupTabsAndMenus() {
+  const tabBtns = document.querySelectorAll('.profile-tab[data-lib-tab]');
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const status = btn.dataset.libTab || 'READING';
+      tabBtns.forEach((b) => {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+      });
+      renderLibraryShowcaseTab(status);
     });
   });
 
-  /* Report */
-  const reportBtn = document.getElementById('btn-report-profile');
-  if (reportBtn) {
-    reportBtn.addEventListener('click', () => {
-      showToast('Reporte enviado a los moderadores.', 'info');
-      if (menuDropdown) menuDropdown.hidden = true;
-    });
-  }
-
-  /* Edit Modal */
-  const editBtn = document.getElementById('btn-edit-profile');
-  if (editBtn) {
-    editBtn.addEventListener('click', openEditModal);
-  }
-
-  const modalCloseBtn = document.getElementById('modal-close-btn');
-  if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeEditModal);
-
-  const modalCancelBtn = document.getElementById('modal-cancel-btn');
-  if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeEditModal);
-
-  const editModalOverlay = document.getElementById('edit-profile-modal');
-  if (editModalOverlay) {
-    editModalOverlay.addEventListener('click', (e) => {
-      if (e.target === editModalOverlay) closeEditModal();
-    });
-  }
-
-  const editForm = document.getElementById('edit-profile-form');
-  if (editForm) {
-    editForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const submitBtn = document.getElementById('modal-submit-btn');
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Guardando...';
-      }
-
+  const shareBtn = document.getElementById('share-profile-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      const shareUrl = currentProfileData?.user_code
+        ? `${window.location.origin}/pages/usuario.html?id=${encodeURIComponent(currentProfileData.user_code)}`
+        : window.location.href;
       try {
-        const usernameVal = document.getElementById('edit-username')?.value?.trim();
-        const bioVal = document.getElementById('edit-bio')?.value?.trim();
-        const avatarVal = document.getElementById('edit-avatar-url')?.value?.trim() || null;
-        const countryVal = document.getElementById('edit-country')?.value?.trim() || 'CO';
-        const isPrivateVal = Boolean(document.getElementById('edit-is-private')?.checked);
-
-        const payload = {
-          username: usernameVal,
-          bio: bioVal,
-          avatar_url: avatarVal,
-          country: countryVal,
-          is_private: isPrivateVal
-        };
-
-        const updated = await apiRequest('/users/me', {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        });
-
-        showToast('¡Perfil actualizado exitosamente!', 'success');
-        closeEditModal();
-
-        if (updated && updated.username) {
-          window.history.replaceState({}, '', `/pages/usuario.html?id=${encodeURIComponent(updated.username)}`);
-          renderUser(updated);
-        }
-      } catch (err) {
-        console.error('Error al actualizar perfil:', err);
-        showToast(err.message || 'Error al guardar los cambios del perfil', 'error');
-      } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Guardar Cambios';
-        }
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('Enlace del perfil copiado al portapapeles');
+      } catch (_) {
+        showToast('Enlace: ' + shareUrl);
       }
+    });
+  }
+
+  const moreBtn = document.getElementById('more-options-btn');
+  const dropdown = document.getElementById('profile-dropdown-menu');
+  if (moreBtn && dropdown) {
+    moreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('active');
+    });
+    document.addEventListener('click', () => dropdown.classList.remove('active'));
+  }
+
+  const reportBtn = document.getElementById('report-profile-btn');
+  const reportModal = document.getElementById('report-profile-modal');
+  const closeReportBtn = document.getElementById('close-report-modal-btn');
+  const cancelReportBtn = document.getElementById('cancel-report-btn');
+  const reportForm = document.getElementById('report-profile-form');
+
+  if (reportBtn && reportModal) {
+    reportBtn.addEventListener('click', () => {
+      dropdown?.classList.remove('active');
+      reportModal.classList.add('active');
+    });
+  }
+  const closeReport = () => reportModal?.classList.remove('active');
+  if (closeReportBtn) closeReportBtn.addEventListener('click', closeReport);
+  if (cancelReportBtn) cancelReportBtn.addEventListener('click', closeReport);
+
+  if (reportForm) {
+    reportForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      closeReport();
+      reportForm.reset();
+      showToast('Reporte enviado al equipo de moderación');
     });
   }
 }
 
-/* State */
-let currentUser = null;
-let displayedUser = null;
+function setupCoinsModals() {
+  const buyBtn = document.getElementById('buy-coins-btn');
+  const buyModal = document.getElementById('buy-coins-modal');
+  const closeBuyBtn = document.getElementById('close-coins-modal-btn');
 
-function openEditModal() {
-  if (!displayedUser) return;
-  const modal = document.getElementById('edit-profile-modal');
-  const usernameInput = document.getElementById('edit-username');
-  const bioInput = document.getElementById('edit-bio');
-  const avatarInput = document.getElementById('edit-avatar-url');
-  const countryInput = document.getElementById('edit-country');
-  const privateInput = document.getElementById('edit-is-private');
-
-  if (usernameInput) usernameInput.value = displayedUser.username || '';
-  if (bioInput) bioInput.value = displayedUser.bio || '';
-  if (avatarInput) avatarInput.value = displayedUser.avatar_url || '';
-  if (countryInput) countryInput.value = (displayedUser.country || 'CO').toUpperCase();
-  if (privateInput) privateInput.checked = Boolean(displayedUser.is_private);
-
-  if (modal) {
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
+  if (buyBtn && buyModal) {
+    buyBtn.addEventListener('click', () => buyModal.classList.add('active'));
   }
+  if (closeBuyBtn && buyModal) {
+    closeBuyBtn.addEventListener('click', () => buyModal.classList.remove('active'));
+  }
+
+  document.querySelectorAll('.buy-pack-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buyModal?.classList.remove('active');
+      showToast('Pasarela de pago próximamente disponible');
+    });
+  });
+
+  const historyBtn = document.getElementById('history-coins-btn');
+  const historyModal = document.getElementById('coin-history-modal');
+  const closeHistoryBtn = document.getElementById('close-coin-history-btn');
+  const searchInput = document.getElementById('coin-search-input');
+  const typeFilter = document.getElementById('coin-type-filter');
+
+  if (historyBtn && historyModal) {
+    historyBtn.addEventListener('click', async () => {
+      historyModal.classList.add('active');
+      await loadCoinHistory();
+    });
+  }
+  if (closeHistoryBtn && historyModal) {
+    closeHistoryBtn.addEventListener('click', () => historyModal.classList.remove('active'));
+  }
+
+  const filterHistory = () => {
+    const q = (searchInput?.value || '').toLowerCase().trim();
+    const t = typeFilter?.value || 'ALL';
+    const filtered = cachedCoinTransactions.filter((tx) => {
+      const matchesText = !q || (tx.description || '').toLowerCase().includes(q);
+      const matchesType = t === 'ALL' || (t === 'EARN' ? tx.amount > 0 : tx.amount < 0);
+      return matchesText && matchesType;
+    });
+    renderCoinHistoryList(filtered);
+  };
+
+  if (searchInput) searchInput.addEventListener('input', filterHistory);
+  if (typeFilter) typeFilter.addEventListener('change', filterHistory);
 }
 
-function closeEditModal() {
-  const modal = document.getElementById('edit-profile-modal');
-  if (modal) {
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-  }
-}
+async function loadCoinHistory() {
+  const container = document.getElementById('coin-transactions-container');
+  if (!container) return;
+  container.innerHTML = renderCoinTxSkeletons(5);
 
-async function loadUser(id) {
   try {
-    const cleanId = id.trim().replace(/^@/, '');
-    const user = await apiRequest(`/users/${encodeURIComponent(cleanId)}`);
-    renderUser(user);
-    return user;
-  } catch (error) {
-    console.error('Error cargando usuario:', error);
-    if (error.status === 404 || error.message?.toLowerCase().includes('no encontrado')) {
-      showError(
-        'Lector no encontrado',
-        `No encontramos a ningún usuario con el identificador "${id}". Verifica el nombre de usuario o código.`
-      );
-    } else {
-      showError(
-        'Perfil temporalmente inaccesible',
-        'No pudimos conectar con el servidor para obtener los datos de este lector. Por favor intenta más tarde.'
-      );
-    }
-    return null;
+    const list = await apiRequest('/users/me/transactions?limit=30');
+    cachedCoinTransactions = Array.isArray(list) ? list : [];
+    renderCoinHistoryList(cachedCoinTransactions);
+  } catch (_) {
+    container.innerHTML = `<p class="profile-muted-note">No se pudo cargar el historial de monedas.</p>`;
   }
 }
 
-async function init() {
-  initInteractiveFeatures();
+function renderCoinHistoryList(list) {
+  const container = document.getElementById('coin-transactions-container');
+  if (!container) return;
 
-  const token = getAccessToken();
-  if (token) {
-    try {
-      currentUser = await authRequest('/me');
-    } catch (e) {
-      console.warn('Error resolviendo usuario actual:', e);
-    }
+  if (!list.length) {
+    container.innerHTML = `<p class="profile-muted-note">No se encontraron movimientos de monedas.</p>`;
+    return;
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  let identifier = urlParams.get('id');
-
-  // Si no hay ?id=, intentar resolver el usuario autenticado
-  let loaded = null;
-  if (!identifier) {
-    if (currentUser && (currentUser.username || currentUser.user_code)) {
-      const myId = currentUser.username || currentUser.user_code;
-      window.history.replaceState({}, '', `/pages/usuario.html?id=${encodeURIComponent(myId)}`);
-      loaded = await loadUser(myId);
-    } else {
-      window.history.replaceState({}, '', `/pages/usuario.html?id=YumeMaster`);
-      loaded = await loadUser('YumeMaster');
-    }
-  } else {
-    loaded = await loadUser(identifier);
-  }
-
-  // Si se solicitó el parámetro edit=1 y el lector es dueño del perfil, abrir modal automáticamente
-  if (urlParams.get('edit') === '1' && loaded) {
-    const isOwner = Boolean(loaded.is_owner || (currentUser && currentUser.id === loaded.id));
-    if (isOwner) {
-      openEditModal();
-    }
-  }
+  container.innerHTML = list.map((tx) => {
+    const isPositive = tx.amount >= 0;
+    return `
+      <div class="coin-tx-row">
+        <div class="coin-tx-row__info">
+          <strong>${escapeHtml(tx.description || tx.type)}</strong>
+          <span>${getRelativeTime(tx.created_at)}</span>
+        </div>
+        <div class="coin-tx-row__amount ${isPositive ? 'is-pos' : 'is-neg'}">
+          ${isPositive ? '+' : ''}${tx.amount} YC
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
-// Escuchar actualización de XP en tiempo real
-window.addEventListener('yume:xp-updated', (e) => {
-  if (e.detail?.new_xp !== undefined || e.detail?.xp !== undefined) {
-    const xp = e.detail.new_xp ?? e.detail.xp;
-    const lvl = e.detail.level || (Math.floor(xp / 1000) + 1);
-    const currXp = e.detail.current_level_xp ?? (xp % 1000);
-    const remXp = e.detail.remaining_xp ?? (1000 - currXp);
-    const pct = e.detail.percentage ?? Math.min(100, Math.floor((currXp / 1000) * 100));
-
-    const levelBadge = document.getElementById('user-level-badge');
-    if (levelBadge) levelBadge.textContent = `Nv. ${lvl}`;
-
-    const xpNumbers = document.getElementById('xp-numbers-label');
-    if (xpNumbers) xpNumbers.textContent = `${currXp.toLocaleString()} XP`;
-
-    const xpPct = document.getElementById('xp-pct-label');
-    if (xpPct) xpPct.textContent = `${pct}% Completado`;
-
-    const xpRemaining = document.getElementById('xp-remaining-label');
-    if (xpRemaining) xpRemaining.textContent = `FALTAN ${remXp.toLocaleString()}`;
-
-    const xpBar = document.getElementById('xp-progress-bar');
-    if (xpBar) xpBar.style.width = `${pct}%`;
-  }
+document.addEventListener('DOMContentLoaded', () => {
+  setupTabsAndMenus();
+  setupModalEvents();
+  setupCoinsModals();
+  loadProfile();
 });
-
-init();
-

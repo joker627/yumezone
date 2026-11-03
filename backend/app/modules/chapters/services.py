@@ -1,25 +1,32 @@
-# imports externos
 from decimal import Decimal
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
+import aiomysql
+from fastapi import HTTPException, status
 
-from fastapi import HTTPException
-
-# imports locales
+from app.core.dependencies import is_platform_admin, verify_upload_permission
 from app.modules.chapters.models import Chapter, ChapterImage
-from app.modules.chapters.schemas import ChapterCreate, ChapterPageReference
 from app.modules.chapters.repository import (
     ChapterImageRepository,
     ChapterRepository,
 )
-from app.utils.generate_slug import generate_slug
+from app.modules.chapters.schemas import (
+    ChapterCreate,
+    ChapterPageReference,
+    ChapterSubmissionCreate,
+    ChapterSubmissionReview,
+)
+from app.modules.scans.repository import ScanGroupRepository
+from app.modules.users.models import CurrentUser
+
+from app.utils import generate_slug
 
 
 class ChapterService:
-    def __init__(self):
-        self.chapter_repository = ChapterRepository()
-        self.chapter_image_repository = ChapterImageRepository()
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+        self.chapter_repository = ChapterRepository(conn)
+        self.chapter_image_repository = ChapterImageRepository(conn)
+        self.scan_repo = ScanGroupRepository(conn)
 
-    # Crear capítulo
     async def create_chapter(self, data: ChapterCreate) -> Chapter:
         if await self.get_chapter_by_number(data.work_id, data.chapter_number):
             raise HTTPException(status_code=409, detail="Ya existe ese número de capítulo en la obra")
@@ -31,11 +38,9 @@ class ChapterService:
         )
         return await self.chapter_repository.create_chapter(chapter)
 
-    # Obtener capítulo por ID
     async def get_chapter_by_id(self, chapter_id: int) -> Optional[Chapter]:
         return await self.chapter_repository.get_chapter(chapter_id)
 
-    # Obtener capítulo por número
     async def get_chapter_by_number(
         self, work_id: int, chapter_number: Decimal
     ) -> Optional[Chapter]:
@@ -43,7 +48,6 @@ class ChapterService:
             work_id, chapter_number
         )
 
-    # Obtener capítulos de una obra
     async def get_chapters(
         self,
         work_id: int,
@@ -54,14 +58,25 @@ class ChapterService:
             work_id, published_only=published_only, order=order
         )
 
-    # Actualizar capítulo
+    async def get_chapter_reader(
+        self,
+        chapter_id: Optional[int] = None,
+        work_slug: Optional[str] = None,
+        chapter_number: Optional[Decimal] = None,
+        user_id: Optional[int] = None,
+    ) -> Optional[Dict[str, Any]]:
+        return await self.chapter_repository.get_chapter_reader_data(
+            chapter_id=chapter_id,
+            work_slug=work_slug,
+            chapter_number=chapter_number,
+            user_id=user_id,
+        )
+
+
     async def update_chapter(self, chapter_id: int, chapter_data: dict) -> Chapter:
         chapter = await self.get_chapter_by_id(chapter_id)
         if not chapter:
-            raise HTTPException(
-                status_code=404,
-                detail="Capítulo no encontrado",
-            )
+            raise HTTPException(status_code=404, detail="Capítulo no encontrado")
 
         for key, value in chapter_data.items():
             if hasattr(chapter, key) and value is not None:
@@ -69,27 +84,20 @@ class ChapterService:
 
         return await self.chapter_repository.update_chapter(chapter)
 
-    # Eliminar capítulo
     async def delete_chapter(self, chapter_id: int) -> bool:
         chapter = await self.get_chapter_by_id(chapter_id)
         if not chapter:
-            raise HTTPException(
-                status_code=404,
-                detail="Capítulo no encontrado",
-            )
+            raise HTTPException(status_code=404, detail="Capítulo no encontrado")
         return await self.chapter_repository.delete_chapter(chapter_id)
 
-    # Crear imágenes de un capítulo
     async def create_chapter_images(
         self, images: List[ChapterImage]
     ) -> List[ChapterImage]:
         return await self.chapter_image_repository.create_chapter_images(images)
 
-    # Eliminar imágenes de un capítulo
     async def delete_chapter_images(self, chapter_id: int) -> bool:
         return await self.chapter_image_repository.delete_chapter_images(chapter_id)
 
-    # Obtener imágenes de un capítulo
     async def get_chapter_images(self, chapter_id: int) -> List[ChapterImage]:
         return await self.chapter_image_repository.get_chapter_images(chapter_id)
 
@@ -109,3 +117,105 @@ class ChapterService:
             for page in sorted(pages, key=lambda page: page.order_number)
         ]
         return await self.chapter_image_repository.replace_chapter_images(chapter_id, images)
+
+    # --------------------------------------------------------------------------
+    # Gestión de Borradores de Traducción
+    # --------------------------------------------------------------------------
+    async def submit_translation(
+        self,
+        chapter_id: int,
+        user: CurrentUser,
+        data: ChapterSubmissionCreate,
+    ) -> Dict[str, Any]:
+        chapter = await self.get_chapter_by_id(chapter_id)
+        if not chapter:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capítulo no encontrado")
+
+        # Verificar permisos de pertenencia al scan group
+        if chapter.scan_group_id:
+            await verify_upload_permission(user, chapter.scan_group_id)
+
+        # Regla estricta: validar que se envíe la totalidad de páginas del capítulo
+        existing_images = await self.chapter_image_repository.get_chapter_images(chapter_id)
+        if existing_images and data.page_count != len(existing_images):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Debes incluir la traducción completa de las {len(existing_images)} páginas del capítulo.",
+            )
+
+        sub_id = await self.chapter_repository.create_submission(
+            chapter_id=chapter_id,
+            user_id=user.id,
+            content_url=data.content_url.strip(),
+            page_count=data.page_count,
+            notes=data.notes.strip() if data.notes else None,
+        )
+        return {
+            "id": sub_id,
+            "chapter_id": chapter_id,
+            "status": "PENDING",
+            "message": "Borrador de traducción enviado con éxito. Esperando revisión del líder.",
+        }
+
+    async def list_submissions(
+        self,
+        chapter_id: int,
+        user: CurrentUser,
+        status_filter: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        chapter = await self.get_chapter_by_id(chapter_id)
+        if not chapter:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capítulo no encontrado")
+
+        # Solo líderes/colíderes o miembros con permisos de gestión pueden auditar los borradores
+        if not is_platform_admin(user):
+            if not chapter.scan_group_id:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos de revisión")
+            member = await self.scan_repo.get_member(chapter.scan_group_id, user.id)
+            if not member or not member.can_manage:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Solo el líder o miembros con permisos de gestión del scan pueden revisar borradores.",
+                )
+
+        return await self.chapter_repository.list_submissions(chapter_id, status_filter)
+
+    async def review_submission(
+        self,
+        chapter_id: int,
+        submission_id: int,
+        user: CurrentUser,
+        review: ChapterSubmissionReview,
+    ) -> Dict[str, Any]:
+        chapter = await self.get_chapter_by_id(chapter_id)
+        if not chapter:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capítulo no encontrado")
+
+        if not is_platform_admin(user):
+            if not chapter.scan_group_id:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos de revisión")
+            member = await self.scan_repo.get_member(chapter.scan_group_id, user.id)
+            if not member or not member.can_manage:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Solo el líder o miembros con permisos de gestión del scan pueden aprobar o rechazar borradores.",
+                )
+
+
+        try:
+            if review.status == "APPROVED":
+                return await self.chapter_repository.approve_submission(
+                    submission_id=submission_id,
+                    reviewer_id=user.id,
+                    reward_coins_override=review.reward_coins,
+                )
+            else:
+                return await self.chapter_repository.reject_submission(
+                    submission_id=submission_id,
+                    reviewer_id=user.id,
+                    reason=review.rejection_reason,
+                )
+        except ValueError as e:
+            err_msg = str(e)
+            status_code = status.HTTP_404_NOT_FOUND if "no encontrado" in err_msg.lower() else status.HTTP_400_BAD_REQUEST
+            raise HTTPException(status_code=status_code, detail=err_msg)

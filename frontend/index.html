@@ -86,26 +86,27 @@
   <link rel="stylesheet" href="/css/components/hero.css">
   <link rel="stylesheet" href="/css/components/chat-picker.css">
   <link rel="stylesheet" href="/css/components/home-sections.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
 </head>
 
 <body>
   <header id="header"></header>
-  <div id="notice"></div>
+  <div id="notice">
+    <aside class="notice" aria-label="Aviso de versión beta">
+      <span class="notice-icon" aria-hidden="true"></span>
+      <span class="notice-label">BETA-1.0</span>
+      <span class="notice-message">
+        Estamos trabajando en nuevas funciones versión 1.0
+      </span>
+    </aside>
+  </div>
   <main id="app">
     <section id="hero" class="hero" aria-label="Obras destacadas">
       <div class="hero-stage" data-home-hero-stage>
         <!-- Slides se insertan aquí dinámicamente -->
       </div>
 
-      <div class="hero-skeleton" data-home-hero-skeleton aria-hidden="true">
-        <div class="hero-skeleton-bg"></div>
-        <div class="hero-skeleton-content">
-          <div class="hero-skeleton-line hero-skeleton-line-sm"></div>
-          <div class="hero-skeleton-line hero-skeleton-line-lg"></div>
-          <div class="hero-skeleton-line hero-skeleton-line-md"></div>
-          <div class="hero-skeleton-line hero-skeleton-line-sm"></div>
-        </div>
-      </div>
+      <div class="hero-skeleton" data-home-hero-skeleton data-skeleton="hero" aria-hidden="true"></div>
 
       <div class="hero-error" data-home-hero-error hidden>
         <p>No se pudieron cargar las obras destacadas.</p>
@@ -116,11 +117,287 @@
         <div class="hero-dots" data-home-hero-dots aria-label="Seleccionar obra destacada"></div>
       </div>
     </section>
+    <div class="home-body">
+      <div class="home-container">
+
+        <!-- ====== COLUMNA PRINCIPAL ====== -->
+        <div class="home-main">
+
+          <!-- Lanzamientos Recientes -->
+          <section class="hs" aria-labelledby="hs-launch-title" id="section-launch">
+            <div class="hs-head">
+              <div class="hs-head-left">
+                <div class="hs-icon hs-icon--teal">
+                  <img src="/assets/icons/svg/actions/play.svg" alt="" aria-hidden="true">
+                </div>
+                <div class="hs-title-group">
+                  <div class="hs-title-row">
+                    <h2 id="hs-launch-title" class="hs-title">Lanzamientos Recientes</h2>
+                    <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> EN VIVO</span>
+                  </div>
+                  <p class="hs-subtitle">Capítulos sincronizados en tiempo real por los grupos oficiales</p>
+                </div>
+              </div>
+            </div>
+            <div class="launch-grid" id="slot-launch" data-skeleton="home-launch" data-skeleton-count="6" data-skeleton-cols="2"></div>
+            <div class="hs-foot">
+              <span id="launch-count" class="hs-foot-count"></span>
+              <a class="hs-link" href="/pages/novedades.html">Ver todos los estrenos del día <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
+            </div>
+          </section>
+
+          <!-- Top Ranking -->
+          <section class="hs" aria-labelledby="hs-rank-title" id="section-rank">
+            <div class="hs-head">
+              <div class="hs-head-left">
+                <div class="hs-icon hs-icon--gold">
+                  <img src="/assets/icons/svg/gamification/star.svg" alt="" aria-hidden="true">
+                </div>
+                <div class="hs-title-group">
+                  <div class="hs-title-row">
+                    <h2 id="hs-rank-title" class="hs-title">Top Ranking</h2>
+                    <span class="hs-badge hs-badge--updated">Actualizado Hoy</span>
+                  </div>
+                  <p class="hs-subtitle">Las series más aclamadas según votos y lecturas en tiempo real</p>
+                </div>
+              </div>
+              <div class="hs-head-right">
+                <div class="hs-tabs" role="tablist" id="ranking-tabs">
+                  <button class="hs-tab is-active" type="button" role="tab" data-period="all">Total</button>
+                  <button class="hs-tab" type="button" role="tab" data-period="monthly">Mensual</button>
+                  <button class="hs-tab" type="button" role="tab" data-period="weekly">Semanal</button>
+                </div>
+                <a class="hs-link hs-link--ml" href="/pages/ranking.html">Ver Top 100 <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
+              </div>
+            </div>
+            <div class="rank-grid" id="slot-rank" data-skeleton="home-rank" data-skeleton-count="6" data-skeleton-cols="3"></div>
+          </section>
+
+          <!-- Populares Esta Semana -->
+          <section class="hs" aria-labelledby="hs-popular-title" id="section-popular">
+            <div class="hs-head">
+              <div class="hs-head-left">
+                <div class="hs-icon hs-icon--teal">
+                  <img src="/assets/icons/svg/gamification/star.svg" alt="" aria-hidden="true">
+                </div>
+                <div class="hs-title-group">
+                  <div class="hs-title-row">
+                    <h2 id="hs-popular-title" class="hs-title">Populares Esta Semana</h2>
+                    <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> TOP DESTACADO</span>
+                  </div>
+                  <p class="hs-subtitle">Los títulos más leídos con actualizaciones diarias de alta definición</p>
+                </div>
+              </div>
+              <div class="hs-head-right">
+                <div class="hs-tabs" role="tablist" id="popular-format-tabs">
+                  <button class="hs-tab is-active" type="button" role="tab" data-format="all">Todos</button>
+                  <button class="hs-tab" type="button" role="tab" data-format="Manhwa">Manhwa</button>
+                  <button class="hs-tab" type="button" role="tab" data-format="Manga">Manga</button>
+                  <button class="hs-tab" type="button" role="tab" data-format="Manhua">Manhua</button>
+                </div>
+                <a class="hs-link hs-link--ml" href="/pages/catalogo.html?order=popular">Ver Catálogo <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
+              </div>
+            </div>
+            <div class="popular-grid" id="slot-popular" data-skeleton="home-popular" data-skeleton-count="4" data-skeleton-cols="4"></div>
+          </section>
+
+          <!-- Comunidad & Redes Oficiales -->
+          <section class="hs hs-social-section" aria-labelledby="hs-social-title" id="section-social">
+            <div class="hs-head">
+              <div class="hs-head-left">
+                <div class="hs-icon hs-icon--teal">
+                  <img src="/assets/icons/svg/gamification/star.svg" alt="" aria-hidden="true">
+                </div>
+                <div class="hs-title-group">
+                  <div class="hs-title-row">
+                    <h2 id="hs-social-title" class="hs-title">Canales & Redes Oficiales</h2>
+                    <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> OFICIAL</span>
+                  </div>
+                  <p class="hs-subtitle">Únete a nuestros canales oficiales para enterarte de nuevos capítulos, sorteos y debates</p>
+                </div>
+              </div>
+            </div>
+            <div class="social-cards-grid">
+              <!-- Discord -->
+              <a href="https://discord.gg/" target="_blank" rel="noopener noreferrer" class="social-card social-card--discord">
+                <div class="social-card--glow"></div>
+                <div class="social-card--bg-icon" aria-hidden="true">
+                  <img src="/assets/icons/svg/social/discord.svg" alt="">
+                </div>
+                <div class="social-card--header">
+                  <div class="social-card--brand-icon">
+                    <img src="/assets/icons/svg/social/discord.svg" alt="Discord" width="24" height="24">
+                  </div>
+                  <span class="social-card--badge">
+                    <span class="social-card--dot"></span> Servidor Oficial
+                  </span>
+                </div>
+                <div class="social-card--body">
+                  <h3 class="social-card--title">Discord</h3>
+                  <p class="social-card--desc">Charla con otros lectores, debate teorías sin spoilers, participa en eventos semanales y obtén roles exclusivos.</p>
+                </div>
+                <div class="social-card--footer">
+                  <span class="social-card--cta">
+                    <span>Unirse al Servidor</span>
+                    <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" width="14" height="14">
+                  </span>
+                  <span class="social-card--stat">Comunidad Activa</span>
+                </div>
+              </a>
+
+              <!-- Telegram -->
+              <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="social-card social-card--telegram">
+                <div class="social-card--glow"></div>
+                <div class="social-card--bg-icon" aria-hidden="true">
+                  <img src="/assets/icons/svg/social/telegram.svg" alt="">
+                </div>
+                <div class="social-card--header">
+                  <div class="social-card--brand-icon">
+                    <img src="/assets/icons/svg/social/telegram.svg" alt="Telegram" width="24" height="24">
+                  </div>
+                  <span class="social-card--badge">
+                    <span class="social-card--dot"></span> Canal Oficial
+                  </span>
+                </div>
+                <div class="social-card--body">
+                  <h3 class="social-card--title">Telegram</h3>
+                  <p class="social-card--desc">Alertas instantáneas en tiempo real cada vez que un nuevo capítulo sale al aire, directo en tu móvil sin spam.</p>
+                </div>
+                <div class="social-card--footer">
+                  <span class="social-card--cta">
+                    <span>Unirse al Canal</span>
+                    <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" width="14" height="14">
+                  </span>
+                  <span class="social-card--stat">Alertas al Instante</span>
+                </div>
+              </a>
+
+              <!-- Facebook -->
+              <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer" class="social-card social-card--facebook">
+                <div class="social-card--glow"></div>
+                <div class="social-card--bg-icon" aria-hidden="true">
+                  <img src="/assets/icons/svg/social/facebook.svg" alt="">
+                </div>
+                <div class="social-card--header">
+                  <div class="social-card--brand-icon">
+                    <img src="/assets/icons/svg/social/facebook.svg" alt="Facebook" width="24" height="24">
+                  </div>
+                  <span class="social-card--badge">
+                    <span class="social-card--dot"></span> Página Oficial
+                  </span>
+                </div>
+                <div class="social-card--body">
+                  <h3 class="social-card--title">Facebook</h3>
+                  <p class="social-card--desc">Novedades del mundo del manga, recomendaciones destacadas, reels exclusivos y memes de la comunidad.</p>
+                </div>
+                <div class="social-card--footer">
+                  <span class="social-card--cta">
+                    <span>Seguir Página</span>
+                    <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" width="14" height="14">
+                  </span>
+                  <span class="social-card--stat">Noticias & Memes</span>
+                </div>
+              </a>
+            </div>
+          </section>
+
+        </div><!-- /home-main -->
+
+        <!-- ====== SIDEBAR ====== -->
+        <aside class="home-aside" aria-label="Panel lateral">
+
+          <!-- Tablón de Anuncios -->
+          <section class="aside-card aside-card--anuncios" aria-labelledby="aside-anuncios-title" id="section-anuncios">
+            <div class="aside-card--head">
+              <div class="aside-card--head-left">
+                <div class="aside-card--icon aside-card--icon--teal">
+                  <img src="/assets/icons/svg/user/bell.svg" alt="" aria-hidden="true">
+                </div>
+                <h2 id="aside-anuncios-title" class="aside-card--title">Tablón de Anuncios</h2>
+              </div>
+              <div class="anuncio-nav-controls" id="anuncio-nav-controls" hidden>
+                <span class="anuncio-counter" id="anuncio-counter"><span class="is-loading is-loading--xs"></span></span>
+              </div>
+            </div>
+            <div class="aside-card--body anuncio-body">
+              <div class="anuncio-progress-track" id="anuncio-progress-track" hidden>
+                <div class="anuncio-progress-bar" id="anuncio-progress-bar"></div>
+              </div>
+              <div id="slot-anuncios" data-skeleton="home-anuncio" data-skeleton-count="1" data-skeleton-cols="1"></div>
+            </div>
+          </section>
+
+          <!-- Misión Diaria -->
+          <section class="aside-card aside-card--missions" aria-labelledby="aside-mision-title">
+            <div class="aside-card--head">
+              <div class="aside-card--head-left">
+                <div class="aside-card--icon aside-card--icon--gold">
+                  <img src="/assets/icons/svg/gamification/star.svg" alt="" aria-hidden="true">
+                </div>
+                <h2 id="aside-mision-title" class="aside-card--title">Misiones Diarias</h2>
+              </div>
+              <div class="mision-head--badges">
+                <span class="mision-level-badge" id="mision-level-badge"><span class="is-loading is-loading--xs"></span></span>
+                <span class="mision-xp-pill" id="mision-xp"><span class="is-loading is-loading--xs"></span></span>
+              </div>
+            </div>
+            <div class="aside-card--body" id="slot-mision" data-skeleton="home-mision" data-skeleton-count="1" data-skeleton-cols="1"></div>
+          </section>
+
+          <!-- Chat en Vivo de la Comunidad -->
+          <section class="aside-card aside-card--chat" aria-labelledby="aside-chat-title" id="section-chat">
+            <div class="aside-card--head">
+              <div class="aside-card--head-left">
+                <div class="aside-card--icon aside-card--icon--teal">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                <div class="chat-title-group">
+                  <h2 id="aside-chat-title" class="aside-card--title">Chat en Vivo</h2>
+                  <div class="chat-online-pill" id="chat-online-badge" title="Lectores en línea">
+                    <span class="hs-dot"></span>
+                    <span id="chat-online-count"><span class="is-loading is-loading--sm"></span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feed de mensajes -->
+            <div class="chat-messages" id="slot-chat" data-skeleton="home-chat" data-skeleton-count="4" data-skeleton-cols="1" role="log" aria-live="polite"></div>
+
+            <!-- Popover flotante modular para Emojis y GIFs -->
+            <div class="chat-picker-popover" id="chat-picker-popover" hidden>
+              <div class="chat-picker-header">
+                <span class="chat-picker-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                  GIFs de Anime
+                </span>
+                <button type="button" class="chat-picker-close" id="chat-picker-close" aria-label="Cerrar selector">&times;</button>
+              </div>
+              <div class="chat-picker-panel is-active" id="chat-panel-gifs">
+                <div class="chat-gif-search-wrap">
+                  <input type="text" class="chat-gif-search-input" id="chat-gif-search" placeholder="Buscar GIFs (ej: anime, luffy, dance)..." autocomplete="off" />
+                </div>
+                <div class="chat-gif-grid" id="chat-gif-grid" data-skeleton="gifs" data-skeleton-count="12"></div>
+              </div>
+            </div>
+
+            <!-- Barra de composición -->
+            <div class="chat-input-row" id="chat-input-row"></div>
+          </section>
+
+        </aside>
+
+      </div>
+    </div>
     <noscript>
       <p>YumeZone necesita JavaScript para mostrar las obras destacadas y sus capítulos.</p>
     </noscript>
   </main>
-  <div id="home-sections"></div>
+  <footer id="site-footer" class="site-footer"></footer>
   <template id="hero-slide-template">
     <article class="hero-slide">
       <div class="hero-bg">
@@ -135,7 +412,7 @@
               <span data-home-hero-badge-text></span>
             </span>
             <span class="hero-rating" title="Calificar esta obra" data-home-hero-rating-badge role="button" tabindex="0">
-              <img class="hero-icon" src="assets/icons/svg/star.svg" alt="" aria-hidden="true">
+              <img class="hero-icon" src="assets/icons/svg/gamification/star.svg" alt="" aria-hidden="true">
               <span data-home-hero-rating></span>
               <span class="hero-rating-count">(<span data-home-hero-rating-count></span>)</span>
             </span>
@@ -145,7 +422,7 @@
             </span>
           </div>
           <div class="hero-eyebrow">
-            <img class="hero-icon" src="assets/icons/svg/info.svg" alt="" aria-hidden="true">
+            <img class="hero-icon" src="assets/icons/svg/content/info.svg" alt="" aria-hidden="true">
             <span data-home-hero-alternative-title></span>
           </div>
           <h1 class="hero-title">
@@ -156,29 +433,25 @@
           <p class="hero-synopsis" data-home-hero-synopsis></p>
           <div class="hero-genres" data-home-hero-genres>
             <span class="hero-update">
-              <img class="hero-icon" src="assets/icons/svg/history.svg" alt="" aria-hidden="true">
+              <img class="hero-icon" src="assets/icons/svg/navigation/history.svg" alt="" aria-hidden="true">
               <span data-home-hero-published-text></span>
             </span>
           </div>
           <div class="hero-actions">
             <a href="#" class="hero-cta hero-cta-primary" data-home-hero-read-link>
-              <img class="hero-icon" src="assets/icons/svg/play.svg" alt="" aria-hidden="true">
+              <img class="hero-icon" src="assets/icons/svg/actions/play.svg" alt="" aria-hidden="true">
               <span data-home-hero-read-text>Leer</span>
             </a>
-            <button type="button" class="hero-cta hero-cta-secondary" data-home-hero-library-btn>
-              <img class="hero-icon hero-library-icon" src="assets/icons/svg/heart.svg" alt="" aria-hidden="true">
-              <span data-home-hero-library-text></span>
-            </button>
             <a href="#" class="hero-cta hero-cta-view" data-home-hero-detail-link
               aria-label="Ver detalles de la obra">
-              <img class="hero-icon" src="assets/icons/svg/eye.svg" alt="" aria-hidden="true">
+              <img class="hero-icon" src="assets/icons/svg/actions/eye.svg" alt="" aria-hidden="true">
               <span>Detalles</span>
             </a>
           </div>
         </div>
         <aside class="hero-next" aria-label="Próximo capítulo">
           <header class="hero-next-header">
-            <img class="hero-icon" src="assets/icons/svg/history.svg" alt="" aria-hidden="true">
+            <img class="hero-icon" src="assets/icons/svg/navigation/history.svg" alt="" aria-hidden="true">
             <span data-home-hero-next-label>Próximo Capítulo</span>
             <span class="hero-next-status" data-home-hero-next-status></span>
           </header>
@@ -188,82 +461,15 @@
             <span class="hero-next-scan">Subido por <span data-home-hero-next-scan></span></span>
             <a href="#" class="hero-next-cta" data-home-hero-next-link aria-label="Ver detalles de la obra">
               <span>Ver obra</span>
-              <img class="hero-icon" src="assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
+              <img class="hero-icon" src="assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true">
             </a>
           </footer>
         </aside>
       </div>
     </article>
   </template>
-  <dialog id="hero-rating-modal" class="rating-modal" aria-labelledby="rating-modal-title">
-    <div class="rating-modal-backdrop" data-rating-modal-close></div>
-    <div class="rating-modal-card">
-      <header class="rating-modal-header">
-        <div class="rating-modal-icon-wrap">
-          <img src="assets/icons/svg/star.svg" alt="">
-        </div>
-        
-        <div class="rating-modal-title-group">
-          <h2 id="rating-modal-title" class="rating-modal-title">Calificar Obra</h2>
-          <p class="rating-modal-subtitle" id="rating-modal-work-title">Obra</p>
-        </div>
-        <button type="button" class="rating-modal-close-btn" data-rating-modal-close aria-label="Cerrar">&times;</button>
-      </header>
-      <div class="rating-modal-body">
-        <div id="rating-status-pill" class="rating-status-pill is-unrated">
-          <span class="rating-status-dot"></span>
-          <span id="rating-status-text">Sin calificar aún</span>
-        </div>
-        <div class="rating-score-display">
-          <span id="rating-score-num" class="rating-score-num">—</span>
-          <span class="rating-score-max">/ 10</span>
-        </div>
-        <div id="rating-score-label" class="rating-score-label">Toca una estrella o mueve el selector</div>
-        <div class="rating-stars-preview" id="rating-stars-preview" aria-label="Selector de estrellas de 1 a 10"></div>
-        <div class="rating-slider-wrap">
-          <button type="button" class="rating-step-btn" id="rating-minus-btn" aria-label="Restar 0.5">-0.5</button>
-          <input type="range" id="rating-range-slider" class="rating-range-slider" min="1.0" max="10.0" step="0.1" value="8.0" aria-label="Seleccionar calificación de 1.0 a 10.0">
-          <button type="button" class="rating-step-btn" id="rating-plus-btn" aria-label="Sumar 0.5">+0.5</button>
-        </div>
-        <div class="rating-presets" id="rating-presets">
-          <button type="button" class="rating-preset-chip" data-val="5.0">5.0</button>
-          <button type="button" class="rating-preset-chip" data-val="6.5">6.5</button>
-          <button type="button" class="rating-preset-chip" data-val="7.5">7.5</button>
-          <button type="button" class="rating-preset-chip" data-val="8.5">8.5</button>
-          <button type="button" class="rating-preset-chip" data-val="9.0">9.0</button>
-          <button type="button" class="rating-preset-chip" data-val="9.5">9.5</button>
-          <button type="button" class="rating-preset-chip" data-val="10.0">10.0 ★</button>
-        </div>
-      </div>
-      <footer class="rating-modal-footer">
-        <button type="button" class="rating-modal-btn rating-modal-btn--ghost" data-rating-modal-close>Cancelar</button>
-        <button type="button" class="rating-modal-btn rating-modal-btn--primary" id="rating-submit-btn">Guardar calificación</button>
-      </footer>
-    </div>
-  </dialog>
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "YumeZone",
-      "url": "https://yumezone.page/",
-      "description": "Plataforma para descubrir y leer mangas, manhwas y manhuas.",
-      "inLanguage": "es"
-    }
-  </script>
+  <script type="module" src="/js/components/components-loader.js"></script>
   <script type="module" src="/js/pages/home.js"></script>
-  <script type="module">
-    import { renderHomeSections } from '/js/pages/home-sections.js';
-    const initSections = () => {
-      const el = document.getElementById('home-sections');
-      if (el) renderHomeSections(el);
-    };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initSections);
-    } else {
-      initSections();
-    }
-  </script>
 </body>
 
 </html>

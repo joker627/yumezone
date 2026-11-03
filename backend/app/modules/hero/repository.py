@@ -1,8 +1,9 @@
-import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 import aiomysql
+from app.core.database import resolve_connection
+from app.utils import parse_json_safe
 
 WORK_QUERY = """
     SELECT w.id, w.title, w.slug, w.alternative_title, w.synopsis,
@@ -12,7 +13,6 @@ WORK_QUERY = """
            COALESCE(ws.total_views, 0) AS total_views,
            COALESCE(ws.rating_average, 0.00) AS rating_average,
            COALESCE(ws.rating_count, 0) AS rating_count,
-           COALESCE(ws.followers_count, 0) AS followers_count,
            COALESCE(ws.favorites_count, 0) AS favorites_count,
            COALESCE(ws.trending_score, 0.00) AS trending_score
     FROM works AS w
@@ -22,7 +22,7 @@ WORK_QUERY = """
 
 
 class HeroRepository:
-    def __init__(self, conn: aiomysql.Connection):
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
         self.conn = conn
 
     async def get_groups(self) -> Dict[str, List[Dict[str, Any]]]:
@@ -76,20 +76,15 @@ class HeroRepository:
         for row in genres_rows:
             genres_map[row["work_id"]].append({"id": row["id"], "name": row["name"]})
 
-        # 2. Último capítulo publicado por obra (1 query con ROW_NUMBER)
+        # 2. Último capítulo publicado por obra (1 sola query por índice)
         latest_rows = await self._fetch(
             f"""
-            SELECT c.work_id, c.id, c.chapter_number AS number, c.title,
+            SELECT ws.work_id, c.id, c.chapter_number AS number, c.title,
                    c.published_at, sg.name AS scan_group_name
-            FROM chapters AS c
+            FROM work_statistics AS ws
+            JOIN chapters AS c ON c.id = ws.latest_chapter_id
             LEFT JOIN scan_groups AS sg ON sg.id = c.scan_group_id
-            WHERE c.work_id IN ({placeholders})
-              AND c.status = 'PUBLISHED'
-              AND c.chapter_number = (
-                  SELECT MAX(c2.chapter_number)
-                  FROM chapters AS c2
-                  WHERE c2.work_id = c.work_id AND c2.status = 'PUBLISHED'
-              )
+            WHERE ws.work_id IN ({placeholders})
             """,
             tuple(ids),
         )
@@ -141,18 +136,19 @@ class HeroRepository:
         library_rows = await self._fetch(
             f"""
             SELECT work_id,
-                   COUNT(*) AS count,
-                   MAX(CASE WHEN user_id = %s THEN 1 ELSE 0 END) AS is_added,
+                   COUNT(CASE WHEN status IS NOT NULL THEN 1 END) AS count,
+                   MAX(CASE WHEN user_id = %s AND status IS NOT NULL THEN 1 ELSE 0 END) AS is_added,
                    MAX(CASE WHEN user_id = %s AND notify_new_chapters = TRUE
-                            THEN 1 ELSE 0 END) AS is_subscribed
+                            THEN 1 ELSE 0 END) AS is_subscribed,
+                   MAX(CASE WHEN user_id = %s THEN rating ELSE NULL END) AS user_rating
             FROM user_library
             WHERE work_id IN ({placeholders})
             GROUP BY work_id
             """,
-            (user_id or 0, user_id or 0, *ids),
+            (user_id or 0, user_id or 0, user_id or 0, *ids),
         )
         library_map: Dict[int, Dict] = {
-            wid: {"count": 0, "is_added": 0, "is_subscribed": 0} for wid in ids
+            wid: {"count": 0, "is_added": 0, "is_subscribed": 0, "user_rating": None} for wid in ids
         }
         for row in library_rows:
             library_map[row["work_id"]] = row
@@ -177,73 +173,72 @@ class HeroRepository:
         return results[0]
 
     async def rotate_new_queue(self, limit: int = 3) -> None:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            # Comprobar primero si hay elementos que requieran rotación para evitar mutaciones innecesarias en peticiones GET
-            await cur.execute("""
-                SELECT 1 FROM hero_queue
-                WHERE (status = 'ACTIVE' AND expires_at IS NOT NULL AND expires_at <= NOW())
-                   OR (status = 'PENDING')
-                LIMIT 1
-            """)
-            if not await cur.fetchone():
-                return
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                # Comprobar primero si hay elementos que requieran rotación para evitar mutaciones innecesarias en peticiones GET
+                await cur.execute("""
+                    SELECT 1 FROM hero_queue
+                    WHERE (status = 'ACTIVE' AND expires_at IS NOT NULL AND expires_at <= NOW())
+                       OR (status = 'PENDING')
+                    LIMIT 1
+                """)
+                if not await cur.fetchone():
+                    return
 
-            await cur.execute("""
-                SELECT setting_value
-                FROM platform_settings
-                WHERE setting_key = 'hero_new_rotation_hours'
-                """)
-            setting = await cur.fetchone()
-            hours = 24
-            if setting and setting["setting_value"]:
-                try:
-                    value = setting["setting_value"]
-                    if isinstance(value, str):
-                        value = json.loads(value)
-                    hours = int(value["hours"])
-                except (ValueError, KeyError, TypeError, json.JSONDecodeError):
-                    hours = 24
-            await cur.execute("""
-                UPDATE hero_queue
-                SET status = 'EXPIRED'
-                WHERE status = 'ACTIVE' AND expires_at IS NOT NULL
-                  AND expires_at <= NOW()
-                """)
-            await cur.execute(
-                """
-                SELECT id FROM hero_queue
-                WHERE status = 'PENDING'
-                ORDER BY queued_at ASC, id ASC
-                LIMIT %s
-                """,
-                (limit,),
-            )
-            pending = await cur.fetchall()
-            expires_at = (datetime.now(timezone.utc) + timedelta(hours=hours)).replace(
-                tzinfo=None
-            )
-            for item in pending:
+                await cur.execute("""
+                    SELECT setting_value
+                    FROM platform_settings
+                    WHERE setting_key = 'hero_new_rotation_hours'
+                    """)
+                setting = await cur.fetchone()
+                hours = 24
+                if setting and setting["setting_value"]:
+                    val = parse_json_safe(setting["setting_value"], default={})
+                    hours = int(val.get("hours", 24)) if isinstance(val, dict) else 24
+                await cur.execute("""
+                    UPDATE hero_queue
+                    SET status = 'EXPIRED'
+                    WHERE status = 'ACTIVE' AND expires_at IS NOT NULL
+                      AND expires_at <= NOW()
+                    """)
                 await cur.execute(
                     """
-                    UPDATE hero_queue
-                    SET status = 'ACTIVE', activated_at = NOW(), expires_at = %s
-                    WHERE id = %s
+                    SELECT id FROM hero_queue
+                    WHERE status = 'PENDING'
+                    ORDER BY queued_at ASC, id ASC
+                    LIMIT %s
                     """,
-                    (expires_at, item["id"]),
+                    (limit,),
                 )
-            await self.conn.commit()
+                pending = await cur.fetchall()
+                expires_at = (datetime.now(timezone.utc) + timedelta(hours=hours)).replace(
+                    tzinfo=None
+                )
+                for item in pending:
+                    await cur.execute(
+                        """
+                        UPDATE hero_queue
+                        SET status = 'ACTIVE', activated_at = NOW(), expires_at = %s
+                        WHERE id = %s
+                        """,
+                        (expires_at, item["id"]),
+                    )
+                if self.conn is None:
+                    await conn.commit()
 
     async def _fetch_works(self, query: str) -> List[Dict[str, Any]]:
         return await self._fetch(query, ())
 
     async def _fetch(self, query: str, values: tuple[Any, ...]) -> List[Dict[str, Any]]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(query, values)
-            return await cur.fetchall()
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(query, values)
+                return await cur.fetchall()
 
     async def _fetch_one(
         self, query: str, values: tuple[Any, ...]
     ) -> Optional[Dict[str, Any]]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(query, values)
-            return await cur.fetchone()
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(query, values)
+                return await cur.fetchone()

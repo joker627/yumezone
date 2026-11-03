@@ -6,6 +6,7 @@ class CommentCreate(BaseModel):
     work_id: int = Field(gt=0)
     chapter_id: Optional[int] = Field(default=None, gt=0)
     parent_id: Optional[int] = Field(default=None, gt=0)
+    reply_to_username: Optional[str] = Field(default=None, max_length=50)
     content: str = Field(min_length=1, max_length=3000)
     contains_spoiler: bool = False
 

@@ -1,13 +1,16 @@
+import re
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
 from datetime import datetime, date
+from pydantic import BaseModel, field_validator
+
 
 class UserProfileStats(BaseModel):
     total_chapters_read: int = 0
     completed_works: int = 0
     favorites_count: int = 0
-    following_count: int = 0
+    pending_works: int = 0
     total_comments: int = 0
+
 
 class LevelInfo(BaseModel):
     level: int = 1
@@ -16,6 +19,7 @@ class LevelInfo(BaseModel):
     percentage: int = 0
     current_title: str = "Iniciado del Cultivo"
     next_title: str = "Lector Novato"
+
 
 class UserProfileResponse(BaseModel):
     id: int
@@ -41,13 +45,9 @@ class UserProfileResponse(BaseModel):
     stats: Optional[UserProfileStats] = None
     level_info: Optional[LevelInfo] = None
     favorite_works: List[Dict[str, Any]] = []
-    recent_activity: List[Dict[str, Any]] = []
-    genres_breakdown: List[Dict[str, Any]] = []
+    inventory_items: List[Dict[str, Any]] = []
     badges: List[Dict[str, Any]] = []
 
-
-import re
-from pydantic import BaseModel, field_validator
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
@@ -92,3 +92,14 @@ class UserSearchItem(BaseModel):
     avatar_url: Optional[str] = None
     xp: int
     platform_role: str
+
+
+class UserCoinTransactionResponse(BaseModel):
+    id: int
+    user_id: int
+    amount: int
+    balance_after: int
+    type: str
+    description: Optional[str] = None
+    reference_id: Optional[int] = None
+    created_at: datetime

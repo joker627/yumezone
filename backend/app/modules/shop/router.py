@@ -13,7 +13,7 @@ from app.modules.shop.schemas import (
 )
 from app.modules.shop.services import ShopService
 
-router = APIRouter(tags=["shop"])
+router = APIRouter(prefix="/shop", tags=["Tienda"])
 
 
 def get_shop_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> ShopService:
@@ -21,34 +21,34 @@ def get_shop_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> 
     return ShopService(repository)
 
 
+# listar todos los items disponibles en la tienda
 @router.get("/items", response_model=List[ShopItemResponse])
 async def list_shop_items(
     current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
     service: ShopService = Depends(get_shop_service),
 ):
-    """Lista todos los items disponibles en la tienda con estado de propiedad si está autenticado."""
     user_id = current_user.id if current_user else None
     items = await service.list_shop_items(user_id)
     return [ShopItemResponse(**item) for item in items]
 
 
+# listar inventario de personalizacion del usuario
 @router.get("/inventory", response_model=List[InventoryItemResponse])
 async def get_my_inventory(
     current_user: CurrentUser = Depends(get_current_user),
     service: ShopService = Depends(get_shop_service),
 ):
-    """Lista el inventario de personalización del usuario autenticado."""
     inv = await service.get_my_inventory(current_user.id)
     return [InventoryItemResponse(**item) for item in inv]
 
 
+# comprar item cosmético o fondo de banner
 @router.post("/buy/{item_id}", response_model=BuyResponse)
 async def buy_shop_item(
     item_id: int,
     current_user: CurrentUser = Depends(get_current_user),
     service: ShopService = Depends(get_shop_service),
 ):
-    """Compra un fondo de banner u objeto cosmético con monedas reales."""
     try:
         new_coins = await service.buy_item(current_user.id, item_id)
         return BuyResponse(
@@ -95,11 +95,11 @@ async def equip_shop_item(
         )
 
 
+# desequipar banner actual
 @router.post("/unequip")
 async def unequip_current_banner(
     current_user: CurrentUser = Depends(get_current_user),
     service: ShopService = Depends(get_shop_service),
 ):
-    """Desequipa el banner actual y restaura el fondo por defecto."""
     await service.unequip_banner(current_user.id)
     return {"success": True, "message": "Fondo por defecto restaurado."}

@@ -1,0 +1,1070 @@
+/* scans */
+
+.scans-page {
+  min-height: 100vh;
+  padding-top: 4.8rem;
+  padding-bottom: 4rem;
+  background-color: var(--neutral-950, #090d14);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(57, 198, 165, 0.12) 0%, transparent 70%),
+    radial-gradient(circle at 10% 30%, rgba(244, 63, 94, 0.04) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+.scans-container {
+  width: min(78rem, calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+
+/* hero section */
+.scans-hero {
+  text-align: center;
+  padding: 2.2rem 1rem 1.8rem;
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.scans-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(57, 198, 165, 0.1);
+  border: 1px solid rgba(57, 198, 165, 0.28);
+  border-radius: var(--radius-full, 9999px);
+  color: var(--teal-300, #5eead4);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.scans-hero-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--teal-400, #2dd4bf);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--teal-400, #2dd4bf);
+}
+
+.scans-hero-title {
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 900;
+  line-height: 1.15;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.9rem;
+  background: linear-gradient(135deg, #ffffff 40%, var(--teal-200, #99f6e4) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.scans-hero-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--neutral-400, #94a3b8);
+  margin: 0 0 2rem;
+}
+
+.scans-global-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.scans-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.85rem 0.65rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg, 12px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.scans-stat-val {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--teal-300, #5eead4);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.scans-stat-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--neutral-400, #94a3b8);
+}
+
+/* mi clan */
+.my-clan-section {
+  margin-bottom: 2.2rem;
+}
+
+.my-clan-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.4rem;
+  background: linear-gradient(135deg, rgba(20, 26, 38, 0.95) 0%, rgba(13, 17, 25, 0.92) 100%);
+  border: 1px solid rgba(57, 198, 165, 0.35);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(57, 198, 165, 0.12);
+}
+
+@media (min-width: 640px) {
+  .my-clan-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+  }
+}
+
+.my-clan-left {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.my-clan-logo {
+  width: 3.8rem;
+  height: 3.8rem;
+  border-radius: var(--radius-lg, 12px);
+  object-fit: cover;
+  border: 2px solid var(--teal-400, #2dd4bf);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.my-clan-info-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--teal-400, #2dd4bf);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.my-clan-name {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 0.4rem;
+}
+
+.my-clan-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.22rem 0.65rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--neutral-200, #e2e8f0);
+}
+
+.my-clan-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.my-clan-btn-dash {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: linear-gradient(135deg, var(--teal-400, #2dd4bf), #0d9488);
+  color: #06231c;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-decoration: none;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 4px 16px rgba(45, 212, 191, 0.35);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.my-clan-btn-dash:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(45, 212, 191, 0.5);
+}
+
+/* filtros scans */
+.scans-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .scans-filter-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.scans-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 24rem;
+}
+
+.scans-search-icon {
+  position: absolute;
+  left: 0.9rem;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.scans-search-input {
+  width: 100%;
+  height: 2.6rem;
+  padding: 0 2.2rem 0 2.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full, 9999px);
+  color: #ffffff;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.scans-search-input:focus {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--teal-400, #2dd4bf);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.2);
+}
+
+.scans-search-input::placeholder {
+  color: var(--neutral-500, #64748b);
+}
+
+.scans-search-clear {
+  position: absolute;
+  right: 0.6rem;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 160ms ease;
+}
+
+.scans-search-clear:hover {
+  opacity: 1;
+}
+
+.scans-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full, 9999px);
+}
+
+.scans-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full, 9999px);
+  color: var(--neutral-400, #94a3b8);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 180ms ease;
+}
+
+.scans-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.scans-tab.active {
+  color: #06231c;
+  background: var(--teal-400, #2dd4bf);
+  box-shadow: 0 2px 10px rgba(45, 212, 191, 0.35);
+}
+
+.scans-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+/* grid scans */
+.scans-grid-wrapper {
+  margin-bottom: 3rem;
+}
+
+.scans-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .scans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .scans-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* tarjeta scan */
+.scan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(15, 20, 29, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl, 16px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.scan-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(57, 198, 165, 0.45);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.6), 0 0 24px rgba(57, 198, 165, 0.12);
+}
+
+/* banner superior */
+.scan-card-banner-wrap {
+  position: relative;
+  height: 5.5rem;
+  width: 100%;
+  overflow: hidden;
+  background: var(--neutral-900, #0f172a);
+}
+
+.scan-card-banner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+
+.scan-card:hover .scan-card-banner {
+  transform: scale(1.04);
+}
+
+.scan-card-banner-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(15, 20, 29, 0.95) 100%);
+}
+
+/* logo superpuesto */
+.scan-card-logo-wrap {
+  position: absolute;
+  top: 3.5rem;
+  left: 1.25rem;
+  z-index: 2;
+}
+
+.scan-card-logo {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-lg, 12px);
+  object-fit: cover;
+  border: 2px solid rgba(57, 198, 165, 0.7);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+  background: #090d14;
+}
+
+/* contenido de la tarjeta */
+.scan-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 2.2rem 1.25rem 1.25rem;
+}
+
+.scan-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.scan-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.scan-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.scan-card-badge-verified {
+  display: inline-flex;
+  align-items: center;
+}
+
+.scan-card-badge-verified img {
+  width: 15px;
+  height: 15px;
+}
+
+.scan-card-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scan-card-status-badge.is-recruiting {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.scan-card-status-badge.is-active {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.scan-card-desc {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--neutral-400, #94a3b8);
+  margin: 0 0 1.1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.45rem;
+}
+
+/* métricas del clan */
+.scan-card-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.65rem 0.5rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 1.1rem;
+}
+
+.scan-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.scan-metric-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.scan-metric-val img {
+  opacity: 0.85;
+}
+
+.scan-metric-lbl {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--neutral-500, #64748b);
+  text-transform: uppercase;
+}
+
+/* acciones de la tarjeta */
+.scan-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.scan-btn-view {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 2.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md, 8px);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.scan-btn-view:hover {
+  background: rgba(57, 198, 165, 0.18);
+  border-color: rgba(57, 198, 165, 0.45);
+  color: var(--teal-300, #5eead4);
+}
+
+.scan-btn-discord {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  background: rgba(88, 101, 242, 0.12);
+  border: 1px solid rgba(88, 101, 242, 0.3);
+  border-radius: var(--radius-md, 8px);
+  color: #ffffff;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 160ms ease;
+}
+
+.scan-btn-discord:hover {
+  background: rgba(88, 101, 242, 0.25);
+  border-color: #5865F2;
+  box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+  transform: translateY(-2px);
+}
+
+/* skeletons */
+.scan-card-skeleton {
+  height: 21rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-xl, 16px);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* estado vacio */
+.scans-empty {
+  text-align: center;
+  padding: 4rem 1.5rem;
+  color: var(--neutral-400, #94a3b8);
+}
+
+.scans-empty h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.scans-empty p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* modal scan */
+.clan-modal {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: min(52rem, calc(100vw - 2rem));
+  width: 100%;
+  margin: auto;
+  border-radius: var(--radius-xl, 20px);
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 32px rgba(57, 198, 165, 0.15);
+}
+
+.clan-modal::backdrop {
+  background: rgba(4, 6, 10, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.clan-modal-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 3rem);
+  background: rgba(14, 18, 27, 0.98);
+  border: 1px solid rgba(57, 198, 165, 0.35);
+  border-radius: var(--radius-xl, 20px);
+  overflow: hidden;
+}
+
+/* header del modal */
+.clan-modal-header {
+  position: relative;
+  background: rgba(11, 14, 21, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.clan-modal-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.clan-modal-close:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+}
+
+.clan-modal-banner-wrap {
+  position: relative;
+  height: 8rem;
+  width: 100%;
+  background: #090d14;
+}
+
+.clan-modal-banner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clan-modal-banner-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(14, 18, 27, 0.95) 100%);
+}
+
+.clan-modal-identity {
+  position: relative;
+  display: flex;
+  gap: 1.25rem;
+  padding: 0 1.5rem;
+  margin-top: -2.8rem;
+  z-index: 2;
+}
+
+.clan-modal-logo {
+  width: 4.8rem;
+  height: 4.8rem;
+  border-radius: var(--radius-xl, 16px);
+  object-fit: cover;
+  border: 2px solid var(--teal-400, #2dd4bf);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  background: #090d14;
+  flex-shrink: 0;
+}
+
+.clan-modal-names {
+  flex: 1;
+  padding-top: 2.8rem;
+}
+
+.clan-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.clan-modal-title {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+}
+
+.clan-modal-desc {
+  font-size: 0.85rem;
+  color: var(--neutral-400, #94a3b8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.clan-modal-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1.5rem 0.5rem;
+}
+
+.clan-social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 160ms ease;
+}
+
+.clan-social-btn--discord {
+  background: rgba(88, 101, 242, 0.15);
+  border: 1px solid rgba(88, 101, 242, 0.4);
+  color: #b0beff;
+}
+
+.clan-social-btn--discord:hover {
+  background: rgba(88, 101, 242, 0.28);
+  border-color: #5865F2;
+}
+
+.clan-social-btn--web {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+.clan-social-btn--web:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* pestañas del modal */
+.clan-modal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.clan-modal-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--neutral-400, #94a3b8);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.clan-modal-tab:hover {
+  color: #ffffff;
+}
+
+.clan-modal-tab.active {
+  color: var(--teal-300, #5eead4);
+  border-bottom-color: var(--teal-400, #2dd4bf);
+}
+
+.clan-modal-tab-badge {
+  padding: 0.15rem 0.45rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* cuerpo modal */
+.clan-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(57, 198, 165, 0.35) transparent;
+}
+
+.clan-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.clan-modal-body::-webkit-scrollbar-button {
+  display: none;
+}
+
+.clan-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-full, 9999px);
+}
+
+.clan-modal-pane {
+  display: none;
+}
+
+.clan-modal-pane.active {
+  display: block;
+}
+
+/* obras scan */
+.clan-works-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .clan-works-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.clan-work-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg, 12px);
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.clan-work-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(57, 198, 165, 0.4);
+}
+
+.clan-work-cover-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--neutral-900, #0f172a);
+}
+
+.clan-work-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clan-work-info {
+  padding: 0.65rem 0.75rem;
+}
+
+.clan-work-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clan-work-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--neutral-400, #94a3b8);
+}
+
+.clan-work-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #facc15;
+  font-weight: 800;
+}
+
+/* lista de miembros */
+.clan-members-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .clan-members-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.clan-member-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.clan-member-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(57, 198, 165, 0.4);
+}
+
+.clan-member-details {
+  flex: 1;
+}
+
+.clan-member-name {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.25rem;
+}
+
+.clan-member-role {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.role-leader {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+.role-co_leader {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #c084fc;
+}
+
+.role-uploader {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+.role-editor {
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.4);
+  color: #f472b6;
+}
+
+.role-translator {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+/* vista de reclutamiento */
+.clan-recruiting-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.clan-recruiting-banner {
+  padding: 1.25rem 1.5rem;
+  background: rgba(57, 198, 165, 0.08);
+  border: 1px solid rgba(57, 198, 165, 0.25);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.clan-recruiting-banner h3 {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--teal-200, #99f6e4);
+  margin: 0 0 0.4rem;
+}
+
+.clan-recruiting-banner p {
+  font-size: 0.85rem;
+  color: var(--neutral-300, #cbd5e1);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.clan-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.85rem;
+}
+
+.clan-role-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.clan-role-item-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: var(--radius-md, 8px);
+  background: rgba(57, 198, 165, 0.15);
+  border: 1px solid rgba(57, 198, 165, 0.3);
+  display: grid;
+  place-items: center;
+  color: var(--teal-300, #5eead4);
+  flex-shrink: 0;
+}
+
+.clan-role-item-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.2rem;
+}
+
+.clan-role-item-desc {
+  font-size: 0.72rem;
+  color: var(--neutral-400, #94a3b8);
+  margin: 0;
+}
+
+.clan-recruiting-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding-top: 1rem;
+}

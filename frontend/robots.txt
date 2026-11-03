@@ -11,9 +11,10 @@ Allow: /pages/catalogo.html
 Allow: /pages/obra.html
 Allow: /pages/leer.html
 Allow: /pages/ranking.html
+Allow: /pages/scans.html
 Allow: /pages/novedades.html
+
 Allow: /pages/tienda.html
-Allow: /pages/comunidad.html
 Allow: /pages/usuario.html
 Allow: /assets/
 Allow: /css/

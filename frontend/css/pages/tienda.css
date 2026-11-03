@@ -1,6 +1,4 @@
-/* ==========================================================================
-   YumeZone - Tienda de Fondos y Personalización (Vanilla CSS Propio)
-   ========================================================================== */
+/* tienda */
 
 .shop-page-main {
   width: 100%;
@@ -17,9 +15,7 @@
   padding: 0 1.25rem;
 }
 
-/* --------------------------------------------------------------------------
-   Hero de la Tienda
-   -------------------------------------------------------------------------- */
+/* hero de la tienda */
 .shop-hero {
   position: relative;
   border-radius: var(--radius-xl);
@@ -79,7 +75,7 @@
   margin: 0;
 }
 
-/* Tarjeta de billetera / usuario en el Hero */
+/* billetera usuario */
 .shop-wallet-card {
   background: rgba(11, 13, 18, 0.8);
   border: 1px solid rgba(240, 199, 94, 0.3);
@@ -156,9 +152,7 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* --------------------------------------------------------------------------
-   Barra de Filtros y Categorías
-   -------------------------------------------------------------------------- */
+/* filtros tienda */
 .shop-filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -230,9 +224,7 @@
   color: var(--neutral-400);
 }
 
-/* --------------------------------------------------------------------------
-   Cuadrícula de Artículos de la Tienda
-   -------------------------------------------------------------------------- */
+/* grid tienda */
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));

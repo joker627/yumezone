@@ -1,13 +1,10 @@
-// frontend/js/pages/obra.js
 
-import { renderSiteHeader } from '../components/header.js';
+
 import { apiRequest, getAccessToken, clearAccessToken } from '../shared/auth.js';
-import { safeUrl, IMG_FALLBACK, formatNumber, makeReaderUrl, formatTimeAgoCompact, escapeHTML } from '../shared/ui-utils.js';
+import { safeUrl, IMG_FALLBACK, formatNumber, formatViews, formatChapterNumber, makeReaderUrl, formatTimeAgoCompact, escapeHTML } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
-import { renderCommentSkeletons } from '../components/loader.js';
-
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
+import { renderCommentSkeletons, renderWorkDetailSkeleton } from '../components/skeletons.js';
+import { openWorkRatingModal } from '../components/rating-modal.js';
 
 const page = document.getElementById('work-detail');
 const content = document.getElementById('work-content');
@@ -22,27 +19,22 @@ const title = document.getElementById('work-title');
 const alternativeTitle = document.getElementById('work-alternative-title');
 const author = document.getElementById('work-author');
 const genres = document.getElementById('work-genres');
-const taxonomy = document.getElementById('work-taxonomy');
-const stats = document.getElementById('work-stats');
 const synopsis = document.getElementById('work-synopsis');
 const startReading = document.getElementById('work-start-reading');
 const libraryButton = document.getElementById('work-add-library');
 const chapterCount = document.getElementById('work-chapter-count');
-const readCountEl = document.getElementById('work-read-count');
 const chaptersTable = document.getElementById('work-chapters-table');
 const chapterList = document.getElementById('work-chapter-list');
 const chaptersToolbar = document.getElementById('work-chapters-toolbar');
 const chapterSearch = document.getElementById('work-chapter-search');
 const chapterSearchClear = document.getElementById('work-chapter-search-clear');
-const chapterRanges = document.getElementById('work-chapter-ranges');
 const markAllBtn = document.getElementById('work-mark-all-btn');
 const sortBtn = document.getElementById('work-sort-btn');
 const sortLabel = document.getElementById('work-sort-label');
 const noChapters = document.getElementById('work-no-chapters');
 
-// Variables de comentarios
+// variables de comentarios
 const commentsCountBadge = document.getElementById('work-comments-count');
-const commentCurrentUserChip = document.getElementById('work-comment-current-user');
 const commentSpoilerCheck = document.getElementById('work-comment-spoiler-check');
 const commentInput = document.getElementById('work-comment-input');
 const commentSubmitBtn = document.getElementById('work-comment-submit-btn');
@@ -50,17 +42,31 @@ const commentsList = document.getElementById('work-comments-list');
 
 let allWorkComments = [];
 let currentChapterSearchQuery = '';
-let currentChapterRangeIndex = 0;
-const CHAPTERS_PER_RANGE = 50;
+let currentAuthUser = null;
 
-// Variables de obra / capítulos
+async function fetchCurrentUser() {
+    if (!getAccessToken()) {
+        currentAuthUser = null;
+        return null;
+    }
+    if (currentAuthUser) return currentAuthUser;
+    try {
+        currentAuthUser = await apiRequest('/auth/me');
+        return currentAuthUser;
+    } catch {
+        currentAuthUser = null;
+        return null;
+    }
+}
+
+// variables de obra / capítulos
 let allChapters = [];
 let readChaptersSet = new Set();
 let currentWork = null;
 let latestReadChapterId = null;
 let isSortAsc = false;
 
-// Slug o ID de la obra tomado de la URL (/pages/obra.html?slug=... o ?id=...)
+// obtener obra id
 const urlParams = new URLSearchParams(window.location.search);
 const slug = (urlParams.get('slug') || urlParams.get('id') || '').trim();
 
@@ -86,15 +92,25 @@ function saveLocalReadChapters(workId, set) {
 }
 
 function updateReadCount() {
-    if (!readCountEl) return;
-
     const count = allChapters.filter(c => readChaptersSet.has(c.id)).length;
-    readCountEl.textContent = `${count} leídos`;
 
     if (markAllBtn) {
         const allRead = allChapters.length > 0 && count === allChapters.length;
         const span = markAllBtn.querySelector('span');
-        if (span) span.textContent = allRead ? 'Desmarcar todos' : 'Marcar todos';
+        if (span) span.textContent = allRead ? 'Desmarcar leídos' : 'Marcar leídos';
+    }
+
+    updateUserReadingProgress();
+}
+
+function updateUserReadingProgress() {
+    const total = allChapters.length;
+    const read = allChapters.filter(c => readChaptersSet.has(c.id)).length;
+    const pct = total ? Math.round((read / total) * 100) : 0;
+
+    const progressPct = document.getElementById('work-user-progress-pct');
+    if (progressPct) {
+        progressPct.textContent = `${pct}% completado`;
     }
 }
 
@@ -117,57 +133,13 @@ function findLatestReadChapterId() {
     return highest;
 }
 
-function setupChapterRanges() {
-    if (!chapterRanges || !allChapters.length) return;
-
-    chapterRanges.replaceChildren();
-    const total = allChapters.length;
-
-    // Si son menos de 30 capítulos, no hace falta dividir en rangos
-    if (total <= 30) {
-        chapterRanges.hidden = true;
-        return;
-    }
-
-    chapterRanges.hidden = false;
-    const totalRanges = Math.ceil(total / CHAPTERS_PER_RANGE);
-
-    const allBtn = document.createElement('button');
-    allBtn.type = 'button';
-    allBtn.className = `work-chapter-range-chip${currentChapterRangeIndex === 0 ? ' is-active' : ''}`;
-    allBtn.textContent = `Todos (${total})`;
-    allBtn.addEventListener('click', () => {
-        currentChapterRangeIndex = 0;
-        setupChapterRanges();
-        renderChapterRows();
-    });
-    chapterRanges.appendChild(allBtn);
-
-    for (let i = 1; i <= totalRanges; i++) {
-        const start = (i - 1) * CHAPTERS_PER_RANGE + 1;
-        const end = Math.min(i * CHAPTERS_PER_RANGE, total);
-
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = `work-chapter-range-chip${currentChapterRangeIndex === i ? ' is-active' : ''}`;
-        chip.textContent = `${start}-${end}`;
-        chip.addEventListener('click', () => {
-            currentChapterRangeIndex = i;
-            setupChapterRanges();
-            renderChapterRows();
-        });
-
-        chapterRanges.appendChild(chip);
-    }
-}
-
 function renderChapterRows() {
     if (!chapterList) return;
 
     chapterList.replaceChildren();
     let list = [...allChapters];
 
-    // 1. Filtrar por búsqueda
+    // filtrar por búsqueda
     if (currentChapterSearchQuery) {
         const q = currentChapterSearchQuery.toLowerCase();
         list = list.filter(c => {
@@ -182,25 +154,12 @@ function renderChapterRows() {
         });
     }
 
-    // 2. Ordenar según preferencia
+    // ordenar según preferencia
     list.sort((a, b) => {
         const numA = Number(a.chapter_number) || 0;
         const numB = Number(b.chapter_number) || 0;
         return isSortAsc ? numA - numB : numB - numA;
     });
-
-    if (sortLabel) {
-        sortLabel.textContent = isSortAsc
-            ? 'Capítulos (Primeros primero)'
-            : 'Capítulos (Recientes primero)';
-    }
-
-    // 3. Filtrar por rango seleccionado
-    if (!currentChapterSearchQuery && currentChapterRangeIndex > 0) {
-        const startIdx = (currentChapterRangeIndex - 1) * CHAPTERS_PER_RANGE;
-        const endIdx = startIdx + CHAPTERS_PER_RANGE;
-        list = list.slice(startIdx, endIdx);
-    }
 
     latestReadChapterId = findLatestReadChapterId();
 
@@ -209,7 +168,7 @@ function renderChapterRows() {
         emptyItem.className = 'work-detail-empty work-detail-empty--padded';
         emptyItem.textContent = currentChapterSearchQuery
             ? `No se encontraron capítulos que coincidan con "${currentChapterSearchQuery}".`
-            : 'No hay capítulos disponibles en este rango.';
+            : 'No hay capítulos disponibles.';
         chapterList.append(emptyItem);
         return;
     }
@@ -234,7 +193,7 @@ function renderChapterRows() {
 
         const link = document.createElement('a');
         link.className = 'work-chapter-link';
-        link.href = makeReaderUrl(currentWork?.slug, chapter.id);
+        link.href = makeReaderUrl(currentWork?.slug, chapter);
         link.textContent = label;
 
         const actions = document.createElement('div');
@@ -244,7 +203,7 @@ function renderChapterRows() {
         dateSpan.className = 'work-chapter-date';
         dateSpan.title = fullDate;
         dateSpan.innerHTML = `
-            <img src="/assets/icons/svg/history.svg" width="13" height="13" alt="" aria-hidden="true">
+            <img src="/assets/icons/svg/navigation/history.svg" width="13" height="13" alt="" aria-hidden="true">
             <span>${timeAgo}</span>
         `;
 
@@ -315,13 +274,9 @@ async function toggleChapterReadState(chapterId, rowEl, btnEl) {
         }
     }
 
-    showToast(
-        isNowRead ? 'Capítulo marcado como leído' : 'Capítulo marcado como no leído',
-        'info'
-    );
 }
 
-// Marcar / Desmarcar todos los capítulos en lote
+// marcar todos
 async function toggleMarkAllChapters() {
     if (!allChapters.length) return;
 
@@ -329,10 +284,8 @@ async function toggleMarkAllChapters() {
 
     if (allAlreadyRead) {
         readChaptersSet.clear();
-        showToast('Todos los capítulos marcados como no leídos', 'info');
     } else {
         allChapters.forEach(c => readChaptersSet.add(c.id));
-        showToast(`¡Los ${allChapters.length} capítulos marcados como leídos!`, 'success');
     }
 
     if (currentWork?.id) {
@@ -351,7 +304,7 @@ async function toggleMarkAllChapters() {
     }
 }
 
-// Búsqueda en vivo de capítulos
+// buscar capitulo
 if (chapterSearch) {
     chapterSearch.addEventListener('input', (e) => {
         currentChapterSearchQuery = e.target.value.trim();
@@ -374,6 +327,7 @@ if (chapterSearchClear) {
     });
 }
 
+
 if (markAllBtn) {
     markAllBtn.addEventListener('click', toggleMarkAllChapters);
 }
@@ -385,23 +339,46 @@ function updateStartReadingBtn() {
         (a, b) => (Number(a.chapter_number) || 0) - (Number(b.chapter_number) || 0)
     );
 
+    const hasReadAny = readChaptersSet.size > 0;
     const nextUnread = sortedAsc.find(c => !readChaptersSet.has(c.id));
+    const startReadingText = document.getElementById('work-start-reading-text');
 
-    if (nextUnread) {
-        startReading.href = makeReaderUrl(currentWork?.slug, nextUnread.id);
-        startReading.textContent = `Leer Cap. ${formatChapterNumber(nextUnread.chapter_number)}`;
+    let label = '';
+    let targetChapter = null;
+
+    if (!hasReadAny) {
+        // Nunca ha leído ningún capítulo: Empezar desde el primero
+        targetChapter = sortedAsc[0];
+        label = `Leer capítulo ${formatChapterNumber(targetChapter.chapter_number)}`;
+    } else if (nextUnread) {
+        // Ya leyó capítulos y le falta el siguiente: Continuar por donde va
+        targetChapter = nextUnread;
+        label = `Continuar capítulo ${formatChapterNumber(nextUnread.chapter_number)}`;
     } else {
-        const first = sortedAsc[0];
-        startReading.href = makeReaderUrl(currentWork?.slug, first.id);
-        startReading.textContent = `Releer Cap. ${formatChapterNumber(first.chapter_number)}`;
+        // Ha leído TODOS los capítulos publicados (está 100% al día)
+        targetChapter = sortedAsc[sortedAsc.length - 1] || sortedAsc[0];
+        label = 'Al día';
+    }
+
+    if (targetChapter) {
+        startReading.href = makeReaderUrl(currentWork?.slug, targetChapter);
+    }
+
+    if (startReadingText) {
+        startReadingText.textContent = label;
+    } else {
+        startReading.textContent = label;
     }
 }
 
 if (sortBtn) {
     sortBtn.addEventListener('click', () => {
         isSortAsc = !isSortAsc;
-        const arrow = sortBtn.querySelector('.sort-icon-arrow');
-        if (arrow) arrow.classList.toggle('is-asc', isSortAsc);
+        const icon = sortBtn.querySelector('.work-sort-icon');
+        const label = document.getElementById('work-sort-label');
+        if (icon) icon.textContent = isSortAsc ? '🔺' : '🔻';
+        if (label) label.textContent = isSortAsc ? 'Primeros' : 'Nuevos';
+        sortBtn.title = isSortAsc ? 'Orden: Primeros capítulos primero' : 'Orden: Últimos capítulos primero';
         renderChapterRows();
     });
 }
@@ -421,9 +398,6 @@ function setImage(image, value) {
     image.hidden = false;
 }
 
-function formatChapterNumber(value) {
-    return formatNumber(value, 2);
-}
 
 function updateWorkSEO(work) {
     if (!work || !work.title) return;
@@ -440,7 +414,7 @@ function updateWorkSEO(work) {
     const workUrl = `https://yumezone.page/pages/obra.html?slug=${encodeURIComponent(workSlug)}`;
     const imageUrl = work.cover_url || work.banner_url || 'https://yumezone.page/assets/icons/logo.png';
 
-    // Meta Description
+    // meta description
     let descMeta = document.querySelector('meta[name="description"]');
     if (!descMeta) {
         descMeta = document.createElement('meta');
@@ -449,18 +423,18 @@ function updateWorkSEO(work) {
     }
     descMeta.content = metaDesc;
 
-    // Meta Keywords
+    // meta keywords
     const genreNames = (work.genres || []).map(g => g.name).join(', ');
     const keywordsMeta = document.querySelector('meta[name="keywords"]');
     if (keywordsMeta) {
         keywordsMeta.content = `${work.title}, ${work.alternative_title || ''}, leer ${work.title} español, ${genreNames}, ${work.format_name || 'manga'}, manhwa español, yumezone`.replace(/,\s*,/g, ',');
     }
 
-    // Canonical
+    // canonical
     const canonical = document.getElementById('canonical-link') || document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.href = workUrl;
 
-    // Open Graph
+    // open graph
     const ogTitle = document.getElementById('og-title') || document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.content = `${work.title} | YumeZone`;
 
@@ -473,7 +447,7 @@ function updateWorkSEO(work) {
     const ogImage = document.getElementById('og-image') || document.querySelector('meta[property="og:image"]');
     if (ogImage) ogImage.content = imageUrl;
 
-    // Twitter
+    // twitter
     const twTitle = document.getElementById('tw-title') || document.querySelector('meta[name="twitter:title"]');
     if (twTitle) twTitle.content = `${work.title} | YumeZone`;
 
@@ -483,7 +457,7 @@ function updateWorkSEO(work) {
     const twImage = document.getElementById('tw-image') || document.querySelector('meta[name="twitter:image"]');
     if (twImage) twImage.content = imageUrl;
 
-    // Schema.org JSON-LD Structured Data
+    // schema.org json-ld structured data
     try {
         let script = document.getElementById('work-schema-jsonld');
         if (!script) {
@@ -543,7 +517,7 @@ function updateWorkSEO(work) {
                         "ratingValue": Number(work.rating_average).toFixed(1),
                         "bestRating": "10",
                         "worstRating": "1",
-                        "ratingCount": Math.max(Number(work.followers_count) || 1, 1)
+                        "ratingCount": Math.max(Number(work.rating_count || work.favorites_count) || 1, 1)
                     } : undefined
                 }
             ]
@@ -555,36 +529,53 @@ function updateWorkSEO(work) {
     }
 }
 
-async function renderWork(work, chapters) {
+async function renderWork(work, chapters, userState = null, libraryStats = null) {
     currentWork = work;
     updateWorkSEO(work);
 
     title.textContent = work.title || 'Obra sin título';
-    author.textContent = work.author ? `Por ${work.author}` : 'Autor no especificado';
-    synopsis.textContent = work.synopsis || 'Esta obra todavía no tiene una sinopsis.';
-    alternativeTitle.textContent = work.alternative_title || '';
-    alternativeTitle.hidden = !work.alternative_title;
+    if (author) author.textContent = work.author ? `Por ${work.author}` : 'Autor no especificado';
+    if (synopsis) synopsis.textContent = work.synopsis || 'Esta obra todavía no tiene una sinopsis.';
+
+    const altWrap = document.getElementById('work-alt-wrap');
+    if (altWrap) {
+        altWrap.hidden = !work.alternative_title;
+        if (alternativeTitle) alternativeTitle.textContent = work.alternative_title || '';
+    }
+
+    const copyTitleBtn = document.getElementById('work-copy-title-btn');
+    if (copyTitleBtn && work.alternative_title) {
+        copyTitleBtn.onclick = () => {
+            navigator.clipboard.writeText(work.alternative_title);
+            showToast('Título alternativo copiado al portapapeles', 'info');
+        };
+    }
+
+    const scanEl = document.getElementById('work-scan-group');
+    const scanDot = document.getElementById('work-scan-dot');
+    if (scanEl && work.scan_group_name) {
+        scanEl.textContent = work.scan_group_name;
+        scanEl.hidden = false;
+        if (scanDot) scanDot.hidden = false;
+    } else if (scanEl) {
+        scanEl.hidden = true;
+        if (scanDot) scanDot.hidden = true;
+    }
+
+    const coverFormat = document.getElementById('work-cover-format');
+    if (coverFormat) coverFormat.textContent = (work.format_name || 'MANGA').toUpperCase();
+
+    const coverStatus = document.getElementById('work-cover-status');
+    if (coverStatus) {
+        const isCompleted = (work.status_name || '').toLowerCase().includes('finaliz') || (work.status_name || '').toLowerCase().includes('complet');
+        coverStatus.textContent = isCompleted ? 'FINALIZADO' : (work.status_name || 'EN EMISIÓN').toUpperCase();
+        coverStatus.classList.toggle('is-completed', isCompleted);
+    }
 
     setImage(cover, work.cover_url);
     setImage(banner, work.banner_url);
 
-    // Taxonomía
-    taxonomy.replaceChildren();
-
-    const taxonomyItems = [
-        ['Formato', work.format_name],
-        ['Estado', work.status_name],
-        ['Demografía', work.demographic_name],
-    ];
-
-    for (const [label, val] of taxonomyItems) {
-        if (!val) continue;
-        const badge = document.createElement('span');
-        badge.textContent = `${label}: ${val}`;
-        taxonomy.append(badge);
-    }
-
-    // Géneros
+    // géneros
     genres.replaceChildren();
 
     for (const genre of work.genres || []) {
@@ -596,38 +587,25 @@ async function renderWork(work, chapters) {
 
     genres.hidden = genres.childElementCount === 0;
 
-    // Métricas
-    stats.replaceChildren();
+    renderCommunityStats(libraryStats);
 
-    const statValues = [
-        ['Lecturas', formatNumber(work.total_views)],
-        ['Valoración', Number(work.rating_average) > 0 ? formatNumber(work.rating_average) : 'Sin valorar'],
-        ['Seguidores', formatNumber(work.followers_count)],
-    ];
-
-    for (const [label, value] of statValues) {
-        const stat = document.createElement('span');
-        stat.className = 'work-detail-stat';
-        stat.textContent = `${label}: ${value}`;
-        stats.append(stat);
-    }
-
-    // Capítulos
+    // capítulos
     allChapters = Array.isArray(chapters) ? chapters : [];
-    chapterCount.textContent = `${allChapters.length} ${allChapters.length === 1 ? 'capítulo' : 'capítulos'}`;
+    const chapterCountEl = document.getElementById('work-chapter-count');
+    if (chapterCountEl) chapterCountEl.textContent = String(allChapters.length);
 
     const hasChapters = allChapters.length > 0;
     if (noChapters) noChapters.hidden = hasChapters;
     if (chaptersTable) chaptersTable.hidden = !hasChapters;
     if (chaptersToolbar) chaptersToolbar.hidden = !hasChapters;
 
-    // Capítulos leídos
+    // capítulos leídos
     readChaptersSet = loadLocalReadChapters(work.id);
 
-    setupChapterRanges();
-    renderChapterRows();
-
-    if (getAccessToken() && work.id) {
+    if (userState?.read_chapter_ids && Array.isArray(userState.read_chapter_ids)) {
+        for (const id of userState.read_chapter_ids) readChaptersSet.add(Number(id));
+        saveLocalReadChapters(work.id, readChaptersSet);
+    } else if (getAccessToken() && work.id) {
         apiRequest(`/library/works/${work.id}/read-chapters`).then(serverReads => {
             if (Array.isArray(serverReads)) {
                 for (const id of serverReads) readChaptersSet.add(Number(id));
@@ -639,6 +617,9 @@ async function renderWork(work, chapters) {
         }).catch(() => {});
     }
 
+    renderChapterRows();
+    updateReadCount();
+
     if (hasChapters) {
         startReading.hidden = false;
         updateStartReadingBtn();
@@ -647,9 +628,28 @@ async function renderWork(work, chapters) {
     }
 
     if (work.id) {
-        setupLibraryButton(work);
+        setupLibraryDropdown(work, userState);
+        setupHeroRating(work, userState);
         loadWorkComments(work.id);
         setupCommentForm(work.id);
+        loadRecommendedWorks();
+    }
+
+    const shareBtn = document.getElementById('work-share-btn');
+    if (shareBtn) {
+        shareBtn.onclick = async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: work.title,
+                        url: window.location.href
+                    });
+                } catch {}
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Enlace de la obra copiado al portapapeles', 'info');
+            }
+        };
     }
 
     if (workSkeleton) workSkeleton.hidden = true;
@@ -658,23 +658,20 @@ async function renderWork(work, chapters) {
     page.setAttribute('aria-busy', 'false');
 }
 
-/* ==========================================================
-   SISTEMA DE COMENTARIOS PERMANENTES EN HILO
-   ========================================================== */
+// comentarios
 
 function setupCommentForm(workId) {
     if (!commentSubmitBtn || !commentInput) return;
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    if (commentCurrentUserChip) {
-        commentCurrentUserChip.textContent = user.username
-            ? `Comentando como @${user.username}`
-            : 'Inicia sesión para comentar';
-    }
-
     const newSubmit = commentSubmitBtn.cloneNode(true);
     commentSubmitBtn.parentNode.replaceChild(newSubmit, commentSubmitBtn);
+
+    commentInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            newSubmit.click();
+        }
+    });
 
     newSubmit.addEventListener('click', async () => {
         const text = commentInput.value.trim();
@@ -706,7 +703,6 @@ function setupCommentForm(workId) {
             commentInput.value = '';
             if (commentSpoilerCheck) commentSpoilerCheck.checked = false;
 
-            showToast('¡Comentario publicado con éxito!', 'success');
             await loadWorkComments(workId);
         } catch (err) {
             showToast(err.message || 'Error al publicar el comentario', 'error');
@@ -724,14 +720,15 @@ async function loadWorkComments(workId) {
         commentsList.setAttribute('aria-busy', 'true');
         commentsList.innerHTML = renderCommentSkeletons(3);
 
-        const res = await apiRequest(`/comments/?work_id=${workId}&limit=100`);
+        const [res] = await Promise.all([
+            apiRequest(`/comments/?work_id=${workId}&limit=100`),
+            fetchCurrentUser().catch(() => null)
+        ]);
         const data = res?.data || [];
         allWorkComments = Array.isArray(data) ? data : [];
 
         if (commentsCountBadge) {
-            commentsCountBadge.textContent = `${allWorkComments.length} ${
-                allWorkComments.length === 1 ? 'comentario' : 'comentarios'
-            }`;
+            commentsCountBadge.textContent = String(allWorkComments.length);
         }
 
         renderCommentThreads(allWorkComments);
@@ -773,46 +770,79 @@ function renderCommentThreads(comments) {
         threadCard.dataset.commentId = rootComment.id;
 
         const replies = repliesMap.get(rootComment.id) || [];
+        // Orden cronológico (más antiguo a más nuevo) para que el hilo de respuestas se lea con sentido natural
+        replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         threadCard.innerHTML = renderCommentMainMarkup(rootComment);
 
         if (replies.length > 0) {
             const repliesWrap = document.createElement('div');
             repliesWrap.className = 'comment-replies-wrap';
 
-            const toggleBtn = document.createElement('button');
-            toggleBtn.type = 'button';
-            toggleBtn.className = 'comment-toggle-replies-btn';
-            toggleBtn.innerHTML = `<span>💬 Ver ${replies.length} ${
-                replies.length === 1 ? 'respuesta' : 'respuestas'
-            }</span>`;
+            // Máximo 2 respuestas visibles inicialmente (evita alargamiento excesivo)
+            const previewReplies = replies.slice(0, 2);
+            const remainingReplies = replies.slice(2);
 
-            const repliesListEl = document.createElement('div');
-            repliesListEl.className = 'comment-replies-list';
-            repliesListEl.hidden = false;
-
-            replies.forEach(reply => {
+            previewReplies.forEach(reply => {
                 const replyEl = document.createElement('div');
                 replyEl.className = 'comment-reply-item';
                 replyEl.innerHTML = renderCommentReplyMarkup(reply);
                 attachCommentItemListeners(replyEl, reply);
-                repliesListEl.appendChild(replyEl);
+                repliesWrap.appendChild(replyEl);
             });
 
-            toggleBtn.addEventListener('click', () => {
-                repliesListEl.hidden = !repliesListEl.hidden;
-                toggleBtn.querySelector('span').textContent = repliesListEl.hidden
-                    ? `💬 Ver ${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}`
-                    : `▲ Ocultar respuestas`;
-            });
+            if (remainingReplies.length > 0) {
+                const remainingContainer = document.createElement('div');
+                remainingContainer.className = 'comment-replies-list';
+                remainingContainer.hidden = true;
 
-            repliesWrap.appendChild(toggleBtn);
-            repliesWrap.appendChild(repliesListEl);
+                remainingReplies.forEach(reply => {
+                    const replyEl = document.createElement('div');
+                    replyEl.className = 'comment-reply-item';
+                    replyEl.innerHTML = renderCommentReplyMarkup(reply);
+                    attachCommentItemListeners(replyEl, reply);
+                    remainingContainer.appendChild(replyEl);
+                });
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.type = 'button';
+                toggleBtn.className = 'comment-toggle-replies-btn';
+                toggleBtn.innerHTML = `<span>💬 Ver ${remainingReplies.length} ${
+                    remainingReplies.length === 1 ? 'respuesta más' : 'respuestas más'
+                } ▾</span>`;
+
+                toggleBtn.addEventListener('click', () => {
+                    remainingContainer.hidden = !remainingContainer.hidden;
+                    toggleBtn.querySelector('span').textContent = remainingContainer.hidden
+                        ? `💬 Ver ${remainingReplies.length} ${
+                            remainingReplies.length === 1 ? 'respuesta más' : 'respuestas más'
+                        } ▾`
+                        : `▲ Ocultar respuestas`;
+                });
+
+                repliesWrap.appendChild(remainingContainer);
+                repliesWrap.appendChild(toggleBtn);
+            }
+
             threadCard.appendChild(repliesWrap);
         }
 
         attachCommentItemListeners(threadCard, rootComment);
         commentsList.appendChild(threadCard);
     });
+}
+
+function isCommentEdited(c) {
+    if (!c || !c.updated_at || !c.created_at) return false;
+    const createdTime = new Date(c.created_at).getTime();
+    const updatedTime = new Date(c.updated_at).getTime();
+    return !isNaN(createdTime) && !isNaN(updatedTime) && (updatedTime - createdTime > 3000);
+}
+
+function formatEditedTimeText(dateStr) {
+    if (!dateStr) return 'editado';
+    const ago = formatTimeAgoCompact(dateStr);
+    if (!ago || ago === 'ahora') return 'editado hace un momento';
+    return `editado hace ${ago}`;
 }
 
 function renderCommentMainMarkup(c) {
@@ -825,6 +855,16 @@ function renderCommentMainMarkup(c) {
     const timeAgo = formatTimeAgoCompact(c.created_at) || 'reciente';
     const isSpoiler = Boolean(c.contains_spoiler);
     const likes = Number(c.likes || 0);
+    const isLiked = Number(c.user_liked) === 1;
+    const isEdited = isCommentEdited(c);
+    const editedText = isEdited ? formatEditedTimeText(c.updated_at) : '';
+    const isOwn = Boolean(
+        currentAuthUser && (
+            (c.user_id && currentAuthUser.id === c.user_id) ||
+            (c.username && currentAuthUser.username && c.username.toLowerCase() === currentAuthUser.username.toLowerCase()) ||
+            (currentAuthUser.platform_role && ['ADMIN', 'SUPERADMIN'].includes(currentAuthUser.platform_role.toUpperCase()))
+        )
+    );
 
     const avatarMarkup = avatar
         ? `<img class="comment-avatar-img" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden');"><div class="comment-avatar-fallback hidden">${initial}</div>`
@@ -846,20 +886,31 @@ function renderCommentMainMarkup(c) {
                 <div class="comment-meta-row">
                     <span class="comment-author-name">@${safeUsername}</span>
                     <span class="comment-time">${timeAgo}</span>
+                    ${isEdited ? `<span class="comment-edited-tag" title="Editado el ${new Date(c.updated_at).toLocaleString('es-CO')}">(${escapeHTML(editedText)})</span>` : ''}
                     ${isSpoiler ? `<span class="comment-spoiler-tag">⚠️ Spoiler</span>` : ''}
                 </div>
                 <p class="comment-text ${isSpoiler ? 'is-spoiler-blurred' : ''}" data-text="${safeContent}">
                     ${isSpoiler ? '🙈 Contenido marcado con spoiler. Haz clic aquí para revelarlo.' : safeContent}
                 </p>
                 <div class="comment-actions-row">
-                    <button type="button" class="comment-action-btn like-btn" data-action="like" title="Me gusta">
-                        <img src="/assets/icons/svg/thumbs-up.svg" width="13" height="13" alt="" aria-hidden="true">
-                        <span class="like-counter">${likes > 0 ? likes : 'Útil'}</span>
+                    <button type="button" class="comment-action-btn like-btn ${isLiked ? 'is-active' : ''}" data-action="like" title="Me gusta">
+                        <img src="/assets/icons/svg/actions/thumbs-up.svg" width="13" height="13" alt="" aria-hidden="true">
+                        <span class="like-counter">${likes > 0 ? likes : ''}</span>
                     </button>
                     <button type="button" class="comment-action-btn reply-btn" data-action="reply" title="Responder">
-                        <img src="/assets/icons/svg/reply.svg" width="13" height="13" alt="" aria-hidden="true">
+                        <img src="/assets/icons/svg/actions/reply.svg" width="13" height="13" alt="" aria-hidden="true">
                         <span>Responder</span>
                     </button>
+                    ${isOwn ? `
+                    <button type="button" class="comment-action-btn edit-btn" data-action="edit" title="Editar comentario">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>Editar</span>
+                    </button>
+                    <button type="button" class="comment-action-btn delete-btn" data-action="delete" title="Eliminar comentario">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <span>Eliminar</span>
+                    </button>
+                    ` : ''}
                 </div>
             </div>
         </div>
@@ -876,6 +927,20 @@ function renderCommentReplyMarkup(r) {
     const timeAgo = formatTimeAgoCompact(r.created_at) || 'reciente';
     const isSpoiler = Boolean(r.contains_spoiler);
     const likes = Number(r.likes || 0);
+    const isLiked = Number(r.user_liked) === 1;
+    const isEdited = isCommentEdited(r);
+    const editedText = isEdited ? formatEditedTimeText(r.updated_at) : '';
+    const replyTo = (r.reply_to_username || '').trim();
+    const replyToMarkup = replyTo
+        ? `<span class="comment-replying-to"><span class="comment-reply-arrow">↳</span> respondiendo a <strong class="comment-replying-tag">@${escapeHTML(replyTo)}</strong></span>`
+        : '';
+    const isOwn = Boolean(
+        currentAuthUser && (
+            (r.user_id && currentAuthUser.id === r.user_id) ||
+            (r.username && currentAuthUser.username && r.username.toLowerCase() === currentAuthUser.username.toLowerCase()) ||
+            (currentAuthUser.platform_role && ['ADMIN', 'SUPERADMIN'].includes(currentAuthUser.platform_role.toUpperCase()))
+        )
+    );
 
     const avatarMarkup = avatar
         ? `<img class="comment-reply-avatar" src="${safeUrl(avatar, IMG_FALLBACK)}" alt="${safeUsername}" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden');"><div class="comment-reply-avatar-fallback hidden">${initial}</div>`
@@ -893,27 +958,39 @@ function renderCommentReplyMarkup(r) {
         <div class="comment-body-col">
             <div class="comment-meta-row">
                 <span class="comment-author-name">@${safeUsername}</span>
+                ${replyToMarkup}
                 <span class="comment-time">${timeAgo}</span>
+                ${isEdited ? `<span class="comment-edited-tag" title="Editado el ${new Date(r.updated_at).toLocaleString('es-CO')}">(${escapeHTML(editedText)})</span>` : ''}
                 ${isSpoiler ? `<span class="comment-spoiler-tag">⚠️ Spoiler</span>` : ''}
             </div>
             <p class="comment-text ${isSpoiler ? 'is-spoiler-blurred' : ''}" data-text="${safeContent}">
                 ${isSpoiler ? '🙈 Contenido con spoiler. Clic para ver.' : safeContent}
             </p>
             <div class="comment-actions-row">
-                <button type="button" class="comment-action-btn like-btn" data-action="like">
-                    <img src="/assets/icons/svg/thumbs-up.svg" width="12" height="12" alt="" aria-hidden="true">
+                <button type="button" class="comment-action-btn like-btn ${isLiked ? 'is-active' : ''}" data-action="like">
+                    <img src="/assets/icons/svg/actions/thumbs-up.svg" width="12" height="12" alt="" aria-hidden="true">
                     <span class="like-counter">${likes > 0 ? likes : ''}</span>
                 </button>
                 <button type="button" class="comment-action-btn reply-btn" data-action="reply">
                     <span>Responder</span>
                 </button>
+                ${isOwn ? `
+                <button type="button" class="comment-action-btn edit-btn" data-action="edit" title="Editar respuesta">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span>Editar</span>
+                </button>
+                <button type="button" class="comment-action-btn delete-btn" data-action="delete" title="Eliminar respuesta">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>Eliminar</span>
+                </button>
+                ` : ''}
             </div>
         </div>
     `;
 }
 
 function attachCommentItemListeners(containerEl, commentObj) {
-    // Revelar spoiler
+    // revelar spoiler
     const spoilerEl = containerEl.querySelector('.comment-text.is-spoiler-blurred');
     if (spoilerEl) {
         spoilerEl.addEventListener('click', () => {
@@ -922,7 +999,7 @@ function attachCommentItemListeners(containerEl, commentObj) {
         });
     }
 
-    // Botón Me Gusta
+    // botón me gusta toggle sincronizado
     const likeBtn = containerEl.querySelector('.comment-action-btn.like-btn');
     if (likeBtn) {
         likeBtn.addEventListener('click', async () => {
@@ -931,28 +1008,37 @@ function attachCommentItemListeners(containerEl, commentObj) {
                 return;
             }
 
-            likeBtn.classList.toggle('is-active');
-            const counter = likeBtn.querySelector('.like-counter');
-            let val = parseInt(counter.textContent) || 0;
-
-            if (likeBtn.classList.contains('is-active')) {
-                counter.textContent = String(val + 1);
-            } else {
-                counter.textContent = val > 1 ? String(val - 1) : '';
-            }
-
+            likeBtn.disabled = true;
             try {
-                await apiRequest(`/comments/${commentObj.id}/reaction`, {
+                const res = await apiRequest(`/comments/${commentObj.id}/reaction`, {
                     method: 'PUT',
                     body: { reaction: 'LIKE' }
                 });
+                const counter = likeBtn.querySelector('.like-counter');
+                if (res && res.action === 'ADDED') {
+                    likeBtn.classList.add('is-active');
+                    commentObj.user_liked = 1;
+                } else if (res && res.action === 'REMOVED') {
+                    likeBtn.classList.remove('is-active');
+                    commentObj.user_liked = 0;
+                } else {
+                    likeBtn.classList.toggle('is-active');
+                }
+                const newLikes = (res && typeof res.likes === 'number') ? res.likes : (commentObj.likes || 0);
+                commentObj.likes = newLikes;
+                if (counter) {
+                    counter.textContent = newLikes > 0 ? String(newLikes) : '';
+                }
             } catch (e) {
                 console.error('Error reaccionando:', e);
+                showToast('No se pudo registrar tu reacción', 'error');
+            } finally {
+                likeBtn.disabled = false;
             }
         });
     }
 
-    // Botón Responder
+    // botón responder con destinatario reply_to_username
     const replyBtn = containerEl.querySelector('.comment-action-btn.reply-btn');
     if (replyBtn) {
         replyBtn.addEventListener('click', () => {
@@ -972,18 +1058,32 @@ function attachCommentItemListeners(containerEl, commentObj) {
             const replyBox = document.createElement('div');
             replyBox.className = 'comment-inline-reply-box';
             replyBox.innerHTML = `
-                <textarea rows="2" placeholder="Responde a @${commentObj.username}..." maxlength="2000"></textarea>
-                <div class="comment-inline-reply-actions">
-                    <button type="button" class="comment-inline-reply-cancel">Cancelar</button>
-                    <button type="button" class="comment-inline-reply-send">Responder</button>
+                <textarea rows="2" placeholder="Responde a @${escapeHTML(commentObj.username)}... (Ctrl+Enter para enviar)" maxlength="2000"></textarea>
+                <div class="comment-inline-reply-footer">
+                    <label class="comment-inline-spoiler-toggle" title="Marcar respuesta como spoiler">
+                        <input type="checkbox" class="comment-inline-spoiler-check">
+                        <span>⚠️ Spoiler</span>
+                    </label>
+                    <div class="comment-inline-reply-actions">
+                        <button type="button" class="comment-inline-reply-cancel">Cancelar</button>
+                        <button type="button" class="comment-inline-reply-send">Responder</button>
+                    </div>
                 </div>
             `;
 
             const cancelBtn = replyBox.querySelector('.comment-inline-reply-cancel');
             const sendBtn = replyBox.querySelector('.comment-inline-reply-send');
             const textarea = replyBox.querySelector('textarea');
+            const spoilerCheck = replyBox.querySelector('.comment-inline-spoiler-check');
 
             cancelBtn.addEventListener('click', () => replyBox.remove());
+
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    sendBtn.click();
+                }
+            });
 
             sendBtn.addEventListener('click', async () => {
                 const text = textarea.value.trim();
@@ -998,12 +1098,12 @@ function attachCommentItemListeners(containerEl, commentObj) {
                         body: {
                             work_id: currentWork.id,
                             parent_id: commentObj.parent_id || commentObj.id,
+                            reply_to_username: commentObj.username || null,
                             content: text,
-                            contains_spoiler: false,
+                            contains_spoiler: Boolean(spoilerCheck && spoilerCheck.checked),
                         }
                     });
 
-                    showToast('Respuesta enviada', 'success');
                     replyBox.remove();
                     await loadWorkComments(currentWork.id);
                 } catch (err) {
@@ -1017,88 +1117,441 @@ function attachCommentItemListeners(containerEl, commentObj) {
             textarea.focus();
         });
     }
-}
 
-async function setupLibraryButton(work) {
-    if (!libraryButton) return;
+    // botón editar comentario
+    const editBtn = containerEl.querySelector('.comment-action-btn.edit-btn');
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            const bodyCol = containerEl.querySelector('.comment-body-col');
+            const textEl = containerEl.querySelector('.comment-text');
+            const actionsRow = containerEl.querySelector('.comment-actions-row');
+            if (!bodyCol || !textEl) return;
 
-    libraryButton.hidden = false;
-    let isAdded = false;
-    let isProcessing = false;
+            const existingEdit = bodyCol.querySelector('.comment-inline-edit-box');
+            if (existingEdit) {
+                existingEdit.remove();
+                textEl.hidden = false;
+                if (actionsRow) actionsRow.hidden = false;
+                return;
+            }
 
-    const updateButtonUI = () => {
-        if (isAdded) {
-            libraryButton.classList.add('is-added');
-            libraryButton.textContent = 'En biblioteca';
-        } else {
-            libraryButton.classList.remove('is-added');
-            libraryButton.textContent = 'Añadir a biblioteca';
-        }
-    };
+            textEl.hidden = true;
+            if (actionsRow) actionsRow.hidden = true;
 
-    if (getAccessToken()) {
-        try {
-            const res = await apiRequest(`/library/${work.id}`);
-            isAdded = Boolean(res?.in_library);
-            updateButtonUI();
-        } catch (e) {
-            console.error('Error al verificar biblioteca:', e);
-        }
+            const editBox = document.createElement('div');
+            editBox.className = 'comment-inline-edit-box';
+            editBox.innerHTML = `
+                <textarea class="comment-edit-textarea" rows="2" maxlength="3000">${escapeHTML(commentObj.content || '')}</textarea>
+                <div class="comment-inline-edit-actions">
+                    <button type="button" class="comment-edit-cancel-btn">Cancelar</button>
+                    <button type="button" class="comment-edit-save-btn">Guardar</button>
+                </div>
+            `;
+
+            const cancelBtn = editBox.querySelector('.comment-edit-cancel-btn');
+            const saveBtn = editBox.querySelector('.comment-edit-save-btn');
+            const textarea = editBox.querySelector('.comment-edit-textarea');
+
+            cancelBtn.addEventListener('click', () => {
+                editBox.remove();
+                textEl.hidden = false;
+                if (actionsRow) actionsRow.hidden = false;
+            });
+
+            saveBtn.addEventListener('click', async () => {
+                const newText = textarea.value.trim();
+                if (!newText) {
+                    showToast('El comentario no puede estar vacío', 'warning');
+                    return;
+                }
+
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Guardando...';
+
+                try {
+                    await apiRequest(`/comments/${commentObj.id}`, {
+                        method: 'PATCH',
+                        body: {
+                            content: newText,
+                            contains_spoiler: Boolean(commentObj.contains_spoiler)
+                        }
+                    });
+
+                    commentObj.content = newText;
+                    commentObj.updated_at = new Date().toISOString();
+                    textEl.textContent = newText;
+                    textEl.dataset.text = newText;
+                    editBox.remove();
+                    textEl.hidden = false;
+                    if (actionsRow) actionsRow.hidden = false;
+
+                    const metaRow = bodyCol.querySelector('.comment-meta-row');
+                    if (metaRow) {
+                        let editedTag = metaRow.querySelector('.comment-edited-tag');
+                        if (!editedTag) {
+                            editedTag = document.createElement('span');
+                            editedTag.className = 'comment-edited-tag';
+                            metaRow.appendChild(editedTag);
+                        }
+                        editedTag.textContent = '(editado hace un momento)';
+                        editedTag.title = `Editado el ${new Date().toLocaleString('es-CO')}`;
+                    }
+                } catch (err) {
+                    showToast(err.message || 'Error al editar comentario', 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Guardar';
+                }
+            });
+
+            bodyCol.insertBefore(editBox, actionsRow);
+            textarea.focus();
+        });
     }
 
-    const newBtn = libraryButton.cloneNode(true);
-    libraryButton.parentNode.replaceChild(newBtn, libraryButton);
+    // botón eliminar comentario
+    const deleteBtn = containerEl.querySelector('.comment-action-btn.delete-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            const confirmed = window.confirm('¿Seguro que deseas eliminar este comentario?');
+            if (!confirmed) return;
 
-    newBtn.addEventListener('click', async () => {
-        if (isProcessing) return;
+            deleteBtn.disabled = true;
+            try {
+                await apiRequest(`/comments/${commentObj.id}`, {
+                    method: 'DELETE'
+                });
+                await loadWorkComments(currentWork.id);
+            } catch (err) {
+                showToast(err.message || 'Error al eliminar comentario', 'error');
+                deleteBtn.disabled = false;
+            }
+        });
+    }
+}
 
+const WORK_STATUS_CONFIG = {
+    READING: { label: 'Leyendo', icon: '📖' },
+    PLAN_TO_READ: { label: 'Planeado', icon: '📅' },
+    COMPLETED: { label: 'Completado', icon: '✅' },
+    ON_HOLD: { label: 'En espera', icon: '⏸' },
+    DROPPED: { label: 'Abandonado', icon: '❌' },
+};
+
+const LEGACY_STATUS_MAP = {
+    LIKED: 'READING',
+    FOLLOWING: 'READING',
+    FAVORITE: 'READING',
+    READ_LATER: 'PLAN_TO_READ',
+    PAUSED: 'ON_HOLD',
+};
+
+let currentCommunityStats = {
+    reading: 0,
+    plan_to_read: 0,
+    completed: 0,
+    on_hold: 0,
+    dropped: 0,
+    total: 0
+};
+
+function statusToStatKey(status) {
+    if (!status) return null;
+    const lower = String(status).toLowerCase();
+    if (lower === 'reading') return 'reading';
+    if (lower === 'plan_to_read') return 'plan_to_read';
+    if (lower === 'completed') return 'completed';
+    if (lower === 'on_hold') return 'on_hold';
+    if (lower === 'dropped') return 'dropped';
+    return null;
+}
+
+function renderCommunityStats(libraryStats = null) {
+    if (libraryStats) {
+        currentCommunityStats = {
+            reading: Number(libraryStats.reading) || 0,
+            plan_to_read: Number(libraryStats.plan_to_read) || 0,
+            completed: Number(libraryStats.completed) || 0,
+            on_hold: Number(libraryStats.on_hold) || 0,
+            dropped: Number(libraryStats.dropped) || 0,
+            total: Number(libraryStats.total) || 0
+        };
+    }
+
+    const readingEl = document.getElementById('work-stat-reading');
+    const planEl = document.getElementById('work-stat-plan');
+    const completedEl = document.getElementById('work-stat-completed');
+    const onholdEl = document.getElementById('work-stat-onhold');
+    const droppedEl = document.getElementById('work-stat-dropped');
+
+    if (readingEl) readingEl.textContent = formatNumber(currentCommunityStats.reading);
+    if (planEl) planEl.textContent = formatNumber(currentCommunityStats.plan_to_read);
+    if (completedEl) completedEl.textContent = formatNumber(currentCommunityStats.completed);
+    if (onholdEl) onholdEl.textContent = formatNumber(currentCommunityStats.on_hold);
+    if (droppedEl) droppedEl.textContent = formatNumber(currentCommunityStats.dropped);
+}
+
+function setupLibraryDropdown(work, userState = null) {
+    const wrap = document.getElementById('work-library-wrap');
+    const libBtn = document.getElementById('work-add-library');
+    const libIcon = document.getElementById('work-library-icon');
+    const libText = document.getElementById('work-library-text');
+    const menu = document.getElementById('work-library-menu');
+    const divider = document.getElementById('work-library-menu-divider');
+    const removeBtn = document.getElementById('work-library-remove-btn');
+    if (!libBtn || !menu) return;
+
+    libBtn.hidden = false;
+
+    let rawStatus = userState?.status || userState?.library_status || null;
+    if (rawStatus) rawStatus = LEGACY_STATUS_MAP[rawStatus] || rawStatus;
+    let inLibrary = Boolean(userState?.in_library || rawStatus);
+    let currentStatus = inLibrary && rawStatus && WORK_STATUS_CONFIG[rawStatus] ? rawStatus : (inLibrary ? 'READING' : null);
+    let isProcessing = false;
+
+    function updateUI() {
+        if (inLibrary && currentStatus && WORK_STATUS_CONFIG[currentStatus]) {
+            libBtn.classList.add('is-added');
+            if (libIcon) libIcon.textContent = WORK_STATUS_CONFIG[currentStatus].icon;
+            if (libText) libText.textContent = WORK_STATUS_CONFIG[currentStatus].label;
+            if (divider) divider.hidden = false;
+            if (removeBtn) removeBtn.hidden = false;
+        } else {
+            libBtn.classList.remove('is-added');
+            if (libIcon) libIcon.textContent = '➕';
+            if (libText) libText.textContent = 'Añadir a biblioteca';
+            if (divider) divider.hidden = true;
+            if (removeBtn) removeBtn.hidden = true;
+        }
+
+        menu.querySelectorAll('.work-library-option[data-status]').forEach(btn => {
+            btn.classList.toggle('is-current', btn.dataset.status === currentStatus);
+        });
+    }
+
+    updateUI();
+
+    if (userState === null && getAccessToken() && work.id) {
+        apiRequest(`/library/${work.id}`).then(res => {
+            if (res?.in_library && res?.status) {
+                const norm = LEGACY_STATUS_MAP[res.status] || res.status;
+                if (WORK_STATUS_CONFIG[norm]) {
+                    inLibrary = true;
+                    currentStatus = norm;
+                    updateUI();
+                }
+            }
+        }).catch(() => {});
+    }
+
+    function toggleMenu(show = null) {
+        const isOpen = show !== null ? show : menu.hidden;
+        menu.hidden = !isOpen;
+        if (wrap) wrap.classList.toggle('is-open', isOpen);
+        libBtn.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    libBtn.onclick = (e) => {
+        e.stopPropagation();
         if (!getAccessToken()) {
-            const returnUrl = `/pages/biblioteca.html?add=${encodeURIComponent(work.id)}`;
+            const returnUrl = `/pages/obra.html?slug=${encodeURIComponent(work.slug || slug)}`;
             window.location.assign(`/pages/login.html?next=${encodeURIComponent(returnUrl)}`);
             return;
         }
+        toggleMenu();
+    };
 
-        isProcessing = true;
-        newBtn.textContent = 'Guardando…';
+    document.addEventListener('click', (e) => {
+        if (!wrap?.contains(e.target)) {
+            toggleMenu(false);
+        }
+    });
 
-        try {
-            if (isAdded) {
-                await apiRequest(`/library/${work.id}`, { method: 'DELETE' });
-                isAdded = false;
-                showToast('Obra retirada de tu biblioteca', 'info');
-            } else {
+    menu.querySelectorAll('.work-library-option[data-status]').forEach(option => {
+        option.onclick = async (e) => {
+            e.stopPropagation();
+            if (isProcessing) return;
+            const targetStatus = option.dataset.status;
+            if (!WORK_STATUS_CONFIG[targetStatus]) return;
+
+            toggleMenu(false);
+            isProcessing = true;
+            const prevStatus = currentStatus;
+            const prevInLib = inLibrary;
+
+            currentStatus = targetStatus;
+            inLibrary = true;
+            updateUI();
+
+            const prevKey = prevInLib ? statusToStatKey(prevStatus) : null;
+            const nextKey = statusToStatKey(targetStatus);
+            if (prevKey && currentCommunityStats[prevKey] > 0) {
+                currentCommunityStats[prevKey] = Math.max(0, currentCommunityStats[prevKey] - 1);
+            }
+            if (nextKey) {
+                currentCommunityStats[nextKey] = (currentCommunityStats[nextKey] || 0) + 1;
+            }
+            renderCommunityStats();
+
+            try {
                 await apiRequest(`/library/${work.id}`, {
                     method: 'POST',
-                    body: { status: 'FOLLOWING' }
+                    body: { status: targetStatus },
                 });
-                isAdded = true;
-                showToast('Obra añadida a tu biblioteca', 'success');
+                window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { action: 'library' } }));
+            } catch (err) {
+                if (nextKey && currentCommunityStats[nextKey] > 0) {
+                    currentCommunityStats[nextKey] = Math.max(0, currentCommunityStats[nextKey] - 1);
+                }
+                if (prevKey) {
+                    currentCommunityStats[prevKey] = (currentCommunityStats[prevKey] || 0) + 1;
+                }
+                renderCommunityStats();
+                currentStatus = prevStatus;
+                inLibrary = prevInLib;
+                updateUI();
+                showToast(err.message || 'No se pudo guardar el estado en biblioteca.', 'error');
+            } finally {
+                isProcessing = false;
             }
+        };
+    });
 
-            window.dispatchEvent(new CustomEvent('auth:profile-updated', {
-                detail: { action: 'library' }
-            }));
-        } catch (e) {
-            if (e.status === 401 || e.status === 400) {
-                clearAccessToken();
-                const returnUrl = `/pages/biblioteca.html?add=${encodeURIComponent(work.id)}`;
+    if (removeBtn) {
+        removeBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (isProcessing) return;
+
+            toggleMenu(false);
+            isProcessing = true;
+            const prevStatus = currentStatus;
+            const prevInLib = inLibrary;
+
+            currentStatus = null;
+            inLibrary = false;
+            updateUI();
+
+            const prevKey = prevInLib ? statusToStatKey(prevStatus) : null;
+            if (prevKey && currentCommunityStats[prevKey] > 0) {
+                currentCommunityStats[prevKey] = Math.max(0, currentCommunityStats[prevKey] - 1);
+            }
+            renderCommunityStats();
+
+            try {
+                await apiRequest(`/library/${work.id}`, { method: 'DELETE' });
+                window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { action: 'library' } }));
+            } catch (err) {
+                if (prevKey) {
+                    currentCommunityStats[prevKey] = (currentCommunityStats[prevKey] || 0) + 1;
+                }
+                renderCommunityStats();
+                currentStatus = prevStatus;
+                inLibrary = prevInLib;
+                updateUI();
+                showToast(err.message || 'No se pudo quitar la obra.', 'error');
+            } finally {
+                isProcessing = false;
+            }
+        };
+    }
+}
+
+function setupHeroRating(work, userState = null) {
+    const avgEl = document.getElementById('work-hero-rating-avg');
+    const countEl = document.getElementById('work-hero-rating-count');
+    const rateBtn = document.getElementById('work-hero-rate-btn');
+    const rateText = document.getElementById('work-hero-rate-btn-text');
+    const viewsEl = document.getElementById('work-hero-views-text');
+
+    if (viewsEl && work.total_views != null) {
+        viewsEl.textContent = `${formatViews(work.total_views)} lecturas`;
+    }
+
+    let userRating = userState?.user_rating ?? null;
+
+    const updateUI = () => {
+        const avg = Number(work.rating_average) || 0;
+        const count = Number(work.rating_count) || 0;
+        if (avgEl) avgEl.textContent = avg > 0 ? avg.toFixed(1) : '0.0';
+        if (countEl) countEl.textContent = `(${formatNumber(count)})`;
+
+        if (rateBtn && rateText) {
+            if (userRating != null && Number(userRating) > 0) {
+                rateBtn.classList.add('has-voted');
+                rateText.textContent = `Tu nota: ${Number(userRating).toFixed(1)}`;
+                rateBtn.title = `Tu calificación actual es ${Number(userRating).toFixed(1)}/10. Clic para modificar`;
+            } else {
+                rateBtn.classList.remove('has-voted');
+                rateText.textContent = 'Calificar';
+                rateBtn.title = 'Calificar esta obra (desliza de 1.0 a 10.0)';
+            }
+        }
+    };
+
+    updateUI();
+
+    if (rateBtn) {
+        rateBtn.onclick = () => {
+            if (!getAccessToken()) {
+                const returnUrl = `/pages/obra.html?slug=${encodeURIComponent(work.slug || slug)}`;
                 window.location.assign(`/pages/login.html?next=${encodeURIComponent(returnUrl)}`);
                 return;
             }
 
-            showToast(e.message || 'No se pudo actualizar la biblioteca.', 'error');
-        } finally {
-            isProcessing = false;
+            openWorkRatingModal({
+                workId: work.id,
+                workTitle: work.title,
+                initialScore: userRating != null ? Number(userRating) : 8.0,
+                onRated({ ratingAverage, userRating: newScore }) {
+                    if (newScore != null) {
+                        userRating = newScore;
+                    }
+                    if (ratingAverage != null) {
+                        work.rating_average = ratingAverage;
+                        work.rating_count = (Number(work.rating_count) || 0) + 1;
+                    }
+                    updateUI();
+                }
+            });
+        };
+    }
+}
 
-            if (isAdded) {
-                newBtn.classList.add('is-added');
-                newBtn.textContent = 'En biblioteca';
-            } else {
-                newBtn.classList.remove('is-added');
-                newBtn.textContent = 'Añadir a biblioteca';
-            }
+async function loadRecommendedWorks() {
+    const recGrid = document.getElementById('work-recommended-grid');
+    if (!recGrid) return;
+
+    try {
+        const res = await apiRequest('/works?per_page=6&sort=popular');
+        const works = Array.isArray(res) ? res : (res?.items || []);
+        const filtered = works.filter(w => w.id !== currentWork?.id).slice(0, 5);
+
+        if (!filtered.length) {
+            const sec = document.querySelector('.work-recommended-section');
+            if (sec) sec.hidden = true;
+            return;
         }
-    });
+
+        recGrid.replaceChildren();
+        filtered.forEach((w, idx) => {
+            const card = document.createElement('a');
+            card.className = 'work-rec-card';
+            card.href = `/pages/obra.html?slug=${encodeURIComponent(w.slug || w.id)}`;
+            card.innerHTML = `
+                <div class="work-rec-cover-wrap">
+                    <span class="work-rec-rank-pill">#${idx + 1}</span>
+                    <img class="work-rec-cover" src="${safeUrl(w.cover_url, IMG_FALLBACK)}" alt="${escapeHTML(w.title || '')}" loading="lazy">
+                </div>
+                <div class="work-rec-info">
+                    <h4 class="work-rec-card-title">${escapeHTML(w.title || 'Obra')}</h4>
+                    <span class="work-rec-card-format">${escapeHTML(w.format_name || 'MANGA')}</span>
+                </div>
+            `;
+            recGrid.appendChild(card);
+        });
+    } catch {
+        const sec = document.querySelector('.work-recommended-section');
+        if (sec) sec.hidden = true;
+    }
 }
 
 async function loadWork() {
@@ -1108,31 +1561,39 @@ async function loadWork() {
     }
 
     page.setAttribute('aria-busy', 'true');
-    if (workSkeleton) workSkeleton.hidden = false;
+    if (workSkeleton) {
+        if (!workSkeleton.children.length) workSkeleton.innerHTML = renderWorkDetailSkeleton(4);
+        workSkeleton.hidden = false;
+    }
     errorPanel.hidden = true;
     content.hidden = true;
 
     try {
-        const [work, chapters] = await Promise.all([
-            apiRequest(`/works/${encodeURIComponent(slug)}`),
-            apiRequest(`/chapters/work/${encodeURIComponent(slug)}?published_only=true&order=desc`).catch(() => [])
-        ]);
+        const detail = await apiRequest(`/works/${encodeURIComponent(slug)}/detail`);
+        renderWork(detail.work, detail.chapters, detail.user_state, detail.library_stats);
 
-        renderWork(work, chapters);
-
-        if (work && work.id) {
+        if (detail.work && detail.work.id) {
             apiRequest('/metrics/views', {
                 method: 'POST',
-                body: { work_id: work.id }
+                body: { work_id: detail.work.id }
             }).catch(() => {});
         }
     } catch (error) {
-        showError(
-            error.status === 404
-                ? 'La obra pudo haber sido retirada del catálogo.'
-                : 'Revisa tu conexión e inténtalo de nuevo.',
-            error.status === 404
-        );
+        // fallback carga obra
+        try {
+            const [work, chapters] = await Promise.all([
+                apiRequest(`/works/${encodeURIComponent(slug)}`),
+                apiRequest(`/chapters/work/${encodeURIComponent(slug)}?published_only=true&order=desc`).catch(() => [])
+            ]);
+            renderWork(work, chapters);
+        } catch (fallbackError) {
+            showError(
+                fallbackError.status === 404
+                    ? 'La obra pudo haber sido retirada del catálogo.'
+                    : 'Revisa tu conexión e inténtalo de nuevo.',
+                fallbackError.status === 404
+            );
+        }
     }
 }
 

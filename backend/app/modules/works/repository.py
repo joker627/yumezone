@@ -1,20 +1,14 @@
-import json
-import time
-from typing import List, Optional, Tuple
-
+from typing import Any, List, Optional, Tuple
 import aiomysql
 
-from app.core.database import get_db_pool
+from app.core.database import resolve_connection
 from app.modules.works.models import Work
-
-_FILTERS_CACHE: Optional[dict[str, list[dict[str, object]]]] = None
-_FILTERS_CACHE_TIME: float = 0.0
-_FILTERS_TTL: float = 300.0  # 5 minutos
+from app.utils import parse_json_safe
 
 
 class WorkRepository:
-    def __init__(self, conn: aiomysql.Connection):
-        self.conn = conn  # Recibe la conexión
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+        self.conn = conn
 
     # get all works with pagination
     async def get_all_works(
@@ -35,7 +29,6 @@ class WorkRepository:
         if search_term:
             like_term = f"%{search_term}%"
             if len(search_term) >= 3:
-                # Utiliza MATCH ... AGAINST si el término tiene longitud suficiente junto con LIKE sobre campos principales
                 where_clauses.append("""
                     (
                        MATCH(w.title, w.alternative_title, w.author, w.synopsis) AGAINST (%s IN BOOLEAN MODE)
@@ -57,121 +50,139 @@ class WorkRepository:
                 """)
                 values.extend([like_term, like_term, like_term, like_term])
 
-        for column, selected_values in (
-            ("w.format_id", format_id),
-            ("w.status_id", status_id),
-            ("w.demographic_id", demographic_id),
-        ):
-            selected_ids = list(
-                dict.fromkeys(value for value in (selected_values or []) if value > 0)
-            )
-            if selected_ids:
-                placeholders = ", ".join("%s" for _ in selected_ids)
-                where_clauses.append(f"{column} IN ({placeholders})")
-                values.extend(selected_ids)
+        if format_id:
+            placeholders = ", ".join(["%s"] * len(format_id))
+            where_clauses.append(f"w.format_id IN ({placeholders})")
+            values.extend(format_id)
 
-        selected_genres = list(
-            dict.fromkeys(value for value in (genre_id or []) if value > 0)
-        )
-        if selected_genres:
-            placeholders = ", ".join("%s" for _ in selected_genres)
+        if status_id:
+            placeholders = ", ".join(["%s"] * len(status_id))
+            where_clauses.append(f"w.status_id IN ({placeholders})")
+            values.extend(status_id)
+
+        if demographic_id:
+            placeholders = ", ".join(["%s"] * len(demographic_id))
+            where_clauses.append(f"w.demographic_id IN ({placeholders})")
+            values.extend(demographic_id)
+
+        if genre_id:
+            placeholders = ", ".join(["%s"] * len(genre_id))
             where_clauses.append(f"""
-                EXISTS (
-                    SELECT 1
-                    FROM work_genres AS filter_wg
-                    WHERE filter_wg.work_id = w.id
-                      AND filter_wg.genre_id IN ({placeholders})
+                w.id IN (
+                    SELECT wg.work_id
+                    FROM work_genres wg
+                    WHERE wg.genre_id IN ({placeholders})
+                    GROUP BY wg.work_id
+                    HAVING COUNT(DISTINCT wg.genre_id) = %s
                 )
             """)
-            values.extend(selected_genres)
+            values.extend(genre_id)
+            values.append(len(genre_id))
 
         where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
-        order_by = {
-            "popular": "COALESCE(ws.trending_score, 0) DESC, w.id DESC",
-            "recent": "w.created_at DESC, w.id DESC",
-            "title": "w.title ASC, w.id ASC",
-        }.get(sort, "COALESCE(ws.trending_score, 0) DESC, w.id DESC")
-        order_values: list[str] = []
+
+        sort_map = {
+            "trending": "ws.trending_score DESC, ws.views_last_24h DESC",
+            "views": "ws.total_views DESC",
+            "rating": "ws.rating_average DESC, ws.rating_count DESC",
+            "alphabetical": "w.title ASC",
+            "newest": "w.id DESC",
+        }
+        order_by = sort_map.get(sort, "ws.trending_score DESC, w.id DESC")
+        order_values: list[object] = []
+
         if sort == "relevance" and search_term:
             order_by = """
                 CASE
-                    WHEN LOWER(w.title) = LOWER(%s) THEN 0
-                    WHEN INSTR(LOWER(w.title), LOWER(%s)) = 1 THEN 1
+                    WHEN w.title = %s THEN 0
+                    WHEN w.title LIKE %s THEN 1
                     ELSE 2
                 END,
-                COALESCE(ws.trending_score, 0) DESC,
+                ws.trending_score DESC,
                 w.id DESC
             """
-            order_values = [search_term, search_term]
+            order_values = [search_term, f"{search_term}%"]
 
         count_joins = "LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id" if search_term else ""
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(
-                f"""
-                SELECT COUNT(*) AS total
-                FROM works AS w
-                {count_joins}
-                {where_sql}
-                """,
-                tuple(values),
-            )
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(
+                    f"""
+                    SELECT COUNT(*) AS total
+                    FROM works AS w
+                    {count_joins}
+                    {where_sql}
+                    """,
+                    tuple(values),
+                )
 
-            total_row = await cur.fetchone()
-            total = total_row["total"] if total_row else 0
-            last_visible_page = max(1, (total + per_page - 1) // per_page)
-            current_page = min(max(page, 1), last_visible_page)
-            offset = (current_page - 1) * per_page
+                total_row = await cur.fetchone()
+                total = total_row["total"] if total_row else 0
+                last_visible_page = max(1, (total + per_page - 1) // per_page)
+                current_page = min(max(1, page), last_visible_page)
+                offset = (current_page - 1) * per_page
 
-            await cur.execute(
-                f"""
-                SELECT w.*,
-                       ws.first_chapter_id,
-                       COALESCE(ws.total_views, 0) AS total_views,
-                       COALESCE(ws.rating_average, 0.00) AS rating_average,
-                       COALESCE(ws.rating_count, 0) AS rating_count,
-                       COALESCE(ws.followers_count, 0) AS followers_count,
-                       COALESCE(ws.favorites_count, 0) AS favorites_count,
-                       COALESCE(ws.trending_score, 0.00) AS trending_score,
-                       COALESCE(ws.views_last_24h, 0) AS views_last_24h,
-                       f.name AS format_name,
-                       st.name AS status_name,
-                       d.name AS demographic_name
-                FROM works AS w
-                LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id
-                LEFT JOIN statuses AS st ON st.id = w.status_id
-                LEFT JOIN formats AS f ON f.id = w.format_id
-                LEFT JOIN demographics AS d ON d.id = w.demographic_id
-                LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
-                {where_sql}
-                ORDER BY {order_by}
-                LIMIT %s OFFSET %s
-                """,
-                (*values, *order_values, per_page, offset),
-            )
-            rows = await cur.fetchall()
-            works = [Work(**row) for row in rows] if rows else []
+                query_values = list(values)
+                query_values.extend(order_values)
+                query_values.extend([per_page, offset])
 
-            return works, total, current_page, last_visible_page
+                await cur.execute(
+                    f"""
+                    SELECT w.*,
+                           ws.first_chapter_id,
+                           COALESCE(ws.chapters_count, 0) AS chapters_count,
+                           COALESCE(ws.total_views, 0) AS total_views,
+                           COALESCE(ws.rating_average, 0.00) AS rating_average,
+                           COALESCE(ws.rating_count, 0) AS rating_count,
+                           COALESCE(ws.favorites_count, 0) AS favorites_count,
+                           COALESCE(ws.trending_score, 0.00) AS trending_score,
+                           COALESCE(ws.views_last_24h, 0) AS views_last_24h,
+                           f.name AS format_name,
+                           st.name AS status_name,
+                           COALESCE(
+                               (
+                                   SELECT JSON_ARRAYAGG(JSON_OBJECT('id', g.id, 'name', g.name))
+                                   FROM work_genres AS wg
+                                   JOIN genres AS g ON g.id = wg.genre_id
+                                   WHERE wg.work_id = w.id
+                               ),
+                               JSON_ARRAY()
+                           ) AS genres_json
+                    FROM works AS w
+                    LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
+                    LEFT JOIN formats AS f ON f.id = w.format_id
+                    LEFT JOIN statuses AS st ON st.id = w.status_id
+                    LEFT JOIN scan_groups AS sg ON sg.id = w.scan_group_id
+                    {where_sql}
+                    ORDER BY {order_by}
+                    LIMIT %s OFFSET %s
+                    """,
+                    tuple(query_values),
+                )
 
+                rows = await cur.fetchall()
+                works = []
+                for row in (rows or []):
+                    row["genres"] = parse_json_safe(row.get("genres_json"), default=[])
+                    works.append(Work(**row))
+
+                return works, total, current_page, last_visible_page
+
+    # cargar todos los filtros desde base de datos con union all
     async def get_filters(self) -> dict[str, list[dict[str, object]]]:
-        """Carga todos los filtros en una sola query con UNION ALL (con caché en memoria de 5 min)."""
-        global _FILTERS_CACHE, _FILTERS_CACHE_TIME
-        now = time.time()
-        if _FILTERS_CACHE is not None and (now - _FILTERS_CACHE_TIME) < _FILTERS_TTL:
-            return _FILTERS_CACHE
-
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute("""
-                SELECT 'formats'      AS kind, id, name FROM formats
-                UNION ALL
-                SELECT 'statuses'     AS kind, id, name FROM statuses
-                UNION ALL
-                SELECT 'demographics' AS kind, id, name FROM demographics
-                UNION ALL
-                SELECT 'genres'       AS kind, id, name FROM genres
-                ORDER BY kind, name
-            """)
-            rows = await cur.fetchall()
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute("""
+                    SELECT 'formats'      AS kind, id, name FROM formats
+                    UNION ALL
+                    SELECT 'statuses'     AS kind, id, name FROM statuses
+                    UNION ALL
+                    SELECT 'demographics' AS kind, id, name FROM demographics
+                    UNION ALL
+                    SELECT 'genres'       AS kind, id, name FROM genres
+                    ORDER BY kind, name
+                """)
+                rows = await cur.fetchall()
         filters: dict[str, list[dict[str, object]]] = {
             "formats": [],
             "statuses": [],
@@ -181,61 +192,196 @@ class WorkRepository:
         for row in rows:
             filters[row["kind"]].append({"id": row["id"], "name": row["name"]})
 
-        _FILTERS_CACHE = filters
-        _FILTERS_CACHE_TIME = now
         return filters
 
     # get work by slug (con géneros en una sola consulta SQL)
     async def get_work_by_slug(self, slug: str) -> Optional[Work]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(
-                """
-                SELECT w.*,
-                       ws.first_chapter_id,
-                       COALESCE(ws.total_views, 0) AS total_views,
-                       COALESCE(ws.rating_average, 0.00) AS rating_average,
-                       COALESCE(ws.rating_count, 0) AS rating_count,
-                       COALESCE(ws.followers_count, 0) AS followers_count,
-                       COALESCE(ws.favorites_count, 0) AS favorites_count,
-                       COALESCE(ws.trending_score, 0.00) AS trending_score,
-                       COALESCE(ws.views_last_24h, 0) AS views_last_24h,
-                       f.name AS format_name,
-                       st.name AS status_name,
-                       d.name AS demographic_name,
-                       COALESCE(
-                           (
-                               SELECT JSON_ARRAYAGG(JSON_OBJECT('id', g.id, 'name', g.name))
-                               FROM genres AS g
-                               JOIN work_genres AS wg ON wg.genre_id = g.id
-                               WHERE wg.work_id = w.id
-                           ),
-                           JSON_ARRAY()
-                       ) AS genres_json
-                FROM works AS w
-                LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
-                LEFT JOIN formats AS f ON f.id = w.format_id
-                LEFT JOIN statuses AS st ON st.id = w.status_id
-                LEFT JOIN demographics AS d ON d.id = w.demographic_id
-                WHERE w.slug = %s
-                """,
-                (slug,),
-            )
-            row = await cur.fetchone()
-            if row:
-                genres = row.get("genres_json") or []
-                if isinstance(genres, str):
-                    try:
-                        genres = json.loads(genres)
-                    except Exception:
-                        genres = []
-                row["genres"] = genres
-                return Work(**row)
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(
+                    """
+                    SELECT w.*,
+                           ws.first_chapter_id,
+                           COALESCE(ws.chapters_count, 0) AS chapters_count,
+                           COALESCE(ws.total_views, 0) AS total_views,
+                           COALESCE(ws.rating_average, 0.00) AS rating_average,
+                           COALESCE(ws.rating_count, 0) AS rating_count,
+                           COALESCE(ws.favorites_count, 0) AS favorites_count,
+                           COALESCE(ws.trending_score, 0.00) AS trending_score,
+                           COALESCE(ws.views_last_24h, 0) AS views_last_24h,
+                           f.name AS format_name,
+                           st.name AS status_name,
+                           COALESCE(
+                               (
+                                   SELECT JSON_ARRAYAGG(JSON_OBJECT('id', g.id, 'name', g.name))
+                                   FROM work_genres AS wg
+                                   JOIN genres AS g ON g.id = wg.genre_id
+                                   WHERE wg.work_id = w.id
+                               ),
+                               JSON_ARRAY()
+                           ) AS genres_json
+                    FROM works AS w
+                    LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
+                    LEFT JOIN formats AS f ON f.id = w.format_id
+                    LEFT JOIN statuses AS st ON st.id = w.status_id
+                    WHERE w.slug = %s
+                    LIMIT 1
+                    """,
+                    (slug,),
+                )
+                row = await cur.fetchone()
+                if row:
+                    row["genres"] = parse_json_safe(row.get("genres_json"), default=[])
+                    return Work(**row)
         return None
 
-    # create a new work
+    # Obtener toda la información consolidada de la ficha de obra (1 solo viaje a la base de datos)
+    async def get_work_detail_data(
+        self,
+        slug_or_id: str,
+        user_id: Optional[int] = None,
+    ) -> Optional[dict[str, Any]]:
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                where_clause = "w.id = %s" if slug_or_id.isdigit() else "w.slug = %s"
+                param = int(slug_or_id) if slug_or_id.isdigit() else slug_or_id
+
+                await cur.execute(
+                    f"""
+                    SELECT w.*,
+                           ws.first_chapter_id,
+                           COALESCE(ws.chapters_count, 0) AS chapters_count,
+                           COALESCE(ws.total_views, 0) AS total_views,
+                           COALESCE(ws.rating_average, 0.00) AS rating_average,
+                           COALESCE(ws.rating_count, 0) AS rating_count,
+                           COALESCE(ws.favorites_count, 0) AS favorites_count,
+                           COALESCE(ws.trending_score, 0.00) AS trending_score,
+                           COALESCE(ws.views_last_24h, 0) AS views_last_24h,
+                           f.name AS format_name,
+                           st.name AS status_name,
+                           COALESCE(
+                               (
+                                   SELECT JSON_ARRAYAGG(JSON_OBJECT('id', g.id, 'name', g.name))
+                                   FROM work_genres AS wg
+                                   JOIN genres AS g ON g.id = wg.genre_id
+                                   WHERE wg.work_id = w.id
+                               ),
+                               JSON_ARRAY()
+                           ) AS genres_json
+                    FROM works AS w
+                    LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
+                    LEFT JOIN formats AS f ON f.id = w.format_id
+                    LEFT JOIN statuses AS st ON st.id = w.status_id
+                    WHERE {where_clause}
+                    LIMIT 1
+                    """,
+                    (param,),
+                )
+                work_row = await cur.fetchone()
+                if not work_row:
+                    return None
+
+                work_row["genres"] = parse_json_safe(work_row.get("genres_json"), default=[])
+                work_id = work_row["id"]
+
+                # 2. Capítulos publicados ordenados descendentemente
+                await cur.execute(
+                    """
+                    SELECT id, chapter_number, title, slug, published_at
+                    FROM chapters
+                    WHERE work_id = %s AND status = 'PUBLISHED'
+                    ORDER BY chapter_number DESC
+                    """,
+                    (work_id,),
+                )
+                chapters = await cur.fetchall() or []
+
+                # 3. Estado del usuario registrado
+                user_state = {
+                    "in_library": False,
+                    "library_status": None,
+                    "user_rating": None,
+                    "read_chapter_ids": [],
+                    "reading_progress": None,
+                }
+
+                if user_id:
+                    # En biblioteca
+                    await cur.execute(
+                        "SELECT status, rating FROM user_library WHERE user_id = %s AND work_id = %s",
+                        (user_id, work_id),
+                    )
+                    lib_row = await cur.fetchone()
+                    if lib_row:
+                        if lib_row.get("status"):
+                            user_state["in_library"] = True
+                            user_state["library_status"] = lib_row["status"]
+                        if lib_row.get("rating") is not None:
+                            user_state["user_rating"] = float(lib_row["rating"])
+
+                    # Capítulos leídos
+                    await cur.execute(
+                        "SELECT chapter_id FROM user_read_chapters WHERE user_id = %s AND work_id = %s",
+                        (user_id, work_id),
+                    )
+                    read_rows = await cur.fetchall() or []
+                    user_state["read_chapter_ids"] = [r["chapter_id"] for r in read_rows]
+
+                    # Progreso de lectura
+                    await cur.execute(
+                        """
+                        SELECT rh.chapter_id, rh.last_page_read, rh.read_at, c.chapter_number
+                        FROM reading_history rh
+                        JOIN chapters c ON c.id = rh.chapter_id
+                        WHERE rh.user_id = %s AND rh.work_id = %s
+                        LIMIT 1
+                        """,
+                        (user_id, work_id),
+                    )
+                    prog_row = await cur.fetchone()
+                    if prog_row:
+                        user_state["reading_progress"] = {
+                            "chapter_id": prog_row["chapter_id"],
+                            "chapter_number": prog_row["chapter_number"],
+                            "last_page_read": prog_row["last_page_read"] or 1,
+                            "read_at": prog_row["read_at"],
+                        }
+
+                # 4. Estadísticas comunitarias por estado de biblioteca
+                await cur.execute(
+                    """
+                    SELECT status, COUNT(*) AS cnt
+                    FROM user_library
+                    WHERE work_id = %s AND status IS NOT NULL
+                    GROUP BY status
+                    """,
+                    (work_id,),
+                )
+                status_rows = await cur.fetchall() or []
+                lib_stats = {
+                    "reading": 0,
+                    "plan_to_read": 0,
+                    "completed": 0,
+                    "on_hold": 0,
+                    "dropped": 0,
+                    "total": 0,
+                }
+                for sr in status_rows:
+                    st = (sr.get("status") or "").lower()
+                    cnt = int(sr.get("cnt") or 0)
+                    if st in lib_stats:
+                        lib_stats[st] += cnt
+                    lib_stats["total"] += cnt
+
+                return {
+                    "work": work_row,
+                    "chapters": chapters,
+                    "user_state": user_state,
+                    "library_stats": lib_stats,
+                }
+
     async def create_work(self, work: Work) -> Work:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 query = """
                     INSERT INTO works (
@@ -269,26 +415,23 @@ class WorkRepository:
                 await cur.execute(query, values)
                 work.id = cur.lastrowid
 
-                # Inicializar estadísticas de la obra para evitar inconsistencias y valores nulos
                 await cur.execute(
                     """
                     INSERT INTO work_statistics (
                         work_id, total_views, daily_views, weekly_views, monthly_views,
-                        rating_average, rating_count, trending_score, views_last_24h,
-                        followers_count, favorites_count
+                        rating_average, rating_count, trending_score, views_last_24h, favorites_count
                     )
-                    VALUES (%s, 0, 0, 0, 0, 0.00, 0, 0.00, 0, 0, 0)
+                    VALUES (%s, 0, 0, 0, 0, 0.00, 0, 0.00, 0, 0)
                     ON DUPLICATE KEY UPDATE work_id = VALUES(work_id)
                     """,
                     (work.id,),
                 )
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
                 return work
 
-    # get work by id
     async def get_work_by_id(self, work_id: int) -> Optional[Work]:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
                 await cur.execute(
                     """
@@ -296,7 +439,6 @@ class WorkRepository:
                            COALESCE(ws.total_views, 0) AS total_views,
                            COALESCE(ws.rating_average, 0.00) AS rating_average,
                            COALESCE(ws.rating_count, 0) AS rating_count,
-                           COALESCE(ws.followers_count, 0) AS followers_count,
                            COALESCE(ws.favorites_count, 0) AS favorites_count,
                            COALESCE(ws.trending_score, 0.00) AS trending_score,
                            COALESCE(ws.views_last_24h, 0) AS views_last_24h
@@ -311,10 +453,8 @@ class WorkRepository:
                     return Work(**row)
         return None
 
-    # update work
     async def update_work(self, work: Work) -> Work:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 query = """
                     UPDATE works
@@ -346,17 +486,75 @@ class WorkRepository:
                     work.id,
                 )
                 await cur.execute(query, values)
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
                 return work
 
-    # delete work
     async def delete_work(self, work_id: int) -> bool:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
-                await cur.execute(
-                    "DELETE FROM works WHERE id = %s",
-                    (work_id,),
-                )
-                await conn.commit()
+                await cur.execute("DELETE FROM works WHERE id = %s", (work_id,))
+                if self.conn is None:
+                    await conn.commit()
         return True
+
+    async def get_search_suggestions(self, q: str, limit: int = 7) -> list[dict]:
+        clean_q = (q or "").strip()
+        if not clean_q:
+            return []
+
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                # Si empieza por @, buscar usuarios
+                if clean_q.startswith("@"):
+                    user_q = clean_q[1:].strip()
+                    if not user_q:
+                        return []
+                    param = f"%{user_q}%"
+                    await cur.execute(
+                        """
+                        SELECT user_code, username, avatar_url, platform_role
+                        FROM users
+                        WHERE username LIKE %s OR user_code LIKE %s
+                        LIMIT %s
+                        """,
+                        (param, param, limit),
+                    )
+                    rows = await cur.fetchall() or []
+                    return [
+                        {
+                            "type": "user",
+                            "title": r["username"],
+                            "subtitle": f"ID: {r['user_code']}" if r.get("user_code") else r.get("platform_role", "Usuario"),
+                            "image_url": r.get("avatar_url"),
+                            "url": f"/pages/usuario.html?id={r['user_code'] or r['username']}",
+                            "badge": "Usuario",
+                        }
+                        for r in rows
+                    ]
+
+                # Búsqueda general de obras
+                param = f"%{clean_q}%"
+                await cur.execute(
+                    """
+                    SELECT id, title, alternative_title, slug, author, cover_url
+                    FROM works
+                    WHERE title LIKE %s OR alternative_title LIKE %s OR author LIKE %s
+                    LIMIT %s
+                    """,
+                    (param, param, param, limit),
+                )
+                rows = await cur.fetchall() or []
+                results = []
+                for r in rows:
+                    meta_parts = [p for p in (r.get("author"), r.get("alternative_title")) if p]
+                    subtitle = " · ".join(meta_parts[:2]) if meta_parts else "Obra"
+                    results.append({
+                        "type": "work",
+                        "title": r["title"],
+                        "subtitle": subtitle,
+                        "image_url": r.get("cover_url"),
+                        "url": f"/pages/obra.html?slug={r['slug']}",
+                        "badge": "Obra",
+                    })
+                return results

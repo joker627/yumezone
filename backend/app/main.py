@@ -4,29 +4,29 @@ from contextlib import asynccontextmanager
 
 # imports external
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+
 # imports internal
 from app.core.database import close_db_pool, init_db_pool
 from app.core.redis import close_redis_pool, init_redis_pool
+from app.modules.admin.router import router as admin_router
+from app.modules.announcements.router import router as announcements_router
 from app.modules.auth.router import router as auth_router
-from app.modules.works.router import router as work_router
 from app.modules.chapters.router import router as chapter_router
-from app.modules.scans.router import router as scan_group_router
-from app.modules.library.router import router as library_router
+from app.modules.chat.router import router as chat_router
+from app.modules.comments.router import router as comments_router
 from app.modules.hero.router import router as hero_router
 from app.modules.home.router import router as home_router
+from app.modules.library.router import router as library_router
 from app.modules.metrics.router import router as metrics_router
-from app.modules.admin.router import router as admin_router
 from app.modules.notifications.router import router as notifications_router
-from app.modules.comments.router import router as comments_router
+from app.modules.scans.router import router as scan_group_router
+from app.modules.shop.router import router as shop_router
 from app.modules.uploads.router import router as uploads_router
 from app.modules.users.router import router as users_router
-from app.modules.shop.router import router as shop_router
-from app.modules.chat.router import router as chat_router
-from app.modules.announcements.router import router as announcements_router
-
+from app.modules.works.router import router as work_router
 
 load_dotenv()
 
@@ -41,10 +41,10 @@ async def lifespan(app: FastAPI):
     await close_db_pool()
 
 app = FastAPI(
-    title=os.environ.get("API_TITLE"),
-    version="1.0.0",
+    title=os.environ.get('API_TITLE', 'YumeZone API'),
+    version='1.0.0',
     lifespan=lifespan,
-    description="API para mangas, manhwas y manhuas",
+    description='API para mangas, manhwas y manhuas',
     docs_url=None,
     redoc_url=None,
     openapi_url=None
@@ -52,36 +52,46 @@ app = FastAPI(
 
 cors_origins = [
     origin.strip()
-    for origin in os.getenv("CORS_ALLOW_ORIGINS", "").split(",")
+    for origin in os.getenv('CORS_ALLOW_ORIGINS', '').split(',')
     if origin.strip()
-]
+] or ['*']
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Incluir enrutadores organizados por etiquetas
-app.include_router(auth_router, prefix="/api/v1/auth", tags=["Autenticación"])
-app.include_router(work_router, prefix="/api/v1/works", tags=["Obras"])
-app.include_router(chapter_router, prefix="/api/v1/chapters", tags=["Capítulos"])
-app.include_router(scan_group_router, prefix="/api/v1/scan-groups", tags=["Scanlators"])
-app.include_router(library_router, prefix="/api/v1/library", tags=["Biblioteca"])
-app.include_router(hero_router, prefix="/api/v1/hero", tags=["Hero"])
-app.include_router(home_router, prefix="/api/v1/home", tags=["Inicio"])
-app.include_router(metrics_router, prefix="/api/v1/metrics", tags=["Métricas"])
-app.include_router(admin_router, prefix="/api/v1/admin", tags=["Administración"])
-app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["Notificaciones"])
-app.include_router(comments_router, prefix="/api/v1/comments", tags=["Comentarios"])
-app.include_router(uploads_router, prefix="/api/v1/uploads", tags=["Uploads"])
-app.include_router(users_router, prefix="/api/v1/users", tags=["Usuarios"])
-app.include_router(shop_router, prefix="/api/v1/shop", tags=["Tienda"])
-app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
-app.include_router(announcements_router, prefix="/api/v1/announcements", tags=["Anuncios"])
+# Registro centralizado de rutas api v1
+api_router = APIRouter(prefix='/api/v1')
 
-@app.get("/")
+ROUTERS = [
+    auth_router,
+    work_router,
+    chapter_router,
+    scan_group_router,
+    library_router,
+    hero_router,
+    home_router,
+    metrics_router,
+    admin_router,
+    notifications_router,
+    comments_router,
+    uploads_router,
+    users_router,
+    shop_router,
+    chat_router,
+    announcements_router,
+]
+
+for router in ROUTERS:
+    api_router.include_router(router)
+
+app.include_router(api_router)
+
+@app.get('/')
 def read_root():
-    return {"message": "Bienvenido a YumeZone API"}
+    return {'message': 'Bienvenido a YumeZone API'}

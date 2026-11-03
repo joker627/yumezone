@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,46 +12,92 @@
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
   <link rel="stylesheet" href="/css/pages/auth.css">
 </head>
+
 <body>
   <header id="header"></header>
+
   <main class="account-page">
+    <div class="account-page--ambient" aria-hidden="true"></div>
+
     <section class="account-card" aria-labelledby="auth-title">
-      <p class="account-eyebrow">Únete a YumeZone</p>
+      <div class="account-card--top-glow" aria-hidden="true"></div>
+
+      <div class="account-card-header">
+        <a href="/" class="account-brand" aria-label="Ir a Inicio" title="YumeZone">
+          <img src="/assets/icons/logo.png" alt="YumeZone" width="30" height="30">
+        </a>
+        <div class="account-brand-info">
+          <p class="account-eyebrow">Únete a YumeZone</p>
+        </div>
+      </div>
+
       <h1 id="auth-title">Crear cuenta</h1>
-      <p class="account-intro">Guarda tus obras y mantén tus lecturas al día.</p>
+      <p class="account-intro">Crea tu perfil en segundos para guardar tus mangas favoritos, personalizar tu biblioteca y subir de nivel.</p>
+
       <form id="auth-form" data-auth-mode="register" class="account-form">
-        <label for="auth-username">Nombre de usuario</label>
-        <input id="auth-username" name="username" type="text" autocomplete="username"
-          maxlength="50" minlength="3" required>
-        <label for="auth-email">Correo electrónico</label>
-        <input id="auth-email" name="email" type="email" autocomplete="email"
-          maxlength="100" required>
-        <label for="auth-password">Contraseña</label>
-        <div class="account-password-field">
-          <input id="auth-password" name="password" type="password"
-            autocomplete="new-password" minlength="8" required>
-          <button class="account-password-toggle" type="button" data-password-toggle
-            aria-label="Mostrar contraseña" aria-pressed="false">
-            <img src="/assets/icons/svg/eye.svg" alt="" aria-hidden="true">
-          </button>
+        <div class="account-field-group">
+          <label for="auth-username">Nombre de usuario</label>
+          <div class="account-input-wrap">
+            <img class="account-input-icon" src="/assets/icons/svg/user/user.svg" alt="" aria-hidden="true">
+            <input id="auth-username" name="username" type="text" autocomplete="username" placeholder="Tu apodo o nombre" maxlength="50" minlength="3" required>
+          </div>
         </div>
-        <label for="auth-password-confirm">Confirmar contraseña</label>
-        <div class="account-password-field">
-          <input id="auth-password-confirm" name="password_confirm" type="password"
-            autocomplete="new-password" minlength="8" required>
-          <button class="account-password-toggle" type="button" data-password-toggle
-            aria-label="Mostrar contraseña" aria-pressed="false">
-            <img src="/assets/icons/svg/eye.svg" alt="" aria-hidden="true">
-          </button>
+
+        <div class="account-field-group">
+          <label for="auth-email">Correo electrónico</label>
+          <div class="account-input-wrap">
+            <img class="account-input-icon" src="/assets/icons/svg/social/mail.svg" alt="" aria-hidden="true">
+            <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="ejemplo@correo.com" maxlength="100" required>
+          </div>
         </div>
+
+        <div class="account-field-group">
+          <label for="auth-password">Contraseña</label>
+          <div class="account-input-wrap account-password-field">
+            <img class="account-input-icon" src="/assets/icons/svg/user/lock.svg" alt="" aria-hidden="true">
+            <input id="auth-password" name="password" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" minlength="8" required>
+            <button class="account-password-toggle" type="button" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
+              <img src="/assets/icons/svg/actions/eye.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
+        <div class="account-field-group">
+          <label for="auth-password-confirm">Confirmar contraseña</label>
+          <div class="account-input-wrap account-password-field">
+            <img class="account-input-icon" src="/assets/icons/svg/user/lock.svg" alt="" aria-hidden="true">
+            <input id="auth-password-confirm" name="password_confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" minlength="8" required>
+            <button class="account-password-toggle" type="button" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
+              <img src="/assets/icons/svg/actions/eye.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
         <p id="auth-message" class="account-message" role="status" aria-live="polite"></p>
-        <button id="auth-submit" class="account-submit" type="submit">Crear cuenta</button>
+
+        <button id="auth-submit" class="account-submit" type="submit">
+          <span>Crear cuenta</span>
+          <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" width="16" height="16" aria-hidden="true">
+        </button>
       </form>
-      <p class="account-switch">¿Ya tienes cuenta? <a href="/pages/login.html">Inicia sesión</a></p>
+
+      <p class="account-switch">
+        ¿Ya tienes cuenta? <a href="/pages/login.html">Inicia sesión</a>
+      </p>
+
+      <p class="account-legal-note">
+        Al crear tu cuenta, aceptas nuestros <a href="/pages/terminos.html">Términos de Servicio</a> y <a href="/pages/privacidad.html">Política de Privacidad</a>.
+      </p>
     </section>
   </main>
+
+    <footer id="site-footer" class="site-footer"></footer>
+
+  <script type="module" src="/js/components/components-loader.js"></script>
   <script type="module" src="/js/pages/auth.js"></script>
 </body>
+
 </html>

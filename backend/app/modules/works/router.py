@@ -10,15 +10,19 @@ from fastapi import (
     status,
 )
 
+from typing import Optional
+
 # imports internal
 from app.core.database import get_db_connection
 from app.core.dependencies import (
     get_current_active_user,
+    get_optional_current_user,
     verify_upload_permission,
 )
 from app.modules.users.models import CurrentUser
 from app.modules.works.repository import WorkRepository
 from app.modules.works.schemas import (
+    WorkDetailResponse,
     WorkFiltersResponse,
     WorkCreate,
     WorkPaginatedResponse,
@@ -27,7 +31,7 @@ from app.modules.works.schemas import (
 )
 from app.modules.works.services import WorkService
 
-router = APIRouter()
+router = APIRouter(prefix="/works", tags=["Obras"])
 
 
 # dependencias del endpoint router
@@ -49,7 +53,7 @@ async def create_work(
     work_service: WorkService = Depends(get_work_service),
     current_user: CurrentUser = Depends(get_current_active_user),
 ):
-    await verify_upload_permission(current_user, work_data.scan_group_id)
+    await verify_upload_permission(current_user, work_data.scan_group_id, conn=work_service.repository.conn)
     new_work = await work_service.create_work(work_data)
     return new_work
 
@@ -71,7 +75,7 @@ async def update_work(
     if not work:
         raise HTTPException(status_code=404, detail="Obra no encontrada")
 
-    await verify_upload_permission(current_user, work.scan_group_id)
+    await verify_upload_permission(current_user, work.scan_group_id, conn=work_service.repository.conn)
     return await work_service.update_work(
         work_id, work_data.model_dump(exclude_unset=True)
     )
@@ -91,9 +95,7 @@ async def delete_work(
     if not work:
         raise HTTPException(status_code=404, detail="Obra no encontrada")
 
-    # Verificar permisos (Superadmin o Admin/Moderador del scan_group)
-    await verify_upload_permission(current_user, work.scan_group_id)
-
+    await verify_upload_permission(current_user, work.scan_group_id, conn=work_service.repository.conn)
     await work_service.delete_work(work_id)
     return None
 
@@ -148,6 +150,34 @@ async def get_work_filters(
     return await work_service.get_filters()
 
 
+# sugerencias de busqueda unificadas (obras y usuarios)
+@router.get(
+    "/search/suggest",
+    status_code=status.HTTP_200_OK,
+)
+async def get_search_suggestions(
+    q: str = Query(..., min_length=1, max_length=100),
+    limit: int = Query(7, ge=1, le=20),
+    work_service: WorkService = Depends(get_work_service),
+):
+    return await work_service.get_search_suggestions(q, limit=limit)
+
+
+# endpoint obtener detalle consolidado de obra (obra + capítulos + estado de lectura y biblioteca)
+@router.get(
+    "/{slug_or_id}/detail",
+    response_model=WorkDetailResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_work_detail(
+    slug_or_id: str,
+    work_service: WorkService = Depends(get_work_service),
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
+):
+    user_id = current_user.id if current_user else None
+    return await work_service.get_work_detail(slug_or_id, user_id=user_id)
+
+
 # endpoint obtener obra por slug
 @router.get(
     "/{slug}",
@@ -159,3 +189,4 @@ async def get_work_by_slug(
     work_service: WorkService = Depends(get_work_service),
 ):
     return await work_service.get_work_by_slug(slug)
+

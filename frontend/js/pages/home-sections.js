@@ -1,50 +1,10 @@
-/** Secciones dinámicas del home: Continuar Leyendo, Lanzamientos, Ranking, Populares y Sidebar. */
+// secciones dinámicas del home
 import { apiRequest, getAccessToken } from '../shared/auth.js';
-import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl, applyDataProgress } from '../shared/ui-utils.js';
+import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl, applyDataProgress, formatTimeAgo, resolveIconPath } from '../shared/ui-utils.js';
 import { renderLaunchItem, renderRankCard, renderPopularCard } from '../components/cards.js';
+import { renderHomeSkeletons, initAutoSkeletons } from '../components/skeletons.js';
 import { showToast } from '../shared/toast.js';
-import { initChatPicker, getChatPickerTemplate } from '../components/chat-picker.js';
-
-function renderContinueCard(item) {
-  const work = item.work ?? item;
-  const progress = Math.min(100, Math.max(0, item.progress ?? 0));
-  const isFull = progress >= 100;
-  const coverUrl = esc(safeUrl(work.cover_url ?? work.cover, IMG_FALLBACK));
-  const title = esc(work.title ?? 'Sin título');
-  const chapter = esc(item.chapter_text ?? item.last_chapter_text ?? item.chapter ?? '');
-  const pag = esc(item.page_text ?? item.pag ?? '');
-  const time = esc(item.updated_text ?? item.time ?? '');
-  const href = item.href ?? makeWorkUrl(work.slug);
-  const chapterHref = item.chapter_href ?? href;
-
-  return `
-  <a class="continue-card" href="${esc(chapterHref)}">
-    <div class="continue-card--cover-wrap">
-      <img class="continue-card--cover" src="${coverUrl}" alt="${title}" loading="lazy" width="58" height="78">
-      <span class="continue-card--play-overlay">
-        <img src="/assets/icons/svg/play.svg" alt="" width="18" height="18">
-      </span>
-    </div>
-    <div class="continue-card--info">
-      <div class="continue-card--badge">
-        <span class="continue-card--dot"></span>
-        <span class="continue-card--chapter">${chapter}</span>
-        ${pag ? `<span class="continue-card--pag">(${pag})</span>` : ''}
-        <span class="continue-card--time">${time}</span>
-      </div>
-      <h3 class="continue-card--title" title="${title}">${title}</h3>
-      <div class="continue-card--progress-wrap">
-        <div class="continue-card--progress-bar">
-          <div class="continue-card--progress-fill" data-progress="${progress}"></div>
-        </div>
-        <span class="continue-card--pct">${progress}%</span>
-      </div>
-      <div class="continue-card--footer">
-        <span class="continue-card--cta">${isFull ? '✓ Releer' : '▶ Reanudar'}</span>
-      </div>
-    </div>
-  </a>`;
-}
+import { initChatPicker } from '../components/chat-picker.js';
 
 function getCategoryInfo(item) {
   const type = (item.type || '').toLowerCase();
@@ -97,112 +57,9 @@ function renderAnuncio(item) {
   `;
 }
 
-
-
-function skeletonCards(type, count, cols) {
-  let html = '';
-  for (let i = 0; i < count; i++) {
-    if (type === 'continue') {
-      /* continue-card: horizontal flex, cover 52x68 + info column */
-      html += `
-      <div class="sk-continue">
-        <div class="sk-box sk-continue--cover"></div>
-        <div class="sk-continue--info">
-          <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
-          <div class="sk-box sk-line sk-w-80"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-50"></div>
-          <div class="sk-box sk-progress"></div>
-        </div>
-      </div>`;
-    } else if (type === 'launch') {
-      /* launch-item: horizontal flex, cover 56x74 + info column + action 32x32 */
-      html += `
-      <div class="sk-launch">
-        <div class="sk-box sk-launch--cover"></div>
-        <div class="sk-launch--info">
-          <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
-          <div class="sk-box sk-line sk-w-90"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-60"></div>
-        </div>
-        <div class="sk-box sk-action"></div>
-      </div>`;
-    } else if (type === 'rank') {
-      /* rank-card: number (2.2rem bold) + cover 54x72 + info column */
-      html += `
-      <div class="sk-rank">
-        <div class="sk-box sk-rank--num"></div>
-        <div class="sk-box sk-rank--cover"></div>
-        <div class="sk-rank--info">
-          <div class="sk-box sk-line sk-w-80"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-50"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-60"></div>
-        </div>
-      </div>`;
-    } else if (type === 'popular') {
-      /* popular-card: vertical, poster + info below */
-      html += `
-      <div class="sk-popular">
-        <div class="sk-box sk-popular--poster"></div>
-        <div class="sk-popular--info">
-          <div class="sk-box sk-line sk-w-90"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-60"></div>
-          <div class="sk-tags">
-            <div class="sk-box sk-tag"></div>
-            <div class="sk-box sk-tag"></div>
-          </div>
-        </div>
-      </div>`;
-    } else if (type === 'anuncio') {
-      /* anuncio: texto limpio con divider */
-      html += `
-      <div class="announcement">
-        <div class="card-top">
-          <div class="sk-box sk-tag"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
-        </div>
-        <div class="sk-box sk-line sk-w-80" style="margin-bottom: 6px;"></div>
-        <div class="sk-box sk-line sk-line--xs sk-w-90" style="margin-bottom: 4px;"></div>
-        <div class="sk-box sk-line sk-line--xs sk-w-70"></div>
-      </div>
-      <div class="divider"></div>
-      <div class="announcement">
-        <div class="card-top">
-          <div class="sk-box sk-tag"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
-        </div>
-        <div class="sk-box sk-line sk-w-80" style="margin-bottom: 6px;"></div>
-        <div class="sk-box sk-line sk-line--xs sk-w-90" style="margin-bottom: 4px;"></div>
-        <div class="sk-box sk-line sk-line--xs sk-w-70"></div>
-      </div>`;
-    } else if (type === 'chat') {
-      /* chat-msg: avatar circle + body column */
-      html += `
-      <div class="sk-chat">
-        <div class="sk-box sk-chat--avatar"></div>
-        <div class="sk-chat--body">
-          <div class="sk-box sk-line sk-line--xs sk-w-tag"></div>
-          <div class="sk-box sk-line sk-w-90"></div>
-        </div>
-      </div>`;
-    } else if (type === 'mision') {
-      /* mision: desc text + progress bar + stats */
-      html += `
-      <div class="sk-mision">
-        <div class="sk-box sk-line sk-w-80"></div>
-        <div class="sk-box sk-mision--bar"></div>
-        <div class="sk-mision--stats">
-          <div class="sk-box sk-line sk-line--xs sk-w-50"></div>
-          <div class="sk-box sk-line sk-line--xs sk-w-50"></div>
-        </div>
-      </div>`;
-    }
-  }
-  return `<div class="sk-grid sk-grid--${cols}">${html}</div>`;
-}
-
 function emptyState(icon, msg) {
   return `<div class="hs-empty">
-    <img src="/assets/icons/svg/${icon}.svg" alt="" width="28" height="28" class="hs-empty--icon">
+    <img src="${resolveIconPath(icon)}" alt="" width="28" height="28" class="hs-empty--icon">
     <span>${esc(msg)}</span>
   </div>`;
 }
@@ -211,69 +68,16 @@ function setContent(slot, html) {
   if (slot) slot.innerHTML = html;
 }
 
-function renderGuestContinue() {
-  const loginNext = encodeURIComponent(window.location.pathname || '/');
-  return `
-  <div class="continue-guest-box">
-    <div class="continue-guest-icon">
-      <img src="/assets/icons/svg/history.svg" alt="" width="22" height="22">
-    </div>
-    <div class="continue-guest-content">
-      <h3 class="continue-guest-title">Continúa leyendo donde lo dejaste</h3>
-      <p class="continue-guest-desc">Inicia sesión para sincronizar automáticamente tus capítulos leídos, páginas y biblioteca en todos tus dispositivos.</p>
-    </div>
-    <div class="continue-guest-actions">
-      <a href="/pages/login.html?next=${loginNext}" class="continue-guest-btn continue-guest-btn--primary">Iniciar sesión</a>
-      <a href="/pages/catalogo.html" class="continue-guest-btn continue-guest-btn--ghost">Explorar Catálogo</a>
-    </div>
-  </div>`;
-}
-
-function renderEmptyContinue() {
-  return `
-  <div class="continue-guest-box">
-    <div class="continue-guest-icon">
-      <img src="/assets/icons/svg/play.svg" alt="" width="22" height="22">
-    </div>
-    <div class="continue-guest-content">
-      <h3 class="continue-guest-title">Comienza una nueva lectura</h3>
-      <p class="continue-guest-desc">Aún no tienes lecturas en curso. Abre cualquier capítulo del catálogo o de los lanzamientos y tu progreso se registrará aquí de inmediato.</p>
-    </div>
-    <div class="continue-guest-actions">
-      <a href="/pages/novedades.html" class="continue-guest-btn continue-guest-btn--primary">Ver Novedades</a>
-    </div>
-  </div>`;
-}
-
-async function loadContinue(slot) {
-  if (!getAccessToken()) {
-    setContent(slot, renderGuestContinue());
-    return;
-  }
+async function loadLaunches(slot, prefetched = null) {
   try {
-    const data = await apiRequest('/home/continue/');
-    const items = data.results ?? data ?? [];
-    if (items.length) {
-      setContent(slot, items.slice(0, 3).map(renderContinueCard).join(''));
-      applyDataProgress(slot);
-    } else {
-      setContent(slot, renderEmptyContinue());
-    }
-  } catch {
-    setContent(slot, renderEmptyContinue());
-  }
-}
-
-async function loadLaunches(slot) {
-  try {
-    const data = await apiRequest('/home/launches/');
+    const data = prefetched || await apiRequest('/home/launches/');
     const items = data.results ?? data ?? [];
     setContent(slot, items.length
       ? items.slice(0, 6).map(renderLaunchItem).join('')
       : emptyState('play', 'No hay lanzamientos recientes.'));
     const countEl = document.getElementById('launch-count');
     if (countEl) {
-      const total = data.total ?? data.count ?? 52;
+      const total = data.total ?? data.count ?? items.length ?? 52;
       countEl.textContent = `Mostrando ${Math.min(6, items.length)} de ${total} lanzamientos hoy`;
     }
   } catch {
@@ -281,9 +85,9 @@ async function loadLaunches(slot) {
   }
 }
 
-async function loadRanking(slot) {
+async function loadRanking(slot, prefetched = null) {
   try {
-    const data = await apiRequest(`/home/ranking/?period=all`);
+    const data = prefetched || await apiRequest(`/home/ranking/?period=all`);
     const items = data.results ?? data ?? [];
     setContent(slot, items.length
       ? items.slice(0, 6).map(renderRankCard).join('')
@@ -293,10 +97,10 @@ async function loadRanking(slot) {
   }
 }
 
-async function loadPopulars(slot, filterFormat = 'all') {
+async function loadPopulars(slot, filterFormat = 'all', prefetched = null) {
   try {
     const query = filterFormat && filterFormat !== 'all' ? `?format=${encodeURIComponent(filterFormat)}&limit=4` : '?limit=4';
-    const data = await apiRequest(`/home/popular/${query}`);
+    const data = prefetched || await apiRequest(`/home/popular/${query}`);
     const items = data.results ?? data ?? [];
 
     setContent(slot, items.length
@@ -307,14 +111,13 @@ async function loadPopulars(slot, filterFormat = 'all') {
   }
 }
 
-
 let anuncioTimer = null;
 let currentAnuncioIdx = 1;
 let isAnuncioTransitioning = false;
 let isAnuncioHovered = false;
 const ANUNCIO_SLIDE_DURATION = 6000;
 
-async function loadAnuncios() {
+async function loadAnuncios(prefetched = null) {
   const section = document.getElementById('section-anuncios');
   const slot = document.getElementById('slot-anuncios');
   const controls = document.getElementById('anuncio-nav-controls');
@@ -325,7 +128,7 @@ async function loadAnuncios() {
   if (!slot) return;
 
   try {
-    const data = await apiRequest('/announcements/');
+    const data = prefetched || await apiRequest('/announcements/');
     const all = data.results ?? data ?? [];
     const items = all.filter(item => {
       const t = (item.type || '').toLowerCase();
@@ -370,8 +173,8 @@ async function loadAnuncios() {
       return;
     }
 
-    // Carrusel continuo infinito: [Clon Último] + [Slide 0] + [Slide 1] ... + [Clon Primero]
-    // Permite deslizarse en línea de forma continua sin jamás retroceder de golpe
+    // carrusel continuo infinito
+
     const clonedLast = renderSlideHtml(pairs[totalOriginal - 1], totalOriginal - 1);
     const clonedFirst = renderSlideHtml(pairs[0], 0);
 
@@ -404,7 +207,7 @@ async function loadAnuncios() {
       updateCounter();
     }
 
-    // Inicializar en Slide 1 sin animación
+    // slide inicial
     setSlidePosition(false);
 
     function updateCounter() {
@@ -445,7 +248,7 @@ async function loadAnuncios() {
     track.addEventListener('transitionend', () => {
       isAnuncioTransitioning = false;
       const w = getViewportWidth();
-      // Salto invisible instantáneo al alcanzar los extremos clonados
+      // loop infinito
       if (currentAnuncioIdx === totalOriginal + 1) {
         track.style.transition = 'none';
         currentAnuncioIdx = 1;
@@ -475,7 +278,7 @@ async function loadAnuncios() {
       startAutoPlay();
     }
 
-    // Navegación táctil optimizada y arrastre suave
+    // eventos touch y drag
     const viewport = slot.querySelector('.slider-viewport');
     let isPointerDown = false;
     let pointerStartX = 0;
@@ -508,18 +311,18 @@ async function loadAnuncios() {
       const dx = e.clientX - pointerStartX;
       const dy = e.clientY - pointerStartY;
 
-      // Determinar la intención direccional en los primeros píxeles
+      // detectar direccion
       if (!gestureDirection) {
         const absX = Math.abs(dx);
         const absY = Math.abs(dy);
-        if (absX < 7 && absY < 7) return; // Zona muerta táctil
+        if (absX < 7 && absY < 7) return; // zona muerta táctil
         if (absY >= absX) {
-          // Gesto predominantemente vertical: permitir scroll nativo sin trabas
+          // scroll vertical
           gestureDirection = 'vertical';
           isPointerDown = false;
           return;
         }
-        // Gesto horizontal confirmado
+        // arrastre horizontal
         gestureDirection = 'horizontal';
         pointerCaptureTarget = viewport;
         try {
@@ -619,211 +422,18 @@ async function loadAnuncios() {
   }
 }
 
+export function initHomeSections() {
+  initAutoSkeletons();
+  // slots home
+  const slotLaunch = document.getElementById('slot-launch');
+  const slotRank = document.getElementById('slot-rank');
+  const slotPopular = document.getElementById('slot-popular');
+  const slotAnuncios = document.getElementById('slot-anuncios');
+  const sectionChat = document.getElementById('section-chat');
 
+  if (sectionChat) initChatSection(sectionChat);
 
-export function renderHomeSections(container) {
-  if (!container) return;
-
-  container.innerHTML = `
-  <div class="home-body">
-    <div class="home-container">
-
-      <!-- ====== COLUMNA PRINCIPAL ====== -->
-      <div class="home-main">
-
-        <!-- Continuar Leyendo -->
-        <section class="hs" aria-labelledby="hs-continue-title" id="section-continue">
-          <div class="hs-head">
-            <div class="hs-head-left">
-              <div class="hs-icon hs-icon--teal">
-                <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true">
-              </div>
-              <div class="hs-title-group">
-                <div class="hs-title-row">
-                  <h2 id="hs-continue-title" class="hs-title">Continuar Leyendo</h2>
-                  <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> EN CURSO</span>
-                </div>
-                <p class="hs-subtitle">Retoma tus lecturas exactamente donde las dejaste</p>
-              </div>
-            </div>
-            <a class="hs-link" href="/pages/biblioteca.html?filter=reading">
-              Ver historial <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
-            </a>
-          </div>
-          <div class="continue-grid" id="slot-continue">${skeletonCards('continue', 3, 3)}</div>
-        </section>
-
-        <!-- Lanzamientos Recientes -->
-        <section class="hs" aria-labelledby="hs-launch-title" id="section-launch">
-          <div class="hs-head">
-            <div class="hs-head-left">
-              <div class="hs-icon hs-icon--teal">
-                <img src="/assets/icons/svg/play.svg" alt="" aria-hidden="true">
-              </div>
-              <div class="hs-title-group">
-                <div class="hs-title-row">
-                  <h2 id="hs-launch-title" class="hs-title">Lanzamientos Recientes</h2>
-                  <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> EN VIVO</span>
-                </div>
-                <p class="hs-subtitle">Capítulos sincronizados en tiempo real por los grupos oficiales</p>
-              </div>
-            </div>
-          </div>
-          <div class="launch-grid" id="slot-launch">${skeletonCards('launch', 6, 2)}</div>
-          <div class="hs-foot">
-            <span id="launch-count" class="hs-foot-count"></span>
-            <a class="hs-link" href="/pages/novedades.html">Ver todos los estrenos del día <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true"></a>
-          </div>
-        </section>
-
-        <!-- Top Ranking -->
-        <section class="hs" aria-labelledby="hs-rank-title" id="section-rank">
-          <div class="hs-head">
-            <div class="hs-head-left">
-              <div class="hs-icon hs-icon--gold">
-                <img src="/assets/icons/svg/star.svg" alt="" aria-hidden="true">
-              </div>
-              <div class="hs-title-group">
-                <div class="hs-title-row">
-                  <h2 id="hs-rank-title" class="hs-title">Top Ranking</h2>
-                  <span class="hs-badge hs-badge--updated">Actualizado Hoy</span>
-                </div>
-                <p class="hs-subtitle">Las series más aclamadas según votos y lecturas en tiempo real</p>
-              </div>
-            </div>
-            <div class="hs-head-right">
-              <div class="hs-tabs" role="tablist" id="ranking-tabs">
-                <button class="hs-tab is-active" type="button" role="tab" data-period="all">Total</button>
-                <button class="hs-tab" type="button" role="tab" data-period="monthly">Mensual</button>
-                <button class="hs-tab" type="button" role="tab" data-period="weekly">Semanal</button>
-              </div>
-              <a class="hs-link hs-link--ml" href="/pages/ranking.html">Ver Top 100 <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true"></a>
-            </div>
-          </div>
-          <div class="rank-grid" id="slot-rank">${skeletonCards('rank', 6, 3)}</div>
-        </section>
-
-        <!-- Populares Esta Semana -->
-        <section class="hs" aria-labelledby="hs-popular-title" id="section-popular">
-          <div class="hs-head">
-            <div class="hs-head-left">
-              <div class="hs-icon hs-icon--teal">
-                <img src="/assets/icons/svg/star.svg" alt="" aria-hidden="true">
-              </div>
-              <div class="hs-title-group">
-                <div class="hs-title-row">
-                  <h2 id="hs-popular-title" class="hs-title">Populares Esta Semana</h2>
-                  <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> TOP DESTACADO</span>
-                </div>
-                <p class="hs-subtitle">Los títulos más leídos con actualizaciones diarias de alta definición</p>
-              </div>
-            </div>
-            <div class="hs-head-right">
-              <div class="hs-tabs" role="tablist" id="popular-format-tabs">
-                <button class="hs-tab is-active" type="button" role="tab" data-format="all">Todos</button>
-                <button class="hs-tab" type="button" role="tab" data-format="Manhwa">Manhwa</button>
-                <button class="hs-tab" type="button" role="tab" data-format="Manga">Manga</button>
-                <button class="hs-tab" type="button" role="tab" data-format="Manhua">Manhua</button>
-              </div>
-              <a class="hs-link hs-link--ml" href="/pages/catalogo.html?order=popular">Ver Catálogo <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true"></a>
-            </div>
-          </div>
-          <div class="popular-grid" id="slot-popular">${skeletonCards('popular', 4, 4)}</div>
-        </section>
-
-      </div><!-- /home-main -->
-
-      <!-- ====== SIDEBAR ====== -->
-      <aside class="home-aside" aria-label="Panel lateral">
-
-        <!-- Tablón de Anuncios (Mini-Carrusel Cyber-News) -->
-        <section class="aside-card aside-card--anuncios" aria-labelledby="aside-anuncios-title" id="section-anuncios">
-          <div class="aside-card--head">
-            <div class="aside-card--head-left">
-              <div class="aside-card--icon aside-card--icon--teal">
-                <img src="/assets/icons/svg/bell.svg" alt="" aria-hidden="true">
-              </div>
-              <h2 id="aside-anuncios-title" class="aside-card--title">Tablón de Anuncios</h2>
-            </div>
-            <div class="anuncio-nav-controls" id="anuncio-nav-controls" hidden>
-              <span class="anuncio-counter" id="anuncio-counter">01 / 01</span>
-            </div>
-          </div>
-          <div class="aside-card--body anuncio-body">
-            <div class="anuncio-progress-track" id="anuncio-progress-track" hidden>
-              <div class="anuncio-progress-bar" id="anuncio-progress-bar"></div>
-            </div>
-            <div id="slot-anuncios">${skeletonCards('anuncio', 1, 1)}</div>
-          </div>
-        </section>
-
-        <!-- Misión Diaria -->
-        <section class="aside-card aside-card--missions" aria-labelledby="aside-mision-title">
-          <div class="aside-card--head">
-            <div class="aside-card--head-left">
-              <div class="aside-card--icon aside-card--icon--gold">
-                <img src="/assets/icons/svg/star.svg" alt="" aria-hidden="true">
-              </div>
-              <h2 id="aside-mision-title" class="aside-card--title">Misiones Diarias</h2>
-            </div>
-            <div class="mision-head--badges">
-              <span class="mision-level-badge" id="mision-level-badge">Nv. 1</span>
-              <span class="mision-xp-pill" id="mision-xp">+XP</span>
-            </div>
-          </div>
-          <div class="aside-card--body" id="slot-mision">
-            ${skeletonCards('mision', 1, 1)}
-          </div>
-        </section>
-
-        <!-- Chat en Vivo de la Comunidad (Nativo con GIFs y Emojis) -->
-        <section class="aside-card aside-card--chat" aria-labelledby="aside-chat-title" id="section-chat">
-          <div class="aside-card--head">
-            <div class="aside-card--head-left">
-              <div class="aside-card--icon aside-card--icon--teal">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-              </div>
-              <div class="chat-title-group">
-                <h2 id="aside-chat-title" class="aside-card--title">Chat en Vivo</h2>
-                <div class="chat-online-pill" id="chat-online-badge" title="Lectores en línea">
-                  <span class="hs-dot"></span>
-                  <span id="chat-online-count">1 en línea</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Feed de mensajes -->
-          <div class="chat-messages" id="slot-chat" role="log" aria-live="polite">
-            ${skeletonCards('chat', 4, 1)}
-          </div>
-
-          <!-- Popover flotante modular para Emojis y GIFs -->
-          <div class="chat-picker-popover" id="chat-picker-popover" hidden>
-            ${getChatPickerTemplate()}
-          </div>
-
-          <!-- Barra de composición -->
-          <div class="chat-input-row" id="chat-input-row"></div>
-        </section>
-
-      </aside>
-
-    </div>
-  </div>
-  `;
-
-  /* Cargar todo en paralelo usando IDs estrictos */
-  loadContinue(document.getElementById('slot-continue'));
-  loadLaunches(document.getElementById('slot-launch'));
-  loadRanking(document.getElementById('slot-rank'));
-  loadPopulars(document.getElementById('slot-popular'));
-  loadAnuncios(document.getElementById('slot-anuncios'));
-  initChatSection(document.getElementById('section-chat'));
-
-  /* Misiones diarias y gamificación XP real */
+  // misiones diarias
   function renderMissionsWidget(data, body, xpEl, levelBadge) {
     if (!body) return;
 
@@ -835,7 +445,7 @@ export function renderHomeSections(container) {
       if (levelBadge) levelBadge.textContent = 'Nv. 1';
       body.innerHTML = `
         <div class="hs-empty">
-          <img src="/assets/icons/svg/star.svg" alt="" width="28" height="28" class="hs-empty--icon">
+          <img src="/assets/icons/svg/gamification/star.svg" alt="" width="28" height="28" class="hs-empty--icon">
           <span>Inicia sesión para ganar XP y completar tus misiones diarias.</span>
           <a href="/pages/login.html" class="mision-action-link mision-action-link--spaced">Iniciar sesión →</a>
         </div>`;
@@ -884,7 +494,7 @@ export function renderHomeSections(container) {
       if (m.is_claimed) {
         actionBtnHtml = `
           <span class="mision-claimed-status">
-            <img src="/assets/icons/svg/check.svg" width="11" height="11" alt="" aria-hidden="true">
+            <img src="/assets/icons/svg/actions/check.svg" width="11" height="11" alt="" aria-hidden="true">
             Reclamada
           </span>`;
       } else if (m.can_claim) {
@@ -984,7 +594,7 @@ export function renderHomeSections(container) {
     const body = document.getElementById('slot-mision');
     if (!body) return;
 
-    // Delegación de eventos de reclamo
+    // reclamar mision
     body.addEventListener('click', async (e) => {
       const claimBtn = e.target.closest('.mision-claim-btn, .mision-chest-btn');
       if (!claimBtn || claimBtn.disabled) return;
@@ -1002,7 +612,7 @@ export function renderHomeSections(container) {
           body: { mission_key: missionKey },
         });
 
-        // Crear partícula flotante de XP animada en el viewport
+        // animacion xp
         const rect = claimBtn.getBoundingClientRect();
         const particle = document.createElement('div');
         particle.className = 'mision-floating-reward';
@@ -1015,14 +625,7 @@ export function renderHomeSections(container) {
         document.body.appendChild(particle);
         window.setTimeout(() => particle.remove(), 1200);
 
-        showToast(res.message || `+${res.xp_awarded} XP reclamados con éxito`, 'success');
-
-        // Si subió de nivel (hito especial), mostrar toast destacado
-        if (res.leveled_up) {
-          showToast(`🎉 ¡SUBISTE DE NIVEL! Ahora eres Nivel ${res.new_level}`, 'success', 5000);
-        }
-
-        // Notificar a toda la ventana (el listener se encargará de actualizar el widget y el navbar)
+        // emitir evento xp
         window.dispatchEvent(new CustomEvent('yume:xp-updated', { detail: res }));
       } catch (err) {
         showToast(err.message || 'No se pudo reclamar la misión', 'error');
@@ -1044,9 +647,7 @@ export function renderHomeSections(container) {
       }
     }
 
-    await fetchAndRenderMissions();
-
-    // Re-verificar cuando la ventana recupera el foco o cuando se reclama una misión (ej. desde el Header)
+    // sincronizar misiones
     window.addEventListener('focus', () => {
       fetchAndRenderMissions();
     });
@@ -1060,6 +661,27 @@ export function renderHomeSections(container) {
     });
   })();
 
+  // cargar feed home
+  apiRequest('/home/feed/').then(feed => {
+    if (slotLaunch) loadLaunches(slotLaunch, feed.launches);
+    if (slotRank) loadRanking(slotRank, feed.ranking);
+    if (slotPopular) loadPopulars(slotPopular, 'all', feed.popular);
+    if (slotAnuncios) loadAnuncios(feed.announcements);
+
+    const xpEl = document.getElementById('mision-xp');
+    const levelBadge = document.getElementById('mision-level-badge');
+    const body = document.getElementById('slot-mision');
+    if (body && feed.missions) {
+      renderMissionsWidget(feed.missions, body, xpEl, levelBadge);
+    }
+  }).catch(() => {
+    // fallback red
+    if (slotLaunch) loadLaunches(slotLaunch);
+    if (slotRank) loadRanking(slotRank);
+    if (slotPopular) loadPopulars(slotPopular);
+    if (slotAnuncios) loadAnuncios();
+  });
+
   const rankingTabs = document.getElementById('ranking-tabs');
   if (rankingTabs) {
     rankingTabs.addEventListener('click', e => {
@@ -1070,7 +692,7 @@ export function renderHomeSections(container) {
       btn.classList.add('is-active');
 
       const slot = document.getElementById('slot-rank');
-      if (slot) slot.innerHTML = skeletonCards('rank', 6, 3);
+      if (slot) slot.innerHTML = renderHomeSkeletons('rank', 6, 3);
       (async () => {
         try {
           const data = await apiRequest(`/home/ranking/?period=${btn.dataset.period}`);
@@ -1085,7 +707,6 @@ export function renderHomeSections(container) {
     });
   }
 
-
   const popularFormatTabs = document.getElementById('popular-format-tabs');
   if (popularFormatTabs) {
     popularFormatTabs.addEventListener('click', e => {
@@ -1097,7 +718,7 @@ export function renderHomeSections(container) {
 
       const slot = document.getElementById('slot-popular');
       if (slot) {
-        slot.innerHTML = skeletonCards('popular', 4, 4);
+        slot.innerHTML = renderHomeSkeletons('popular', 4, 4);
         loadPopulars(slot, btn.dataset.format);
       }
     });
@@ -1120,9 +741,7 @@ export function renderHomeSections(container) {
     }
   }
 
-  /* =========================================================================
-     Chat en Vivo Nativo de la Comunidad (GIFs, Emojis, Presencia y Roles)
-     ========================================================================= */
+  // chat en vivo
 
   function initChatSection(sectionEl) {
     if (!sectionEl) return;
@@ -1141,22 +760,11 @@ export function renderHomeSections(container) {
       currentUser = JSON.parse(localStorage.getItem('user') || 'null');
     } catch { }
 
-    function formatRelativeTime(dateInput) {
-      if (!dateInput) return '';
-      const d = new Date(dateInput);
-      if (isNaN(d.getTime())) return '';
-      const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
-      if (diffSec < 45) return 'justo ahora';
-      if (diffSec < 3600) return `hace ${Math.floor(diffSec / 60)} min`;
-      if (diffSec < 86400) return `hace ${Math.floor(diffSec / 3600)} h`;
-      return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-
     function formatChatContent(rawContent) {
       const trimmed = (rawContent || '').trim();
       if (!trimmed) return '';
 
-      // Detección de GIF/imagen (Giphy, Tenor o URL con extensión de imagen/gif)
+      // detectar gif
       const gifRegex = /(https?:\/\/(?:[^\s]+\.(?:gif|webp|png|jpe?g)(?:\?[^\s]*)?|(?:media\.giphy\.com|i\.giphy\.com|media\.tenor\.com|c\.tenor\.com)[^\s]*))/i;
       const match = trimmed.match(gifRegex);
 
@@ -1188,7 +796,21 @@ export function renderHomeSections(container) {
       return formatted;
     }
 
-    const QUICK_REACTIONS = ['❤️', '👍', '😂', '🔥', '😮', '😢'];
+    const QUICK_REACTIONS = ['❤️', '👍', '👎', '😂', '🔥', '😮', '😢', '😭', '😡', '🎉', '💀', '👏'];
+    const REACTION_TITLES = {
+      '❤️': 'Amor',
+      '👍': 'Bien / Me gusta',
+      '👎': 'Mal / No me gusta',
+      '😂': 'Risa',
+      '🔥': 'Fuego / Hype',
+      '😮': 'Sorpresa',
+      '😢': 'Tristeza',
+      '😭': 'Llorando',
+      '😡': 'Enojado',
+      '🎉': 'Celebración',
+      '💀': 'Muerto de risa',
+      '👏': 'Aplauso'
+    };
 
     function renderReactionsMarkup(msgId, reactions = []) {
       const list = Array.isArray(reactions) ? reactions : [];
@@ -1221,7 +843,7 @@ export function renderHomeSections(container) {
       const isVip = role === 'VIP';
       const roleLabel = isMod ? 'STAFF' : (isVip ? 'VIP' : '');
       const levelNum = Math.floor((Number(msg.xp) || 0) / 1000) + 1;
-      const timeStr = msg.created_at ? formatRelativeTime(msg.created_at) : '';
+      const timeStr = msg.created_at ? formatTimeAgo(msg.created_at) : '';
 
       const avatarMarkup = avatarUrl
         ? `<img class="chat-msg--avatar-img" src="${esc(avatarUrl)}" alt="${name}" loading="lazy" onerror="this.hidden=true;if(this.nextElementSibling){this.nextElementSibling.hidden=false;}"><span class="chat-msg--initial" hidden aria-hidden="true">${initial}</span>`
@@ -1278,7 +900,7 @@ export function renderHomeSections(container) {
           slot.querySelectorAll('.chat-msg[data-msg-id]').forEach(el => {
             if (!keep.has(el.dataset.msgId)) el.remove();
           });
-          // Actualizar reacciones de los mensajes existentes que cambiaron
+          // actualizar reacciones
           chronological.forEach(m => {
             const existingEl = slot.querySelector(`.chat-msg[data-msg-id="${m.id}"]`);
             if (existingEl) {
@@ -1477,7 +1099,7 @@ export function renderHomeSections(container) {
           bar.className = 'chat-reaction-bar';
           bar.dataset.msgId = msgId;
           bar.innerHTML = QUICK_REACTIONS.map(emoji => `
-            <button type="button" class="chat-reaction-btn" data-reaction="${emoji}" data-msg-id="${msgId}" title="Reaccionar ${emoji}">${emoji}</button>
+            <button type="button" class="chat-reaction-btn" data-reaction="${emoji}" data-msg-id="${msgId}" title="${REACTION_TITLES[emoji] || 'Reaccionar ' + emoji}" aria-label="${REACTION_TITLES[emoji] || emoji}">${emoji}</button>
           `).join('');
 
           const reactionsContainer = triggerBtn.closest('.chat-msg--reactions') || msgEl;
@@ -1495,7 +1117,7 @@ export function renderHomeSections(container) {
           closeAllReactionBars();
 
           if (!token) {
-            alert('Debes iniciar sesión para reaccionar a los mensajes.');
+            showToast('Debes iniciar sesión para reaccionar a los mensajes.', 'info');
             window.location.href = '/pages/login.html';
             return;
           }
@@ -1548,7 +1170,7 @@ export function renderHomeSections(container) {
       });
     }
 
-    // Temporizador inteligente: solo consulta cuando el chat está visible en pantalla y la pestaña activa
+    // polling chat
     let isChatVisibleOnScreen = false;
 
     function pollChatIfNeeded() {
@@ -1580,3 +1202,5 @@ export function renderHomeSections(container) {
     setInterval(pollChatIfNeeded, 10000);
   }
 }
+
+export const renderHomeSections = initHomeSections;

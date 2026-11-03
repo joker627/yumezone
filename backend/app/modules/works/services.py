@@ -1,11 +1,13 @@
 # imports standard
+from typing import Any, Optional
 from fastapi import HTTPException
 
 # imports internal
+from app.core.redis import cached_query
 from app.modules.works.models import Work
 from app.modules.works.repository import WorkRepository
 from app.modules.works.schemas import WorkCreate
-from app.utils.generate_slug import generate_slug
+from app.utils import generate_slug
 
 
 class WorkService:
@@ -61,8 +63,13 @@ class WorkService:
             "data": works,
         }
 
+    # obtener filtros con cache redis de 5m
     async def get_filters(self) -> dict:
-        return await self.repository.get_filters()
+        return await cached_query(
+            "yume:cache:works:filters",
+            lambda: self.repository.get_filters(),
+            ttl=300,
+        )
 
     # get work by slug
     async def get_work_by_slug(self, slug: str) -> Work:
@@ -73,6 +80,18 @@ class WorkService:
                 detail="Obra no encontrada",
             )
         return work
+
+    # get work detail (consolidado)
+    async def get_work_detail(
+        self, slug_or_id: str, user_id: Optional[int] = None
+    ) -> dict[str, Any]:
+        data = await self.repository.get_work_detail_data(slug_or_id, user_id=user_id)
+        if not data:
+            raise HTTPException(
+                status_code=404,
+                detail="Obra no encontrada",
+            )
+        return data
 
     # create a new work
     async def create_work(self, work_data: WorkCreate) -> Work:
@@ -136,3 +155,7 @@ class WorkService:
         # Validamos existencia (lanza 404 si no existe)
         await self.get_work_by_id(work_id)
         return await self.repository.delete_work(work_id)
+
+    # sugerencias rapidas para buscador (obras y usuarios)
+    async def get_search_suggestions(self, q: str, limit: int = 7) -> list[dict]:
+        return await self.repository.get_search_suggestions(q, limit=limit)

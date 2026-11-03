@@ -13,7 +13,6 @@ class WorkStatistics(BaseModel):
     rating_count: int = 0
     trending_score: float = 0.0
     views_last_24h: int = 0
-    followers_count: int = 0
     favorites_count: int = 0
 
 

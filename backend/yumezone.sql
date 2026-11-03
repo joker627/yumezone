@@ -95,6 +95,30 @@ INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
 (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7), (6, 8), (6, 9), (6, 10), (6, 11); -- SUPERADMIN
 
 -- ==========================================
+-- 1.2 RANGOS Y TÍTULOS DE CULTIVO
+-- ==========================================
+CREATE TABLE IF NOT EXISTS cultivation_ranks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    min_level INT NOT NULL UNIQUE,
+    max_level INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    badge_icon VARCHAR(50) DEFAULT 'shield',
+    reward_coins INT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO cultivation_ranks (id, min_level, max_level, title, badge_icon, reward_coins) VALUES
+(1, 1, 5, 'Iniciado del Cultivo', 'shield', 0),
+(2, 6, 10, 'Lector Novato', 'book', 50),
+(3, 11, 15, 'Cazador Errante', 'compass', 100),
+(4, 16, 20, 'Adepto de las Sombras', 'moon', 150),
+(5, 21, 25, 'Guerrero Celestial', 'sword', 200),
+(6, 26, 30, 'Maestro de Secta', 'award', 300),
+(7, 31, 35, 'Monarca Espiritual', 'feather', 400),
+(8, 36, 40, 'Nigromante Supremo', 'skull', 500),
+(9, 41, 45, 'Monarca de las Sombras', 'zap', 750),
+(10, 46, 9999, 'Soberano Cósmico', 'crown', 1000);
+
+-- ==========================================
 -- 2. GRUPOS SCAN
 -- ==========================================
 CREATE TABLE scan_groups (
@@ -112,15 +136,29 @@ CREATE TABLE scan_groups (
     FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+CREATE TABLE scan_roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(32) UNIQUE NOT NULL,
+    name VARCHAR(50) NOT NULL
+) ENGINE=InnoDB;
+
+INSERT IGNORE INTO scan_roles (id, code, name) VALUES
+(1, 'LEADER', 'Líder de Scan'),
+(2, 'CO_LEADER', 'Colíder'),
+(3, 'UPLOADER', 'Subidor de Capítulos'),
+(4, 'EDITOR', 'Editor / Typesetter'),
+(5, 'TRANSLATOR', 'Traductor');
+
 CREATE TABLE scan_group_members (
     group_id INT NOT NULL,
     user_id INT NOT NULL,
-    role ENUM('LEADER', 'CO_LEADER', 'UPLOADER', 'EDITOR', 'TRANSLATOR') DEFAULT 'UPLOADER',
+    role VARCHAR(32) NOT NULL DEFAULT 'UPLOADER',
     permissions JSON,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES scan_groups(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role) REFERENCES scan_roles(code) ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ==========================================
@@ -205,11 +243,14 @@ CREATE TABLE chapters (
     title VARCHAR(255),
     slug VARCHAR(255) UNIQUE,
     status ENUM('DRAFT', 'PUBLISHED', 'SCHEDULED', 'HIDDEN') DEFAULT 'PUBLISHED',
+    translator_user_id INT NULL,
+    reward_coins INT NOT NULL DEFAULT 50,
     published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
     FOREIGN KEY (scan_group_id) REFERENCES scan_groups(id) ON DELETE SET NULL,
+    FOREIGN KEY (translator_user_id) REFERENCES users(id) ON DELETE SET NULL,
     UNIQUE (work_id, chapter_number),
     INDEX idx_chapters_work_published (work_id, published_at)
 );
@@ -223,13 +264,44 @@ CREATE TABLE chapter_images (
     UNIQUE (chapter_id, order_number)
 );
 
+CREATE TABLE chapter_submissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    chapter_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content_url VARCHAR(2048) NOT NULL,
+    page_count INT NOT NULL,
+    status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
+    notes TEXT NULL,
+    rejection_reason VARCHAR(255) NULL,
+    reviewed_by INT NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_submissions_chapter_status (chapter_id, status)
+) ENGINE=InnoDB;
+
+CREATE TABLE user_coin_transactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    amount INT NOT NULL,
+    balance_after INT NOT NULL,
+    type ENUM('TRANSLATION_REWARD', 'DAILY_MISSION', 'SHOP_PURCHASE', 'ADMIN_ADJUSTMENT') NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    reference_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_tx_created (user_id, created_at)
+) ENGINE=InnoDB;
+
 -- ==========================================
 -- 6. BIBLIOTECA, HISTORIAL Y ESTADÍSTICAS
 -- ==========================================
 CREATE TABLE user_library (
     user_id INT,
     work_id INT,
-    status ENUM('FAVORITE', 'FOLLOWING', 'READ_LATER', 'COMPLETED', 'DROPPED') DEFAULT 'FOLLOWING',
+    status ENUM('READING', 'COMPLETED', 'ON_HOLD', 'PLAN_TO_READ', 'DROPPED') DEFAULT 'READING',
     rating DECIMAL(3,1) CHECK (rating >= 0.0 AND rating <= 10.0),
     notify_new_chapters BOOLEAN DEFAULT TRUE, -- Para el botón "Recordar" (campana)
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -263,6 +335,31 @@ CREATE TABLE user_read_chapters (
     FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
 );
+
+-- Misiones diarias del sistema
+CREATE TABLE IF NOT EXISTS daily_missions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mission_key VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL DEFAULT 'LECTURA',
+    icon VARCHAR(50) NOT NULL DEFAULT 'book-open',
+    target_count INT NOT NULL DEFAULT 1,
+    condition_type ENUM('CHAPTERS_READ', 'COMMENTS', 'LIBRARY_COUNT', 'DAILY_CHEST') NOT NULL,
+    reward_xp INT NOT NULL DEFAULT 35,
+    reward_coins INT NOT NULL DEFAULT 5,
+    action_url VARCHAR(255) DEFAULT '/pages/catalogo.html',
+    action_text VARCHAR(50) DEFAULT 'Explorar obras',
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO daily_missions (id, mission_key, title, description, category, icon, target_count, condition_type, reward_xp, reward_coins, action_url, action_text, sort_order) VALUES
+(1, 'daily_read_1', 'Primer Capítulo', 'Lee al menos 1 capítulo completo hoy.', 'LECTURA', 'book-open', 1, 'CHAPTERS_READ', 35, 5, '/pages/catalogo.html', 'Explorar obras', 1),
+(2, 'daily_read_3', 'Devorador de Capítulos', 'Lee 3 capítulos completos en el día.', 'LECTURA', 'flame', 3, 'CHAPTERS_READ', 75, 15, '/pages/catalogo.html', 'Leer más', 2),
+(3, 'daily_comment', 'Voz de la Comunidad', 'Deja al menos 1 comentario u opinión.', 'COMUNIDAD', 'message-circle', 1, 'COMMENTS', 40, 10, '/pages/catalogo.html', 'Comentar', 3),
+(4, 'daily_library', 'Coleccionista', 'Ten al menos 1 obra en tu biblioteca.', 'BIBLIOTECA', 'bookmark', 1, 'LIBRARY_COUNT', 30, 5, '/pages/catalogo.html', 'Guardar obra', 4),
+(5, 'daily_chest', 'Cofre de Maestría Diaria', 'Reclama todas tus misiones del día para abrir este cofre.', 'MAESTRIA', 'gift', 4, 'DAILY_CHEST', 120, 30, '', 'Reclamar cofre', 5);
 
 -- Misiones diarias y recompensas reclamadas
 CREATE TABLE IF NOT EXISTS user_daily_missions (
@@ -357,12 +454,12 @@ CREATE TABLE work_statistics (
     rating_count INT DEFAULT 0, -- Para mostrar "9.94 (42.8k)"
     trending_score DECIMAL(10,2) DEFAULT 0.00, -- Para el badge "#1 TENDENCIA GLOBAL"
     views_last_24h INT DEFAULT 0,
-    followers_count INT DEFAULT 0,
     favorites_count INT DEFAULT 0,
     last_published_at TIMESTAMP NULL,
     latest_chapter_id INT NULL,
     latest_chapter_number DECIMAL(6,2) NULL,
     first_chapter_id INT NULL,
+    chapters_count INT NOT NULL DEFAULT 0,
     FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
     INDEX idx_stats_trending (trending_score),
     INDEX idx_stats_weekly (weekly_views),
@@ -405,6 +502,7 @@ CREATE TABLE comments (
     chapter_id INT NULL,
     user_id INT NOT NULL,
     parent_id BIGINT NULL,
+    reply_to_username VARCHAR(50) NULL,
     content TEXT NOT NULL,
     contains_spoiler BOOLEAN DEFAULT FALSE,
     status ENUM('VISIBLE', 'HIDDEN', 'DELETED') DEFAULT 'VISIBLE',
@@ -439,8 +537,8 @@ CREATE TABLE content_reports (
     reviewed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (reporter_user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_reports_status_created (status, created_at)
+    INDEX idx_reports_status_created (status, created_at),
+    UNIQUE KEY uq_reporter_entity_status (reporter_user_id, entity_type, entity_id, status)
 );
 
 CREATE TABLE audit_logs (
@@ -526,6 +624,8 @@ CREATE INDEX idx_chapters_status_published ON chapters (status, published_at);
 CREATE INDEX idx_library_user_status_added ON user_library (user_id, status, added_at);
 CREATE INDEX idx_scan_members_user_group ON scan_group_members (user_id, group_id);
 CREATE INDEX idx_announcements_active_created ON announcements (is_active, created_at);
+CREATE INDEX idx_comments_parent_created ON comments (parent_id, created_at);
+CREATE INDEX idx_chat_reactions_msg_reaction ON chat_reactions (message_id, reaction);
 
 -- ==========================================
 -- 11. TRIGGERS DE RENDIMIENTO (OPTIMIZACIÓN)
@@ -537,17 +637,14 @@ AFTER INSERT ON chapters
 FOR EACH ROW
 BEGIN
     IF NEW.status = 'PUBLISHED' THEN
-        -- Actualizar último capítulo publicado
         UPDATE work_statistics 
-        SET last_published_at = NEW.published_at,
+        SET 
+            last_published_at = NEW.published_at,
             latest_chapter_id = NEW.id,
-            latest_chapter_number = NEW.chapter_number
-        WHERE work_id = NEW.work_id AND (last_published_at IS NULL OR NEW.published_at >= last_published_at);
-        
-        -- Actualizar primer capítulo (si es el primero)
-        UPDATE work_statistics 
-        SET first_chapter_id = NEW.id
-        WHERE work_id = NEW.work_id AND first_chapter_id IS NULL;
+            latest_chapter_number = NEW.chapter_number,
+            chapters_count = (SELECT COUNT(*) FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED'),
+            first_chapter_id = COALESCE(first_chapter_id, NEW.id)
+        WHERE work_id = NEW.work_id;
     END IF;
 END;
 //
@@ -556,15 +653,32 @@ CREATE TRIGGER trg_chapters_after_update
 AFTER UPDATE ON chapters
 FOR EACH ROW
 BEGIN
-    -- Recalcular de forma consolidada si hay cambio de estado de publicación o fecha
-    IF OLD.status != NEW.status OR OLD.published_at != NEW.published_at THEN
+    IF OLD.status != NEW.status OR OLD.published_at != NEW.published_at OR OLD.chapter_number != NEW.chapter_number THEN
         UPDATE work_statistics 
         SET 
             first_chapter_id = (SELECT id FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number ASC, id ASC LIMIT 1),
             latest_chapter_id = (SELECT id FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED' ORDER BY chapter_number DESC, id DESC LIMIT 1),
             latest_chapter_number = (SELECT chapter_number FROM chapters WHERE id = latest_chapter_id),
+            chapters_count = (SELECT COUNT(*) FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED'),
             last_published_at = (SELECT MAX(published_at) FROM chapters WHERE work_id = NEW.work_id AND status = 'PUBLISHED')
         WHERE work_id = NEW.work_id;
+    END IF;
+END;
+//
+
+CREATE TRIGGER trg_chapters_after_delete
+AFTER DELETE ON chapters
+FOR EACH ROW
+BEGIN
+    IF OLD.status = 'PUBLISHED' THEN
+        UPDATE work_statistics 
+        SET 
+            first_chapter_id = (SELECT id FROM chapters WHERE work_id = OLD.work_id AND status = 'PUBLISHED' ORDER BY chapter_number ASC, id ASC LIMIT 1),
+            latest_chapter_id = (SELECT id FROM chapters WHERE work_id = OLD.work_id AND status = 'PUBLISHED' ORDER BY chapter_number DESC, id DESC LIMIT 1),
+            latest_chapter_number = (SELECT chapter_number FROM chapters WHERE id = latest_chapter_id),
+            chapters_count = (SELECT COUNT(*) FROM chapters WHERE work_id = OLD.work_id AND status = 'PUBLISHED'),
+            last_published_at = (SELECT MAX(published_at) FROM chapters WHERE work_id = OLD.work_id AND status = 'PUBLISHED')
+        WHERE work_id = OLD.work_id;
     END IF;
 END;
 //

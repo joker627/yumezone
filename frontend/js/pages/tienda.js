@@ -1,14 +1,9 @@
 import { apiRequest, authRequest, getAccessToken } from '../shared/auth.js';
-import { renderSiteHeader } from '../components/header.js';
 import { escapeHTML } from '../shared/ui-utils.js';
 import { showToast } from '../shared/toast.js';
-import { renderShopSkeletons } from '../components/loader.js';
+import { renderShopSkeletons } from '../components/skeletons.js';
 
-// Inicializar cabecera del sitio
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
-
-// Esqueletos del catálogo mientras llega la respuesta
+// esqueletos tienda
 const shopGrid = document.getElementById('shop-items-grid');
 if (shopGrid) shopGrid.innerHTML = renderShopSkeletons(8);
 
@@ -132,28 +127,28 @@ function renderGrid() {
     if (!currentUser) {
       actionButtonHtml = `
         <a href="/pages/login.html" class="shop-btn shop-btn--buy">
-          <img src="/assets/icons/svg/login.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <img src="/assets/icons/svg/user/login.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Iniciar sesión para canjear</span>
         </a>
       `;
     } else if (isEquipped) {
       actionButtonHtml = `
         <button class="shop-btn shop-btn--equipped" disabled>
-          <img src="/assets/icons/svg/check.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <img src="/assets/icons/svg/actions/check.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Equipado</span>
         </button>
       `;
     } else if (isOwned) {
       actionButtonHtml = `
         <button class="shop-btn shop-btn--equip" data-action="equip" data-id="${item.id}" data-category="${item.category}">
-          <img src="/assets/icons/svg/bolt.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <img src="/assets/icons/svg/gamification/bolt.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Equipar en Perfil</span>
         </button>
       `;
     } else if (!meetsLevel) {
       actionButtonHtml = `
         <button class="shop-btn shop-btn--disabled" disabled title="Sube de nivel leyendo más capítulos">
-          <img src="/assets/icons/svg/lock.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <img src="/assets/icons/svg/user/lock.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Requiere Nv. ${item.required_level}</span>
         </button>
       `;
@@ -161,15 +156,15 @@ function renderGrid() {
       const missingCoins = (item.price_coins - userCoins).toLocaleString();
       actionButtonHtml = `
         <button class="shop-btn shop-btn--disabled" disabled title="Gana monedas leyendo o en misiones diarias">
-          <img src="/assets/icons/svg/warning.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <img src="/assets/icons/svg/content/warning.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Faltan ${missingCoins}</span>
-          <img src="/assets/icons/svg/coin.svg" class="shop-btn-icon-inline" alt="" width="14" height="14" aria-hidden="true"/>
+          <img src="/assets/icons/svg/gamification/coin.svg" class="shop-btn-icon-inline" alt="" width="14" height="14" aria-hidden="true"/>
         </button>
       `;
     } else {
       actionButtonHtml = `
         <button class="shop-btn shop-btn--buy" data-action="buy" data-id="${item.id}" data-category="${item.category}">
-          <img src="/assets/icons/svg/coin.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
+          <img src="/assets/icons/svg/gamification/coin.svg" class="shop-btn-icon" alt="" width="15" height="15" aria-hidden="true"/>
           <span>Comprar por ${item.price_coins.toLocaleString()} Coins</span>
         </button>
       `;
@@ -209,7 +204,7 @@ function renderGrid() {
           <div class="shop-card-name-row">
             <h3 class="shop-card-name">${escapeHTML(item.name)}</h3>
             <span class="shop-card-price">
-              <img src="/assets/icons/svg/coin.svg" class="shop-card-coin-icon" alt="" width="16" height="16" aria-hidden="true"/>
+              <img src="/assets/icons/svg/gamification/coin.svg" class="shop-card-coin-icon" alt="" width="16" height="16" aria-hidden="true"/>
               <span>${item.price_coins.toLocaleString()}</span>
             </span>
           </div>
@@ -226,7 +221,7 @@ function renderGrid() {
 let isProcessingAction = false;
 
 function initEventHandlers() {
-  // Pestañas
+  // pestañas
   const shopTabs = document.getElementById('shop-tabs');
   const tabBtns = shopTabs ? shopTabs.querySelectorAll('.shop-tab-btn') : [];
   tabBtns.forEach(btn => {
@@ -238,7 +233,7 @@ function initEventHandlers() {
     });
   });
 
-  // Delegación de compras y equipar
+  // delegación de compras y equipar
   const grid = document.getElementById('shop-items-grid');
   if (grid) {
     grid.addEventListener('click', async (e) => {
@@ -268,7 +263,7 @@ function initEventHandlers() {
 
           window.dispatchEvent(new CustomEvent('yume:coins-updated', { detail: { new_coins: res.new_coins } }));
 
-          // Recargar usuario y catálogo fresco desde el servidor
+          // recargar tienda
           await initUser();
           await loadShopItems();
         } catch (err) {
@@ -288,7 +283,7 @@ function initEventHandlers() {
           const category = res.category || itemCategory;
           const previewUrl = res.preview_url;
 
-          // Disparar evento para actualizar el header y el perfil inmediatamente
+          // emitir actualizacion perfil
           if (currentUser) {
             if (category === 'FRAME') {
               currentUser.anillo_url = previewUrl;
@@ -308,7 +303,7 @@ function initEventHandlers() {
             }
           }));
 
-          // Recargar catálogo e inventario para reflejar el estado equipado exacto desde la BD
+          // actualizar inventario
           await initUser();
           await loadShopItems();
         } catch (err) {

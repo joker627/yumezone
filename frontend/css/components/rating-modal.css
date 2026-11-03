@@ -1,0 +1,224 @@
+/* modal global de calificación de obras */
+
+.yz-rating-modal {
+  width: min(92vw, 22.5rem);
+  margin: auto;
+  padding: 0;
+  color: var(--neutral-100);
+  background: transparent;
+  border: 0;
+  z-index: 1100;
+}
+
+.yz-rating-modal::backdrop {
+  background: rgb(5 7 12 / 75%);
+  backdrop-filter: blur(5px);
+}
+
+.yz-rating-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #121620;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgb(0 0 0 / 55%);
+}
+
+.yz-rating-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.yz-rating-title-wrap {
+  min-width: 0;
+}
+
+.yz-rating-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.yz-rating-subtitle {
+  margin: 0.15rem 0 0;
+  color: var(--neutral-400);
+  font-size: 0.76rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yz-rating-close {
+  padding: 0.15rem 0.35rem;
+  color: var(--neutral-400);
+  font-size: 1.35rem;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.yz-rating-close:hover {
+  color: #ffffff;
+}
+
+.yz-rating-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0;
+}
+
+.yz-rating-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.yz-rating-score-val {
+  color: #fbbf24;
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.yz-rating-score-max {
+  color: var(--neutral-500);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.yz-rating-label {
+  min-height: 1.1rem;
+  color: var(--neutral-300);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Barra de selección / Slider decimal */
+.yz-rating-slider-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.65rem 0.25rem 0.35rem;
+}
+
+.yz-rating-slider {
+  width: 100%;
+  height: 10px;
+  background: #1e2636;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-x;
+  margin: 8px 0;
+}
+
+.yz-rating-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 10px;
+  cursor: pointer;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.yz-rating-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #f97316, #f59e0b);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 60%), 0 0 8px rgb(249 115 22 / 60%);
+  cursor: pointer;
+  margin-top: -9px;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.yz-rating-slider::-webkit-slider-thumb:hover,
+.yz-rating-slider:active::-webkit-slider-thumb {
+  transform: scale(1.18);
+  box-shadow: 0 4px 14px rgb(249 115 22 / 85%);
+}
+
+.yz-rating-slider::-moz-range-track {
+  width: 100%;
+  height: 10px;
+  cursor: pointer;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.yz-rating-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #f97316, #f59e0b);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 60%), 0 0 8px rgb(249 115 22 / 60%);
+  cursor: pointer;
+}
+
+.yz-rating-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  user-select: none;
+}
+
+.yz-rating-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.yz-rating-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.yz-rating-btn--ghost {
+  color: var(--neutral-300);
+  background: rgb(255 255 255 / 6%);
+}
+
+.yz-rating-btn--ghost:hover {
+  color: #ffffff;
+  background: rgb(255 255 255 / 12%);
+}
+
+.yz-rating-btn--primary {
+  color: #0b0d12;
+  background: #f8fafc;
+}
+
+.yz-rating-btn--primary:hover {
+  background: #ffffff;
+}
+
+.yz-rating-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

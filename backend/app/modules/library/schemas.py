@@ -5,23 +5,26 @@ from pydantic import BaseModel, Field
 
 from app.modules.works.schemas import WorkResponse
 
-LibraryStatus = Literal["FAVORITE", "FOLLOWING", "READ_LATER", "COMPLETED", "DROPPED"]
+LibraryStatus = Literal["READING", "COMPLETED", "ON_HOLD", "PLAN_TO_READ", "DROPPED"]
 
 
 class LibraryReadingProgress(BaseModel):
     chapter_id: int
-    chapter_number: float
+    chapter_number: Optional[float] = None
     chapter_text: str
-    last_page_read: int
-    total_pages: int
-    page_text: str
-    progress_pct: int
+    last_page_read: int = 1
+    total_pages: int = 1
+    read_chapters: int = 0
+    total_chapters: int = 0
+    remaining_chapters: int = 0
+    page_text: str = ""
+    progress_pct: int = 0
     read_at: Optional[datetime] = None
     reader_url: Optional[str] = None
 
 
 class LibraryItem(WorkResponse):
-    library_status: LibraryStatus
+    library_status: Optional[LibraryStatus] = None
     rating: Optional[float] = None
     notify_new_chapters: bool = True
     added_at: Optional[datetime] = None
@@ -35,7 +38,7 @@ class LibraryWorkStatus(BaseModel):
 
 
 class LibraryAdd(BaseModel):
-    status: LibraryStatus = "FOLLOWING"
+    status: LibraryStatus = "READING"
 
 
 class LibraryStatusUpdate(BaseModel):
@@ -54,7 +57,8 @@ class NotificationPreferenceResponse(BaseModel):
 class ReadingHistoryCreate(BaseModel):
     work_id: int = Field(gt=0)
     chapter_id: int = Field(gt=0)
-    last_page_read: int = Field(default=1, ge=1)
+    last_page_read: Optional[int] = Field(default=1, ge=1)
+    completed: Optional[bool] = False
 
 
 class WorkRatingUpdate(BaseModel):

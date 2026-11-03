@@ -1,7 +1,7 @@
 import aiomysql
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
-from app.core.settings.config import get_settings
+from app.core.config import get_settings
 
 db_pool: Optional[aiomysql.Pool] = None
 
@@ -34,8 +34,9 @@ async def close_db_pool():
 
 # obtencion de pool de conexiones
 async def get_db_pool() -> aiomysql.Pool:
+    global db_pool
     if db_pool is None:
-        raise Exception("La base de datos no está conectada.")
+        await init_db_pool()
     return db_pool
 
 # obtencion de conexion a la base de datos (inyección de dependencias)
@@ -63,4 +64,16 @@ async def transaction_scope() -> AsyncGenerator[aiomysql.Connection, None]:
         except Exception:
             await conn.rollback()
             raise
+
+
+# resolucion y reutilizacion de conexion
+@asynccontextmanager
+async def resolve_connection(conn: Optional[aiomysql.Connection] = None) -> AsyncGenerator[aiomysql.Connection, None]:
+    if conn is not None:
+        yield conn
+    else:
+        pool = await get_db_pool()
+        async with pool.acquire() as pool_conn:
+            yield pool_conn
+
 

@@ -23,10 +23,10 @@ class Work(BaseModel):
     total_views: int = 0
     rating_average: float = 0.0
     rating_count: int = 0
-    followers_count: int = 0
     favorites_count: int = 0
     trending_score: float = 0.0
     views_last_24h: int = 0
+    chapters_count: int = 0
     first_chapter_id: Optional[int] = None
     genres: list[dict[str, object]] = Field(default_factory=list)
     created_at: Optional[datetime] = None

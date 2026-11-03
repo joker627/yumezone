@@ -1,11 +1,9 @@
-# imports standard
+from decimal import Decimal
+from types import SimpleNamespace
 from typing import List, Optional
-
-# imports external
 import aiomysql
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-# imports internal
 from app.core.database import get_db_connection
 from app.core.dependencies import (
     get_current_active_user,
@@ -16,7 +14,11 @@ from app.modules.chapters.schemas import (
     ChapterCreate,
     ChapterImageResponse,
     ChapterPagesReplace,
+    ChapterReaderResponse,
     ChapterResponse,
+    ChapterSubmissionCreate,
+    ChapterSubmissionResponse,
+    ChapterSubmissionReview,
     ChapterUpdate,
 )
 from app.modules.chapters.services import ChapterService
@@ -25,17 +27,26 @@ from app.modules.works.repository import WorkRepository
 from app.modules.works.services import WorkService
 
 
-def get_chapter_service():
-    return ChapterService()
+router = APIRouter(prefix="/chapters", tags=["Capítulos"])
+
+
+def get_chapter_service(
+    conn: aiomysql.Connection = Depends(get_db_connection),
+) -> ChapterService:
+    return ChapterService(conn)
 
 
 def get_work_service(
     conn: aiomysql.Connection = Depends(get_db_connection),
-):
+) -> WorkService:
     return WorkService(WorkRepository(conn))
 
 
-async def _assert_can_read_chapter(chapter, current_user: Optional[CurrentUser]):
+async def _assert_can_read_chapter(
+    chapter,
+    current_user: Optional[CurrentUser],
+    conn: Optional[aiomysql.Connection] = None,
+):
     if chapter.status.upper() == "PUBLISHED":
         return
     if current_user:
@@ -43,7 +54,7 @@ async def _assert_can_read_chapter(chapter, current_user: Optional[CurrentUser])
             return
         if chapter.scan_group_id:
             try:
-                await verify_upload_permission(current_user, chapter.scan_group_id)
+                await verify_upload_permission(current_user, chapter.scan_group_id, conn=conn)
                 return
             except HTTPException:
                 pass
@@ -51,9 +62,6 @@ async def _assert_can_read_chapter(chapter, current_user: Optional[CurrentUser])
         status_code=404,
         detail="Capítulo no encontrado",
     )
-
-
-router = APIRouter()
 
 
 # Obtener capitulos por ID de obra
@@ -83,13 +91,72 @@ async def get_chapters(
         elif current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]:
             try:
                 work = await work_service.get_work_by_id(actual_work_id)
-                await verify_upload_permission(current_user, work.scan_group_id)
+                await verify_upload_permission(current_user, work.scan_group_id, conn=work_service.repository.conn)
             except HTTPException:
                 published_only = True
 
     return await service.get_chapters(
         actual_work_id, published_only=published_only, order=order
     )
+
+
+# Lector consolidado de capítulos (búsqueda por chapter_id o por work_slug + chapter_number)
+@router.get("/reader", response_model=ChapterReaderResponse)
+async def get_chapter_reader(
+    chapter_id: Optional[int] = Query(default=None, description="ID del capítulo"),
+    work_slug: Optional[str] = Query(default=None, description="Slug de la obra"),
+    chapter_number: Optional[Decimal] = Query(default=None, description="Número de capítulo"),
+    service: ChapterService = Depends(get_chapter_service),
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
+):
+    if not chapter_id and not work_slug:
+        raise HTTPException(status_code=400, detail="Debe proporcionar chapter_id o work_slug")
+
+    user_id = current_user.id if current_user else None
+    data = await service.get_chapter_reader(
+        chapter_id=chapter_id,
+        work_slug=work_slug,
+        chapter_number=chapter_number,
+        user_id=user_id,
+    )
+    if not data:
+        raise HTTPException(status_code=404, detail="Capítulo u obra no encontrado")
+
+    status_str = (data["chapter"].get("status") or "").upper()
+    if status_str != "PUBLISHED":
+        dummy_ch = SimpleNamespace(
+            status=status_str,
+            scan_group_id=data["chapter"].get("scan_group_id"),
+        )
+        await _assert_can_read_chapter(dummy_ch, current_user, conn=service.chapter_repository.conn)
+
+    return data
+
+
+# Lector consolidado por ID directo de capítulo
+@router.get("/{chapter_id}/reader", response_model=ChapterReaderResponse)
+async def get_chapter_reader_by_id(
+    chapter_id: int,
+    service: ChapterService = Depends(get_chapter_service),
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
+):
+    user_id = current_user.id if current_user else None
+    data = await service.get_chapter_reader(
+        chapter_id=chapter_id,
+        user_id=user_id,
+    )
+    if not data:
+        raise HTTPException(status_code=404, detail="Capítulo no encontrado")
+
+    status_str = (data["chapter"].get("status") or "").upper()
+    if status_str != "PUBLISHED":
+        dummy_ch = SimpleNamespace(
+            status=status_str,
+            scan_group_id=data["chapter"].get("scan_group_id"),
+        )
+        await _assert_can_read_chapter(dummy_ch, current_user, conn=service.chapter_repository.conn)
+
+    return data
 
 
 # Obtener capítulo por ID
@@ -105,7 +172,7 @@ async def get_chapter_by_id(
             status_code=404,
             detail="Capítulo no encontrado",
         )
-    await _assert_can_read_chapter(chapter, current_user)
+    await _assert_can_read_chapter(chapter, current_user, conn=service.chapter_repository.conn)
     return chapter
 
 
@@ -117,10 +184,8 @@ async def create_chapter(
     work_service: WorkService = Depends(get_work_service),
     current_user: CurrentUser = Depends(get_current_active_user),
 ):
-    # 404 si la obra no existe; el permiso se evalúa sobre el grupo dueño de la obra,
-    # nunca sobre el scan_group_id que manda el cliente en el body.
     work = await work_service.get_work_by_id(chapter.work_id)
-    await verify_upload_permission(current_user, work.scan_group_id)
+    await verify_upload_permission(current_user, work.scan_group_id, conn=work_service.repository.conn)
     return await service.create_chapter(chapter)
 
 
@@ -139,7 +204,7 @@ async def update_chapter(
             detail="Capítulo no encontrado",
         )
 
-    await verify_upload_permission(current_user, chapter.scan_group_id)
+    await verify_upload_permission(current_user, chapter.scan_group_id, conn=service.chapter_repository.conn)
     return await service.update_chapter(
         chapter_id, chapter_data.model_dump(exclude_unset=True)
     )
@@ -159,13 +224,11 @@ async def delete_chapter(
             detail="Capítulo no encontrado",
         )
 
-    await verify_upload_permission(current_user, chapter.scan_group_id)
+    await verify_upload_permission(current_user, chapter.scan_group_id, conn=service.chapter_repository.conn)
     await service.delete_chapter(chapter_id)
     return None
 
 
-# Registrar referencias de imágenes de un capítulo existente.
-# Los binarios se alojan fuera de la API (Azure Blob/CDN u otro proveedor).
 @router.put(
     "/{chapter_id}/pages",
     response_model=List[ChapterImageResponse],
@@ -176,7 +239,6 @@ async def replace_chapter_pages(
     service: ChapterService = Depends(get_chapter_service),
     current_user: CurrentUser = Depends(get_current_active_user),
 ):
-    # Verificamos si existe
     chapter = await service.get_chapter_by_id(chapter_id)
     if not chapter:
         raise HTTPException(
@@ -184,9 +246,10 @@ async def replace_chapter_pages(
             detail="Capítulo no encontrado",
         )
 
-    await verify_upload_permission(current_user, chapter.scan_group_id)
+    await verify_upload_permission(current_user, chapter.scan_group_id, conn=service.chapter_repository.conn)
 
     return await service.replace_chapter_page_references(chapter_id, payload.pages)
+
 
 
 
@@ -206,7 +269,46 @@ async def get_chapter_pages(
             status_code=404,
             detail="Capítulo no encontrado",
         )
-    await _assert_can_read_chapter(chapter, current_user)
+    await _assert_can_read_chapter(chapter, current_user, conn=service.chapter_repository.conn)
 
     return await service.get_chapter_images(chapter_id)
+
+
+@router.post(
+    "/{chapter_id}/submissions",
+    status_code=201,
+)
+async def submit_translation(
+    chapter_id: int,
+    payload: ChapterSubmissionCreate,
+    service: ChapterService = Depends(get_chapter_service),
+    current_user: CurrentUser = Depends(get_current_active_user),
+):
+    return await service.submit_translation(chapter_id, current_user, payload)
+
+
+@router.get(
+    "/{chapter_id}/submissions",
+    response_model=List[ChapterSubmissionResponse],
+)
+async def list_submissions(
+    chapter_id: int,
+    status_filter: Optional[str] = Query(default=None, alias="status"),
+    service: ChapterService = Depends(get_chapter_service),
+    current_user: CurrentUser = Depends(get_current_active_user),
+):
+    return await service.list_submissions(chapter_id, current_user, status_filter)
+
+
+@router.patch(
+    "/{chapter_id}/submissions/{submission_id}",
+)
+async def review_submission(
+    chapter_id: int,
+    submission_id: int,
+    payload: ChapterSubmissionReview,
+    service: ChapterService = Depends(get_chapter_service),
+    current_user: CurrentUser = Depends(get_current_active_user),
+):
+    return await service.review_submission(chapter_id, submission_id, current_user, payload)
 

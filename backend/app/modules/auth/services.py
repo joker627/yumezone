@@ -13,7 +13,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.core.settings.config import get_settings
+from app.core.config import get_settings
 from app.modules.auth.repository import AuthRepository
 from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate
 from app.modules.users.models import CurrentUser, User

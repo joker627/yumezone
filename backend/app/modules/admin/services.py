@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
 
+from app.core.dependencies import invalidate_user_session
+from app.core.redis import cached_query
 from app.modules.admin.repository import AdminRepository
 from app.modules.admin.schemas import (
     AnnouncementCreate,
@@ -18,8 +20,13 @@ class AdminService:
     def __init__(self, repository: AdminRepository):
         self.repo = repository
 
+    # estadisticas del dashboard con cache temporal de 30s
     async def get_dashboard(self) -> Dict[str, Any]:
-        return await self.repo.get_dashboard_stats()
+        return await cached_query(
+            "yume:cache:admin:dashboard",
+            lambda: self.repo.get_dashboard_stats(),
+            ttl=30,
+        )
 
     async def list_users(self, page: int, per_page: int, q: Optional[str] = None) -> Dict[str, Any]:
         return await self.repo.list_users(page=page, per_page=per_page, q=q)
@@ -44,6 +51,7 @@ class AdminService:
             )
 
         await self.repo.update_user_status(target_user_id, payload.status)
+        await invalidate_user_session(row.get("email"))
         await self.repo.log_audit(
             actor_id=current_user.id,
             action="user.status.update",
@@ -112,6 +120,7 @@ class AdminService:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
         await self.repo.update_user_role(target_user_id, payload.platform_role)
+        await invalidate_user_session(row.get("email"))
         await self.repo.log_audit(
             actor_id=current_user.id,
             action="user.role.update",
@@ -210,8 +219,8 @@ class AdminService:
         is_platform_admin = current_user.platform_role.upper() in ["ADMIN", "SUPERADMIN"]
         if not is_platform_admin:
             my_membership = await self.repo.get_scan_membership(group_id, current_user.id)
-            if not my_membership or my_membership["role"] != "ADMIN":
-                raise HTTPException(status_code=403, detail="Solo el Administrador del Scan puede modificar roles")
+            if not my_membership or my_membership["role"] not in ("LEADER", "CO_LEADER"):
+                raise HTTPException(status_code=403, detail="Solo el Líder del Scan puede modificar roles")
 
         await self.repo.update_scan_member_role(group_id, target_user_id, payload.role)
         await self.repo.log_audit(

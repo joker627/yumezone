@@ -29,6 +29,11 @@ class User(BaseModel):
     previous_streak: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    level: int = 1
+    level_title: str = "Iniciado del Cultivo"
+    level_progress_pct: int = 0
+    remaining_xp: int = 1000
+    level_info: Optional[object] = None
 
 
 class CurrentUser(BaseModel):
@@ -58,5 +63,10 @@ class CurrentUser(BaseModel):
     previous_streak: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    level: int = 1
+    level_title: str = "Iniciado del Cultivo"
+    level_progress_pct: int = 0
+    remaining_xp: int = 1000
+    level_info: Optional[object] = None
 
 

@@ -1,41 +1,67 @@
 from typing import Optional, List
+import aiomysql
 from app.modules.users.repository import UserRepository
-from app.modules.users.schemas import UserProfileResponse, UserUpdate, UserSearchItem, LevelInfo
+from app.modules.users.schemas import (
+    UserProfileResponse,
+    UserUpdate,
+    UserSearchItem,
+    LevelInfo,
+    UserCoinTransactionResponse,
+)
 
-LEVEL_TITLES = [
-    "Iniciado del Cultivo",
-    "Lector Novato",
-    "Cazador Errante",
-    "Adepto de las Sombras",
-    "Guerrero Celestial",
-    "Maestro de Secta",
-    "Monarca Espiritual",
-    "Nigromante Supremo",
-    "Monarca de las Sombras",
-    "Soberano Cósmico"
-]
-
-def calculate_level_info(xp: int = 0) -> LevelInfo:
+def calculate_level_info(xp: int = 0, ranks: Optional[List[dict]] = None) -> LevelInfo:
     safe_xp = max(0, int(xp or 0))
     xp_per_level = 1000
     level = (safe_xp // xp_per_level) + 1
     current_level_xp = safe_xp % xp_per_level
     pct = min(100, int((current_level_xp / xp_per_level) * 100))
     remaining = xp_per_level - current_level_xp
-    title_idx = min(len(LEVEL_TITLES) - 1, max(0, (level - 1) // 5))
-    next_idx = min(len(LEVEL_TITLES) - 1, title_idx + 1)
+
+    current_title = "Iniciado del Cultivo"
+    next_title = "Lector Novato"
+
+    if ranks:
+        for i, r in enumerate(ranks):
+            min_l = int(r.get("min_level", 1))
+            max_l = int(r.get("max_level", 9999))
+            if min_l <= level <= max_l:
+                current_title = r.get("title", current_title)
+                if i + 1 < len(ranks):
+                    next_title = ranks[i + 1].get("title", current_title)
+                else:
+                    next_title = current_title
+                break
+    else:
+        # Fallback dinámico genérico en base al nivel
+        if level >= 46:
+            current_title = "Soberano Cósmico"
+            next_title = "Soberano Cósmico"
+        elif level >= 41:
+            current_title = "Monarca de las Sombras"
+            next_title = "Soberano Cósmico"
+        elif level >= 26:
+            current_title = "Maestro de Secta"
+            next_title = "Monarca Espiritual"
+        elif level >= 11:
+            current_title = "Cazador Errante"
+            next_title = "Adepto de las Sombras"
+        elif level >= 6:
+            current_title = "Lector Novato"
+            next_title = "Cazador Errante"
+
     return LevelInfo(
         level=level,
         current_level_xp=current_level_xp,
         remaining_xp=remaining,
         percentage=pct,
-        current_title=LEVEL_TITLES[title_idx],
-        next_title=LEVEL_TITLES[next_idx]
+        current_title=current_title,
+        next_title=next_title
     )
 
+
 class UserService:
-    def __init__(self):
-        self.repo = UserRepository()
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+        self.repo = UserRepository(conn)
 
     async def get_profile(self, identifier: str, requester_id: Optional[int] = None) -> Optional[UserProfileResponse]:
         user_data = await self.repo.get_user_by_identifier(identifier)
@@ -43,36 +69,32 @@ class UserService:
             return None
 
         is_owner = (requester_id == user_data["id"])
-        
-        # Si es privado y no es el dueño, se oculta cierta información (bio, stats opcionales)
+
         is_hidden = False
         stats = user_data.get("stats") or {}
         favorite_works = user_data.get("favorite_works") or []
-        recent_activity = user_data.get("recent_activity") or []
-        genres_breakdown = user_data.get("genres_breakdown") or []
+        inventory_items = user_data.get("inventory_items") or []
 
         if user_data["is_private"] and not is_owner:
             is_hidden = True
             user_data["bio"] = "Este perfil es privado."
             stats = {}
             favorite_works = []
-            recent_activity = []
-            genres_breakdown = []
+            inventory_items = []
             user_data["streak_days"] = 0
             user_data["coins"] = 0
 
-        # Cálculo dinámico de nivel, logros y medallas basado en actividad real
         xp = user_data.get("xp") or 0
-        lvl_info = calculate_level_info(xp)
+        db_ranks = await self.repo.get_cultivation_ranks()
+        lvl_info = calculate_level_info(xp, ranks=db_ranks)
 
         streak = user_data.get("streak_days") or 0
         chapters = stats.get("total_chapters_read") or 0
-        following = stats.get("following_count") or 0
+        following = stats.get("favorites_count") or 0
         comments = stats.get("total_comments") or 0
         role = (user_data.get("platform_role") or "USER").upper()
         has_scan = bool(user_data.get("scan_group"))
 
-        # Obtener badges dinámicamente desde la base de datos SQL
         db_badges = await self.repo.get_all_badges()
         badges = []
         for b in db_badges:
@@ -107,7 +129,6 @@ class UserService:
                 "progress": progress_str
             })
 
-
         return UserProfileResponse(
             id=user_data["id"],
             user_code=user_data["user_code"],
@@ -131,11 +152,9 @@ class UserService:
             stats=stats,
             level_info=lvl_info,
             favorite_works=favorite_works,
-            recent_activity=recent_activity,
-            genres_breakdown=genres_breakdown,
+            inventory_items=inventory_items,
             badges=badges
         )
-
 
     async def update_profile(self, user_id: int, data: UserUpdate) -> bool:
         update_dict = data.model_dump(exclude_unset=True)
@@ -144,10 +163,13 @@ class UserService:
         return await self.repo.update_user(user_id, update_dict)
 
     async def search_users(self, query: str) -> List[UserSearchItem]:
-        # Si el query empieza con @, lo limpiamos para la búsqueda
         clean_query = query.strip().lstrip('@')
         if not clean_query:
             return []
-            
+
         results = await self.repo.search_users(clean_query)
         return [UserSearchItem(**r) for r in results]
+
+    async def get_coin_transactions(self, user_id: int, limit: int = 50, offset: int = 0) -> List[UserCoinTransactionResponse]:
+        results = await self.repo.list_coin_transactions(user_id, limit, offset)
+        return [UserCoinTransactionResponse(**r) for r in results]
