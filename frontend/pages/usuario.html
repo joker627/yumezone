@@ -1,502 +1,367 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#0b0d12"/>
-  <meta name="description" content="Perfil público de usuario en YumeZone. Conoce sus lecturas, favoritos, estadísticas y actividad en la comunidad."/>
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
-  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1"/>
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="profile"/>
-  <meta property="og:site_name" content="YumeZone"/>
-  <meta property="og:url" content="https://yumezone.page/pages/usuario.html"/>
-  <meta property="og:title" content="Perfil de Usuario | YumeZone"/>
-  <meta property="og:description" content="Perfil público de usuario en YumeZone. Conoce sus lecturas, favoritos y actividad."/>
-  <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png"/>
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary"/>
-  <meta name="twitter:title" content="Perfil de Usuario | YumeZone"/>
-  <meta name="twitter:description" content="Perfil público de usuario en YumeZone."/>
-  <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png"/>
-
-  <link rel="canonical" href="https://yumezone.page/pages/usuario.html"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png"/>
-  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-title" content="YumeZone"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-  <link rel="manifest" href="/manifest.json"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perfil de Usuario | YumeZone</title>
-
-  <!-- YumeZone Core Stylesheets (Vanilla CSS Propio) -->
-  <link rel="stylesheet" href="/css/variables.css"/>
-  <link rel="stylesheet" href="/css/reset.css"/>
-  <link rel="stylesheet" href="/css/layout.css"/>
-  <link rel="stylesheet" href="/css/components/header.css"/>
-  <link rel="stylesheet" href="/css/components/toast.css"/>
-  <link rel="stylesheet" href="/css/pages/usuario.css"/>
+  <link rel="icon" type="image/png" href="/assets/icons/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Estilos Base Reales del Proyecto -->
+  <link rel="stylesheet" href="/css/variables.css" />
+  <link rel="stylesheet" href="/css/reset.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <link rel="stylesheet" href="/css/components/header.css" />
+  <link rel="stylesheet" href="/css/components/footer.css" />
+  <!-- Estilos de Página -->
+  <link rel="stylesheet" href="/css/pages/usuario.css?v=7.0" />
 </head>
+<body class="page-user-profile">
 
-<body>
-  <!-- Header Global del Sitio -->
+  <!-- HEADER GLOBAL -->
   <header id="header"></header>
 
-  <main class="profile-page-main">
-    <!-- Contenedor de Error / Usuario No Encontrado -->
-    <div class="profile-container">
-      <div id="user-error" class="profile-empty-card" hidden>
-        <img src="/assets/icons/svg/warning.svg" alt="" aria-hidden="true">
-        <h2 class="profile-title profile-error-title" id="user-error-title">Lector no encontrado</h2>
-        <p class="profile-bio-text profile-error-desc" id="user-error-desc">No pudimos encontrar el perfil que buscas.</p>
-        <div class="profile-error-actions">
-          <a href="/" class="profile-btn profile-btn--primary">Volver al Inicio</a>
-          <a href="/pages/catalogo.html" class="profile-btn profile-btn--secondary">Explorar Catálogo</a>
-        </div>
+  <main class="profile-main">
+
+    <!-- =========================================================
+         1. HERO DE PANTALLA COMPLETA (BANNER DE FONDO SIN TARJETA)
+         ========================================================= -->
+    <section class="profile-hero" id="profile-hero">
+      <!-- Banner de Fondo a Pantalla Completa con Degradado Elegante -->
+      <div class="profile-banner" id="profile-banner-bg">
+        <div class="profile-banner__overlay"></div>
       </div>
-    </div>
 
-    <!-- Vista Principal del Perfil -->
-    <div id="user-profile-view">
-      
-      <!-- HERO UNIFICADO INMERSIVO A PANTALLA COMPLETA (Banner atrás de fondo + Info en la mitad, sin tarjeta gris) -->
-      <section class="profile-hero-immersive">
-        <!-- Imagen de Banner a pantalla completa atrás -->
-        <div id="profile-banner-bg" class="profile-hero-bg"></div>
-        <div class="profile-hero-scrim-radial"></div>
-        <div class="profile-hero-scrim-bottom"></div>
+      <div class="container profile-hero__inner">
+        <!-- Acciones Superiores Derecha -->
+        <div class="profile-banner__actions">
+          <!-- Botón Editar Perfil (Dueño) -->
+          <button id="edit-profile-btn" class="profile-action-pill profile-action-pill--primary" style="display: none;">
+            <img src="/assets/icons/svg/user/settings.svg" class="icon-svg icon-xs" alt="" />
+            <span>Editar perfil</span>
+          </button>
 
-        <div class="profile-hero-inner">
-          <!-- Barra Superior (Badges a la izquierda, Acciones a la derecha) -->
-          <div class="profile-hero-top-bar">
-            <div class="profile-banner-badges">
-              <span id="badge-verified-top" class="profile-chip profile-chip--verified hidden">
-                <img src="/assets/icons/svg/verified.svg" alt="" aria-hidden="true">
-                <span id="badge-verified-text">Staff Verificado</span>
-              </span>
-              <span id="badge-role-top" class="profile-chip profile-chip--role hidden">
-                <img src="/assets/icons/svg/award.svg" alt="" aria-hidden="true">
-                <span id="badge-role-text">Lector Veterano</span>
-              </span>
-            </div>
+          <!-- Compartir Perfil -->
+          <button id="share-profile-btn" class="profile-action-pill" title="Copiar enlace del perfil">
+            <img src="/assets/icons/svg/actions/copy.svg" class="icon-svg icon-xs" alt="" />
+            <span>Compartir</span>
+          </button>
 
-            <div class="profile-banner-actions">
-              <button class="profile-icon-btn" id="btn-share" type="button" title="Copiar enlace del perfil">
-                <img class="profile-btn-icon" src="/assets/icons/svg/share.svg" alt="" aria-hidden="true"/>
-                <span id="btn-share-label">Compartir</span>
+          <!-- Menú Más Opciones (Visitantes) -->
+          <div class="profile-more-menu" id="visitor-more-menu" style="display: none;">
+            <button id="more-options-btn" class="profile-action-pill profile-action-pill--icon" title="Más opciones" aria-label="Más opciones">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="12" r="1.5"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown-menu">
+              <button id="report-profile-btn" class="profile-dropdown__item profile-dropdown__item--danger">
+                <img src="/assets/icons/svg/actions/flag.svg" class="icon-svg icon-xs" alt="" />
+                <span>Reportar usuario</span>
               </button>
-              <div class="profile-menu-wrapper">
-                <button class="profile-icon-btn profile-icon-btn--dots" id="menu-dots-btn" type="button" title="Opciones">
-                  <img class="profile-btn-icon" src="/assets/icons/svg/dots-vertical.svg" alt="" aria-hidden="true"/>
-                </button>
-                <div class="profile-dropdown-menu" id="dropdown-profile-menu" hidden>
-                  <button class="profile-dropdown-item profile-dropdown-item--danger" id="btn-report-profile" type="button">
-                    <img class="profile-item-icon" src="/assets/icons/svg/flag.svg" alt="" aria-hidden="true"/>
-                    <span>Reportar perfil</span>
-                  </button>
-                </div>
-              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cuerpo de Identidad Social sobre el Banner -->
+        <div class="profile-identity">
+          <!-- Avatar con soporte de Marco Cosmético -->
+          <div class="profile-avatar-col">
+            <div class="profile-avatar-box" id="profile-avatar-box">
+              <img id="user-avatar" alt="" class="profile-avatar-img yz-skeleton" />
+              <img id="user-avatar-frame" src="" alt="" class="profile-avatar-frame" style="display: none;" />
+              <span class="profile-level-chip" id="user-level-badge" title="Nivel de Lector"><span class="is-loading is-loading--sm"></span></span>
+              <button type="button" id="quick-avatar-edit-btn" class="profile-avatar-edit-trigger" style="display: none;" title="Cambiar foto, banner o marco">
+                <img src="/assets/icons/svg/user/settings.svg" class="icon-svg icon-xs" alt="Editar" />
+              </button>
             </div>
           </div>
 
-          <!-- Centro de Identidad (Toda la info en la mitad flotando sobre el banner) -->
-          <div class="profile-hero-center">
-            
-            <!-- 1. Avatar Circular Centrado con Marco y Nivel -->
-            <div class="profile-pro-avatar-wrap">
-              <div class="profile-avatar-wrapper profile-avatar-wrapper--circle">
-                <div class="profile-avatar-inner profile-avatar-inner--circle" id="user-avatar-inner">
-                  <div id="user-avatar-skeleton" class="yz-skeleton profile-avatar-skeleton" aria-hidden="true"></div>
-                  <img id="user-avatar-img" class="profile-avatar-img hidden" src="" alt="" hidden/>
-                  <span id="user-avatar-fallback" class="profile-avatar-fallback hidden" hidden>Y</span>
-                </div>
-                <!-- Marco Cosmético de Avatar -->
-                <img id="user-avatar-frame" class="profile-avatar-frame profile-avatar-frame--circle hidden" src="" alt="" hidden/>
-                <div class="profile-level-badge" id="user-level-badge-wrap">
-                  <img src="/assets/icons/svg/star.svg" alt="" aria-hidden="true">
-                  <span id="user-level-badge" class="is-loading is-loading--xs"></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 2. Botón de Acción Centrado Directamente Debajo del Avatar (Personalizar perfil) -->
-            <div class="profile-pro-action-center">
-              <button class="profile-pro-btn-edit" id="btn-edit-profile" type="button">
-                <span>Personalizar perfil</span>
-                <img src="/assets/icons/svg/settings.svg" alt="" aria-hidden="true">
-              </button>
-            </div>
-
-            <!-- 3. Nombre de Usuario Pro en Mayúsculas Centrado -->
-            <div class="profile-pro-name-row">
-              <h1 class="profile-pro-title" id="user-username"><span class="is-loading is-loading--lg"></span></h1>
-              <span class="profile-verified-badge hidden" id="user-verified-icon" title="Lector Verificado / Staff">
-                <img src="/assets/icons/svg/verified.svg" alt="" aria-hidden="true">
+          <!-- Información Principal del Usuario -->
+          <div class="profile-info-col">
+            <div class="profile-name-row">
+              <h1 id="user-display-name" class="profile-username"><span class="is-loading is-loading--lg"></span></h1>
+              <span id="verified-badge" class="profile-verified" style="display: none;" title="Miembro Verificado">
+                <img src="/assets/icons/svg/gamification/verified.svg" class="icon-svg icon-sm" alt="Verificado" />
               </span>
+              <span id="user-handle" class="profile-handle"><span class="is-loading is-loading--md"></span></span>
+              <span id="user-role-pill" class="profile-role-badge" style="display: none;">Lector</span>
+              <span id="user-active-title" class="profile-title-badge" style="display: none;"></span>
             </div>
 
-            <!-- 4. Insignia de Rango / Título Centrada (ej. Cazador Rango E) -->
-            <div class="profile-pro-rank-wrap">
-              <span class="profile-pro-rank-badge" id="user-active-title"><span class="is-loading is-loading--pill"></span></span>
-              <span class="profile-role-pill" id="user-role-pill">Lector</span>
-            </div>
+            <!-- Metadatos en línea (País, Fecha, Scan) -->
+            <div class="profile-meta-row">
+              <span class="profile-meta-item" id="user-country-badge" title="País">
+                <span id="user-country-flag"><span class="is-loading is-loading--xs"></span></span>
+                <span id="user-country-name"><span class="is-loading is-loading--sm"></span></span>
+              </span>
+              <span class="profile-meta-sep">•</span>
+              <span class="profile-meta-item" id="user-joined">
+                <span class="is-loading is-loading--md"></span>
+              </span>
 
-            <!-- 5. Barra de EXP Gamer con Brillo Ámbar y Etiquetas Simétricas -->
-            <div class="profile-pro-xp-container">
-              <div class="profile-pro-xp-bar-bg">
-                <div class="profile-pro-xp-bar-fill" id="xp-progress-bar"></div>
-              </div>
-              <div class="profile-pro-xp-labels">
-                <span class="profile-pro-xp-left" id="xp-numbers-label"><span class="is-loading is-loading--sm"></span></span>
-                <span class="profile-pro-xp-right" id="xp-remaining-label"><span class="is-loading is-loading--sm"></span></span>
-              </div>
-            </div>
-
-            <!-- 6. Bandera Nacional Centrada (SVG Vectorial Nativo) -->
-            <div class="profile-pro-flag" id="user-country-flag" title="País">
-              <span class="is-loading"></span>
-            </div>
-
-            <!-- 7. Fecha de Miembro en Mayúsculas -->
-            <div class="profile-pro-member-date">
-              <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true">
-              <span id="user-created-val"><span class="is-loading is-loading--md"></span></span>
-            </div>
-
-            <!-- 8. Biografía Centrada -->
-            <p class="profile-pro-bio" id="user-bio"><span class="is-loading is-loading--lg"></span></p>
-
-            <!-- 9. Tarjeta de Scanlation (si pertenece a un scan) -->
-            <div class="profile-scan-card" id="user-scan-card" hidden>
-              <div class="profile-scan-info">
-                <img id="user-scan-logo" class="profile-scan-logo" src="" alt="Scan Logo" onerror="this.src='/assets/icons/logo.png'"/>
-                <div>
-                  <div class="profile-scan-tag" id="user-scan-role">Grupo Scan</div>
-                  <h4 class="profile-scan-name" id="user-scan-name">GhostScans</h4>
-                </div>
-              </div>
-              <a id="user-scan-link" href="#" class="profile-scan-link">
-                <span>Ver obras del scan</span>
-                <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
+              <!-- Píldora rápida de Scan en cabecera -->
+              <a href="#" id="user-scan-card" class="profile-scan-badge" style="display: none;" title="Grupo Scan Oficial">
+                <img id="user-scan-logo" src="" alt="Scan" class="profile-scan-badge__logo" />
+                <span id="user-scan-name" class="profile-scan-badge__name"></span>
+                <span id="user-scan-role" class="profile-scan-badge__role"></span>
               </a>
             </div>
 
+            <!-- Biografía -->
+            <p id="user-bio" class="profile-bio">
+              <span class="is-loading is-loading--block"></span>
+              <span class="is-loading is-loading--block is-loading--w60"></span>
+            </p>
+          </div>
+
+          <!-- Tarjeta Flotante de Rango & Progreso XP -->
+          <div class="profile-xp-col" id="user-rank-box">
+            <div class="profile-xp-card">
+              <div class="profile-xp-card__top">
+                <div class="profile-xp-card__title-wrap">
+                  <span class="profile-xp-card__label">Rango de Lectura</span>
+                  <strong id="user-rank-name" class="profile-xp-card__rank"><span class="is-loading is-loading--lg"></span></strong>
+                </div>
+                <span id="user-xp-numbers" class="profile-xp-card__nums"><span class="is-loading is-loading--md"></span></span>
+              </div>
+              <div class="profile-xp-bar" title="Progreso hacia el próximo nivel">
+                <div class="profile-xp-bar__fill" id="user-xp-fill" style="width: 0%;"></div>
+              </div>
+              <div class="profile-xp-card__foot">
+                <span id="user-next-rank-hint"><span class="is-loading is-loading--lg"></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container profile-container">
+
+      <!-- =========================================================
+           2. TIRA DE 5 ESTADÍSTICAS CLAVE (SIN RELLENO DE COMENTARIOS)
+           ========================================================= -->
+      <section class="profile-metrics-bar" id="stats-strip-section">
+        <div class="profile-metric">
+          <div class="profile-metric__icon profile-metric__icon--teal">
+            <img src="/assets/icons/svg/content/book.svg" class="icon-svg icon-sm" alt="" />
+          </div>
+          <div class="profile-metric__data">
+            <strong id="stat-chapters" class="profile-metric__value"><span class="is-loading is-loading--sm"></span></strong>
+            <span class="profile-metric__label">Capítulos Leídos</span>
+          </div>
+        </div>
+
+        <div class="profile-metric">
+          <div class="profile-metric__icon profile-metric__icon--pink">
+            <img src="/assets/icons/svg/actions/heart.svg" class="icon-svg icon-sm" alt="" />
+          </div>
+          <div class="profile-metric__data">
+            <strong id="stat-following" class="profile-metric__value"><span class="is-loading is-loading--sm"></span></strong>
+            <span class="profile-metric__label">Leyendo</span>
+          </div>
+        </div>
+
+        <div class="profile-metric">
+          <div class="profile-metric__icon profile-metric__icon--purple">
+            <img src="/assets/icons/svg/actions/check.svg" class="icon-svg icon-sm" alt="" />
+          </div>
+          <div class="profile-metric__data">
+            <strong id="stat-completed" class="profile-metric__value"><span class="is-loading is-loading--sm"></span></strong>
+            <span class="profile-metric__label">Obras Completadas</span>
+          </div>
+        </div>
+
+        <div class="profile-metric">
+          <div class="profile-metric__icon profile-metric__icon--orange">
+            <img src="/assets/icons/svg/gamification/fire.svg" class="icon-svg icon-sm" alt="" />
+          </div>
+          <div class="profile-metric__data">
+            <strong id="stat-streak" class="profile-metric__value"><span class="is-loading is-loading--sm"></span></strong>
+            <span class="profile-metric__label">Días de Racha</span>
+          </div>
+        </div>
+
+        <!-- Monedas (con acciones rápidas para el dueño) -->
+        <div class="profile-metric profile-metric--coins" id="stat-coins-card">
+          <div class="profile-metric__icon profile-metric__icon--gold">
+            <img src="/assets/icons/svg/gamification/coin.svg" class="icon-svg icon-sm" alt="" />
+          </div>
+          <div class="profile-metric__data">
+            <div class="profile-metric__value-row">
+              <strong id="stat-coins" class="profile-metric__value"><span class="is-loading is-loading--sm"></span></strong>
+              <div class="profile-coins-actions" id="owner-coin-actions" style="display: none;">
+                <button id="buy-coins-btn" class="coin-mini-btn coin-mini-btn--add" title="Recargar Yume Coins">+</button>
+                <button id="history-coins-btn" class="coin-mini-btn" title="Historial de transacciones">
+                  <img src="/assets/icons/svg/navigation/history.svg" class="icon-svg icon-xs" alt="" />
+                </button>
+              </div>
+            </div>
+            <span class="profile-metric__label">Yume Coins</span>
           </div>
         </div>
       </section>
 
-      <!-- CONTENEDOR PARA LAS MÉTRICAS Y EL RESTO DE LA PÁGINA -->
-      <div class="profile-container" id="profile-content">
-
-        <!-- TIRA DE 6 MÉTRICAS CLAVE REALES -->
-        <section class="profile-metrics-strip">
-          <div class="profile-stat-box">
-            <div class="profile-stat-head">
-              <span>Caps Leídos</span>
-              <img src="/assets/icons/svg/book.svg" alt="" aria-hidden="true">
-            </div>
-            <div class="profile-stat-value" id="stat-chapters"><span class="is-loading is-loading--sm"></span></div>
-            <div class="profile-stat-sub">Historial activo</div>
-          </div>
-
-          <div class="profile-stat-box">
-            <div class="profile-stat-head">
-              <span>En Biblioteca</span>
-              <img src="/assets/icons/svg/library.svg" alt="" aria-hidden="true">
-            </div>
-            <div class="profile-stat-value" id="stat-following"><span class="is-loading is-loading--sm"></span></div>
-            <div class="profile-stat-sub">Siguiendo</div>
-          </div>
-
-          <div class="profile-stat-box">
-            <div class="profile-stat-head">
-              <span class="profile-stat-head-amber">Racha</span>
-              <img src="/assets/icons/svg/fire.svg" alt="" aria-hidden="true">
-            </div>
-            <div class="profile-stat-value profile-stat-value--accent" id="stat-streak"><span class="is-loading is-loading--sm"></span></div>
-            <div class="profile-stat-sub">Lectura diaria</div>
-          </div>
-
-          <div class="profile-stat-box">
-            <div class="profile-stat-head">
-              <span class="profile-stat-head-amber">Yume Coins</span>
-              <img src="/assets/icons/svg/coin.svg" alt="" aria-hidden="true">
-            </div>
-            <div class="profile-stat-value" id="stat-coins"><span class="is-loading is-loading--sm"></span></div>
-            <div class="profile-stat-sub">Billetera</div>
-          </div>
-
-          <div class="profile-stat-box">
-            <div class="profile-stat-head">
-              <span>Comentarios</span>
-              <img src="/assets/icons/svg/comment.svg" alt="" aria-hidden="true">
-            </div>
-            <div class="profile-stat-value" id="stat-comments"><span class="is-loading is-loading--sm"></span></div>
-            <div class="profile-stat-sub">Comunidad</div>
-          </div>
-
-          <div class="profile-stat-box">
-            <div class="profile-stat-head">
-              <span>Completadas</span>
-              <img src="/assets/icons/svg/check.svg" alt="" aria-hidden="true">
-            </div>
-            <div class="profile-stat-value" id="stat-completed"><span class="is-loading is-loading--sm"></span></div>
-            <div class="profile-stat-sub">Obras al 100%</div>
-          </div>
-        </section>
-
-        <!-- LAYOUT DE 2 COLUMNAS (8 / 4) -->
-        <section class="profile-main-grid">
-          
-          <!-- Columna Izquierda: Obras y Pestañas del Feed (8 cols) -->
-          <div class="profile-col-primary">
-            
-            <!-- Vitrina de Obras Reales -->
-            <div>
-              <div class="profile-section-header">
-                <div class="profile-section-title-wrap">
-                  <img src="/assets/icons/svg/book.svg" alt="" aria-hidden="true">
-                  <h2 class="profile-section-title">Obras en Biblioteca / Favoritas</h2>
-                  <span class="profile-chip profile-chip--verified" id="fav-count-badge"><span class="is-loading is-loading--xs"></span></span>
-                </div>
-                <a href="/pages/catalogo.html" class="profile-section-link">
-                  <span>Explorar Catálogo</span>
-                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
-                </a>
-              </div>
-
-              <!-- Contenedor dinámico de obras -->
-              <div class="profile-works-grid" id="favorite-works-container">
-                <div class="yz-skeleton-profile-work" aria-hidden="true">
-                  <div class="yz-skeleton yz-skeleton-profile-thumb"></div>
-                  <div class="yz-skeleton-profile-work-info">
-                    <div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
-                    </div>
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full yz-skeleton-line--auto"></div>
-                  </div>
-                </div>
-                <div class="yz-skeleton-profile-work" aria-hidden="true">
-                  <div class="yz-skeleton yz-skeleton-profile-thumb"></div>
-                  <div class="yz-skeleton-profile-work-info">
-                    <div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
-                    </div>
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full yz-skeleton-line--auto"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Feed Pestañas (Actividad / Biblioteca / Comentarios) -->
-            <div>
-              <div class="profile-tabs-header" id="profile-tabs">
-                <button class="profile-tab-btn active" data-tab="activity" type="button">
-                  <img src="/assets/icons/svg/history.svg" alt="" aria-hidden="true">
-                  <span>Actividad Reciente</span>
-                </button>
-                <button class="profile-tab-btn" data-tab="library" type="button">
-                  <img src="/assets/icons/svg/library.svg" alt="" aria-hidden="true">
-                  <span>Biblioteca Completa</span>
-                </button>
-                <button class="profile-tab-btn" data-tab="comments" type="button">
-                  <img src="/assets/icons/svg/comment.svg" alt="" aria-hidden="true">
-                  <span>Comentarios</span>
-                </button>
-              </div>
-
-              <div class="feed-panes">
-                <div class="tab-pane" id="pane-activity">
-                  <div id="activity-feed-container">
-                    <div class="yz-skeleton-rows">
-                      <div class="yz-skeleton-row" aria-hidden="true">
-                        <div class="yz-skeleton yz-skeleton-avatar"></div>
-                        <div class="yz-skeleton-row-lines">
-                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
-                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-                        </div>
-                      </div>
-                      <div class="yz-skeleton-row" aria-hidden="true">
-                        <div class="yz-skeleton yz-skeleton-avatar"></div>
-                        <div class="yz-skeleton-row-lines">
-                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
-                          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="tab-pane" id="pane-library" hidden>
-                  <div class="profile-works-grid" id="library-feed-container"></div>
-                </div>
-
-                <div class="tab-pane" id="pane-comments" hidden>
-                  <div id="comments-feed-container"></div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Columna Derecha: Medallas, Géneros & Consolas (4 cols) -->
-          <div class="profile-col-sidebar">
-            
-            <!-- Logros & Medallas -->
-            <div>
-              <div class="profile-section-header">
-                <div class="profile-section-title-wrap">
-                  <img src="/assets/icons/svg/award.svg" alt="" aria-hidden="true">
-                  <h2 class="profile-section-title">Logros & Medallas</h2>
-                </div>
-                <span id="badges-unlocked-ratio"><span class="is-loading is-loading--xs"></span></span>
-              </div>
-
-              <div class="profile-badges-card" id="badges-container">
-                <div class="yz-skeleton-badge" aria-hidden="true">
-                  <div class="yz-skeleton yz-skeleton-badge-icon"></div>
-                  <div class="yz-skeleton-badge-body">
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                  </div>
-                </div>
-                <div class="yz-skeleton-badge" aria-hidden="true">
-                  <div class="yz-skeleton yz-skeleton-badge-icon"></div>
-                  <div class="yz-skeleton-badge-body">
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w60"></div>
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-                    <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Géneros Más Leídos (Donut SVG Propio) -->
-            <div class="profile-sidebar-card">
-              <div class="profile-sidebar-head">
-                <div class="profile-sidebar-title">
-                  <img src="/assets/icons/svg/explore.svg" alt="" aria-hidden="true">
-                  <span>Géneros Más Leídos</span>
-                </div>
-                <span id="sidebar-total-caps"><span class="is-loading is-loading--xs"></span></span>
-              </div>
-              <div id="genres-content-wrap">
-                <div class="yz-skeleton-genres-wrap" aria-hidden="true">
-                  <div class="yz-skeleton-genre-bar">
-                    <div class="yz-skeleton-genre-bar-head">
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                    </div>
-                    <div class="yz-skeleton yz-skeleton-genre-track"></div>
-                  </div>
-                  <div class="yz-skeleton-genre-bar">
-                    <div class="yz-skeleton-genre-bar-head">
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                      <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-                    </div>
-                    <div class="yz-skeleton-genre-track"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Accesos a Consolas & Plataforma -->
-            <div class="profile-sidebar-card">
-              <div class="profile-sidebar-head">
-                <div class="profile-sidebar-title">
-                  <img src="/assets/icons/svg/grid.svg" alt="" aria-hidden="true">
-                  <span>Plataforma & Accesos</span>
-                </div>
-              </div>
-
-              <div class="profile-quick-nav">
-                <!-- Enlaces directos de navegación frontend -->
-                <a href="/pages/catalogo.html" class="profile-quick-nav-link">
-                  <span class="profile-quick-nav-label">
-                    <img src="/assets/icons/svg/grid.svg" alt="" aria-hidden="true">
-                    Catálogo de Obras
-                  </span>
-                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
-                </a>
-
-                <a href="/pages/ranking.html" class="profile-quick-nav-link">
-                  <span class="profile-quick-nav-label">
-                    <img src="/assets/icons/svg/trending.svg" alt="" aria-hidden="true">
-                    Ranking de Lectores
-                  </span>
-                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
-                </a>
-
-                <a href="/pages/comunidad.html" class="profile-quick-nav-link">
-                  <span class="profile-quick-nav-label">
-                    <img src="/assets/icons/svg/community.svg" alt="" aria-hidden="true">
-                    Foros & Comunidad
-                  </span>
-                  <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true">
-                </a>
-              </div>
-            </div>
-
-          </div>
-
-        </section>
-
-        <!-- Mensaje de Perfil Privado -->
-        <section class="profile-empty-card" id="private-profile-view" hidden>
-          <img src="/assets/icons/svg/lock.svg" alt="" aria-hidden="true">
-          <h3 class="profile-title">Este perfil es privado</h3>
-          <p class="profile-bio-text">El lector ha protegido su cuenta y mantiene sus estadísticas e historial en modo privado.</p>
-        </section>
-
+      <!-- =========================================================
+           3. AVISO DE PERFIL PRIVADO (Solo si está oculto para visitantes)
+           ========================================================= -->
+      <div id="private-notice" class="profile-private-card" style="display: none;">
+        <div class="profile-private-card__icon">
+          <img src="/assets/icons/svg/user/lock.svg" class="icon-svg icon-lg" alt="Privado" />
+        </div>
+        <h3 class="profile-private-card__title">Esta cuenta es privada</h3>
+        <p class="profile-private-card__desc">El propietario de este perfil ha restringido la visibilidad pública de su biblioteca, estadísticas y colección.</p>
       </div>
-    </div>
 
-    <!-- Modal de Edición de Perfil para el Propietario -->
-    <div class="profile-modal-overlay" id="edit-profile-modal" aria-hidden="true">
-      <div class="profile-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
-        <div class="profile-modal-header">
-          <h3 class="profile-modal-title" id="modal-edit-title">
-            <img src="/assets/icons/svg/settings.svg" alt="" aria-hidden="true">
-            <span>Editar Mi Perfil</span>
-          </h3>
-          <button type="button" class="profile-modal-close" id="modal-close-btn" aria-label="Cerrar modal">
-            <img src="/assets/icons/svg/x.svg" alt="" aria-hidden="true">
-          </button>
+      <!-- =========================================================
+           4. CONTENIDO EN 2 COLUMNAS (VITRINA DE BIBLIOTECA + WIDGETS ÚTILES)
+           ========================================================= -->
+      <div id="profile-public-content" class="profile-grid">
+
+        <!-- COLUMNA PRINCIPAL: Vitrina por Pestañas de Biblioteca (Me gusta, Completadas, Pendientes) -->
+        <div class="profile-main-col">
+          <section class="profile-panel">
+            <div class="profile-tabs-bar">
+              <div class="profile-tabs" role="tablist">
+                <button class="profile-tab active" data-lib-tab="READING" role="tab" aria-selected="true">
+                  <img src="/assets/icons/svg/content/book.svg" class="icon-svg icon-xs" alt="" />
+                  <span>Leyendo</span>
+                  <span class="profile-tab__count" id="tab-count-reading"><span class="is-loading is-loading--xs"></span></span>
+                </button>
+                <button class="profile-tab" data-lib-tab="COMPLETED" role="tab" aria-selected="false">
+                  <img src="/assets/icons/svg/actions/check.svg" class="icon-svg icon-xs" alt="" />
+                  <span>Completadas</span>
+                  <span class="profile-tab__count" id="tab-count-completed"><span class="is-loading is-loading--xs"></span></span>
+                </button>
+                <button class="profile-tab" data-lib-tab="PLAN_TO_READ" role="tab" aria-selected="false">
+                  <img src="/assets/icons/svg/navigation/library.svg" class="icon-svg icon-xs" alt="" />
+                  <span>Planeadas</span>
+                  <span class="profile-tab__count" id="tab-count-pending"><span class="is-loading is-loading--xs"></span></span>
+                </button>
+              </div>
+
+              <!-- Enlace directo a Biblioteca Completa (visible para el dueño) -->
+              <a href="/pages/biblioteca.html" id="owner-library-link" class="profile-panel__link" style="display: none;">
+                <span>Administrar Biblioteca</span>
+                <img src="/assets/icons/svg/navigation/arrow-right.svg" class="icon-svg icon-xs" alt="" />
+              </a>
+            </div>
+
+            <!-- Grid Único de Vitrina de Biblioteca (Máx 6 obras por pestaña) -->
+            <div id="library-showcase-container" class="profile-works-grid" data-skeleton="profile-works" data-skeleton-count="6"></div>
+          </section>
         </div>
 
-        <form id="edit-profile-form">
-          <div class="profile-modal-body">
-            <div class="profile-form-group">
-              <label for="edit-username" class="profile-form-label">Nombre de Usuario</label>
-              <input type="text" id="edit-username" name="username" class="profile-form-input" minlength="3" maxlength="50" required placeholder="Tu alias en YumeZone" />
-              <span class="profile-form-hint">Visible en tu perfil público y comentarios (3-50 caracteres).</span>
+        <!-- COLUMNA LATERAL: Grupo Scan + Colección Cosmética + Medallas -->
+        <aside class="profile-side-col">
+
+          <!-- WIDGET 1: Tarjeta de Grupo Scan (Solo se muestra si pertenece a un Scan) -->
+          <section class="profile-side-card" id="scan-sidebar-widget" style="display: none;">
+            <header class="profile-side-card__header">
+              <h3 class="profile-side-card__title">
+                <img src="/assets/icons/svg/user/users.svg" class="icon-svg icon-xs" alt="" />
+                <span>Grupo Scan Oficial</span>
+              </h3>
+              <span class="profile-side-card__badge" id="sidebar-scan-role"></span>
+            </header>
+
+            <div class="scan-widget-card">
+              <img id="sidebar-scan-logo" src="" alt="Scan Logo" class="scan-widget-card__logo" />
+              <div class="scan-widget-card__info">
+                <strong id="sidebar-scan-name" class="scan-widget-card__name"></strong>
+                <span id="sidebar-scan-works" class="scan-widget-card__meta"></span>
+              </div>
+              <a href="#" id="sidebar-scan-link" class="btn btn-secondary btn-sm">Ver Scan</a>
+            </div>
+          </section>
+
+          <!-- WIDGET 3: Inventario / Colección Cosmética (Equipar en 1 clic si es el dueño) -->
+          <section class="profile-side-card" id="inventory-showcase-widget">
+            <header class="profile-side-card__header">
+              <h3 class="profile-side-card__title">
+                <img src="/assets/icons/svg/gamification/frame.svg" class="icon-svg icon-xs" alt="" />
+                <span>Colección Cosmética</span>
+              </h3>
+              <a href="/pages/tienda.html" class="profile-panel__link">
+                <span>Tienda</span>
+                <img src="/assets/icons/svg/navigation/arrow-right.svg" class="icon-svg icon-xs" alt="" />
+              </a>
+            </header>
+
+            <div id="inventory-showcase-container" class="inventory-showcase-list" data-skeleton="profile-inventory" data-skeleton-count="3"></div>
+          </section>
+
+          <!-- WIDGET 4: Logros & Medallas Desbloqueables -->
+          <section class="profile-side-card">
+            <header class="profile-side-card__header">
+              <h3 class="profile-side-card__title">
+                <img src="/assets/icons/svg/gamification/award.svg" class="icon-svg icon-xs" alt="" />
+                <span>Logros & Medallas</span>
+              </h3>
+              <span class="profile-side-card__badge" id="badges-unlocked-count"><span class="is-loading is-loading--xs"></span></span>
+            </header>
+
+            <div id="badges-showcase-container" class="profile-badges-grid" data-skeleton="badges" data-skeleton-count="4"></div>
+          </section>
+
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =========================================================
+       MODAL COMPLETO DE PERSONALIZACIÓN PARA EL DUEÑO
+       ========================================================= -->
+  <div id="edit-profile-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content profile-edit-modal">
+      <header class="modal-header">
+        <div class="modal-header__titles">
+          <h3>Personalizar Mi Perfil</h3>
+          <p class="modal-header__subtitle">Ajusta tu identidad pública, portada, marco y privacidad</p>
+        </div>
+        <button id="close-modal-btn" class="btn-close" aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="edit-profile-form" class="profile-edit-form">
+        <!-- Vista Previa en Vivo -->
+        <div class="profile-live-preview">
+          <div class="profile-live-preview__banner" id="preview-banner-box">
+            <span class="profile-live-preview__tag">Vista previa en vivo</span>
+          </div>
+          <div class="profile-live-preview__body">
+            <div class="profile-live-preview__avatar-wrap">
+              <img id="preview-avatar-img" alt="" class="profile-live-preview__avatar yz-skeleton" />
+              <img id="preview-frame-img" src="" alt="" class="profile-live-preview__frame" style="display: none;" />
+            </div>
+            <div class="profile-live-preview__info">
+              <div class="profile-live-preview__name-line">
+                <strong id="preview-username-text"><span class="is-loading is-loading--md"></span></strong>
+                <span id="preview-title-pill" class="profile-title-badge" style="display: none;"></span>
+              </div>
+              <span id="preview-bio-text" class="profile-live-preview__bio">Sin biografía configurada.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pestañas Internas del Modal para no saturar -->
+        <div class="edit-modal-tabs">
+          <button type="button" class="edit-modal-tab active" data-edit-tab="identity">Identidad & Cuenta</button>
+          <button type="button" class="edit-modal-tab" data-edit-tab="appearance">Portada, Avatar & Marco</button>
+        </div>
+
+        <!-- PESTAÑA 1: Identidad & Cuenta -->
+        <div class="edit-modal-pane active" id="edit-pane-identity">
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="edit-username">Nombre de Usuario</label>
+              <input type="text" id="edit-username" class="form-input" required minlength="3" maxlength="30" placeholder="Tu nombre público" />
             </div>
 
-            <div class="profile-form-group">
-              <label for="edit-bio" class="profile-form-label">Biografía</label>
-              <textarea id="edit-bio" name="bio" class="profile-form-textarea" maxlength="500" placeholder="Cuéntale a la comunidad sobre ti, tus géneros favoritos o mangas predilectos..."></textarea>
-              <span class="profile-form-hint">Máximo 500 caracteres.</span>
-            </div>
-
-            <div class="profile-form-group">
-              <label for="edit-avatar-url" class="profile-form-label">URL del Avatar</label>
-              <input type="url" id="edit-avatar-url" name="avatar_url" class="profile-form-input" placeholder="https://ejemplo.com/mi-avatar.webp" />
-              <span class="profile-form-hint">Enlace directo a tu imagen de avatar (.webp recomendado).</span>
-            </div>
-
-            <div class="profile-form-group">
-              <label for="edit-country" class="profile-form-label">País / Bandera</label>
-              <select id="edit-country" name="country" class="profile-form-input">
+            <div class="form-group">
+              <label for="edit-country">País / Bandera</label>
+              <select id="edit-country" class="form-input">
                 <option value="CO">🇨🇴 Colombia</option>
                 <option value="MX">🇲🇽 México</option>
                 <option value="AR">🇦🇷 Argentina</option>
@@ -505,38 +370,203 @@
                 <option value="PE">🇵🇪 Perú</option>
                 <option value="VE">🇻🇪 Venezuela</option>
                 <option value="EC">🇪🇨 Ecuador</option>
-                <option value="BO">🇧🇴 Bolivia</option>
                 <option value="UY">🇺🇾 Uruguay</option>
                 <option value="PY">🇵🇾 Paraguay</option>
+                <option value="BO">🇧🇴 Bolivia</option>
                 <option value="CR">🇨🇷 Costa Rica</option>
                 <option value="PA">🇵🇦 Panamá</option>
-                <option value="GT">🇬🇹 Guatemala</option>
                 <option value="DO">🇩🇴 Rep. Dominicana</option>
+                <option value="GT">🇬🇹 Guatemala</option>
+                <option value="SV">🇸🇻 El Salvador</option>
+                <option value="HN">🇭🇳 Honduras</option>
+                <option value="NI">🇳🇮 Nicaragua</option>
+                <option value="PR">🇵🇷 Puerto Rico</option>
                 <option value="US">🇺🇸 Estados Unidos</option>
+                <option value="BR">🇧🇷 Brasil</option>
                 <option value="JP">🇯🇵 Japón</option>
                 <option value="KR">🇰🇷 Corea del Sur</option>
               </select>
-              <span class="profile-form-hint">Tu bandera nacional mostrada en tu perfil público.</span>
             </div>
+          </div>
 
-            <label class="profile-form-switch-row" for="edit-is-private">
-              <div class="profile-form-switch-label">
-                <span class="profile-form-switch-title">Perfil Privado</span>
-                <span class="profile-form-switch-desc">Si lo activas, otros lectores no podrán ver tu biblioteca, estadísticas ni lecturas.</span>
-              </div>
-              <input type="checkbox" id="edit-is-private" name="is_private" />
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="edit-active-title">Título / Rango Visible junto a tu nombre</label>
+              <a href="/pages/tienda.html" class="text-action-btn">Desbloquear más en Tienda →</a>
+            </div>
+            <select id="edit-active-title" class="form-input">
+              <option value="">Usar título de nivel automático</option>
+            </select>
+            <span class="form-hint">Solo puedes equipar títulos adquiridos en tu inventario o el título automático de tu nivel.</span>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="edit-bio">Biografía</label>
+              <span id="bio-char-counter" class="char-counter">0 / 250</span>
+            </div>
+            <textarea id="edit-bio" class="form-textarea" rows="3" maxlength="250" placeholder="Cuéntale a la comunidad qué géneros o manhwas te apasionan..."></textarea>
+          </div>
+
+          <div class="form-group privacy-toggle-card">
+            <label class="switch-label">
+              <input type="checkbox" id="edit-private" />
+              <span class="switch-custom"></span>
+              <span class="switch-text">
+                <strong>Cuenta Privada</strong>
+                <small>Si activas esta opción, otros usuarios no podrán ver tu biblioteca ni tu actividad reciente.</small>
+              </span>
             </label>
           </div>
+        </div>
 
-          <div class="profile-modal-footer">
-            <button type="button" class="profile-btn profile-btn--secondary" id="modal-cancel-btn">Cancelar</button>
-            <button type="submit" class="profile-btn profile-btn--primary" id="modal-submit-btn">Guardar Cambios</button>
+        <!-- PESTAÑA 2: Portada, Avatar & Marco -->
+        <div class="edit-modal-pane" id="edit-pane-appearance">
+          <!-- Avatar -->
+          <div class="form-group">
+            <label for="edit-avatar">URL de Foto de Perfil (Avatar)</label>
+            <input type="url" id="edit-avatar" class="form-input" placeholder="https://ejemplo.com/mi-avatar.webp" />
+            <span class="form-hint">Pega el enlace de una imagen cuadrada o déjalo vacío para generar tu avatar automático.</span>
           </div>
-        </form>
+
+          <!-- Banner de Portada (Solo Comprados) -->
+          <div class="form-group">
+            <div class="form-label-row">
+              <label>Fondo de Portada (Tus Banners Comprados)</label>
+              <a href="/pages/tienda.html" class="text-action-btn">Comprar Banners en Tienda →</a>
+            </div>
+            <input type="hidden" id="edit-banner" />
+            <div class="cosmetic-picker-grid" id="banner-presets-grid">
+              <!-- Se llena en JS únicamente con el fondo por defecto y los banners comprados por el usuario -->
+            </div>
+          </div>
+
+          <!-- Marco / Anillo de Avatar (Solo Comprados) -->
+          <div class="form-group">
+            <div class="form-label-row">
+              <label>Marco de Avatar (Tus Anillos Comprados)</label>
+              <a href="/pages/tienda.html" class="text-action-btn">Comprar Anillos en Tienda →</a>
+            </div>
+            <input type="hidden" id="edit-anillo" />
+            <div class="cosmetic-picker-grid cosmetic-picker-grid--frames" id="frame-presets-grid">
+              <!-- Se llena en JS únicamente con Sin Marco y los anillos comprados por el usuario -->
+            </div>
+          </div>
+        </div>
+
+        <div id="edit-error" class="form-error"></div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" id="save-profile-btn" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL RECARGA DE MONEDAS -->
+  <div id="buy-coins-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content" style="max-width: 480px;">
+      <header class="modal-header">
+        <h3>Recargar Yume Coins</h3>
+        <button id="close-coins-modal-btn" class="btn-close" aria-label="Cerrar">&times;</button>
+      </header>
+      <div class="coins-modal-body">
+        <p class="coins-modal-desc">Desbloquea capítulos anticipados, marcos de avatar y fondos exclusivos para tu perfil.</p>
+        <div class="coins-packs-grid">
+          <div class="coin-pack-card" data-amount="100" data-price="0.99">
+            <div class="coin-pack-info">
+              <img src="/assets/icons/svg/gamification/coin.svg" class="icon-svg icon-md" alt="" />
+              <div>
+                <h4>Paquete Inicial</h4>
+                <span>100 Yume Coins</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm buy-pack-btn">$0.99 USD</button>
+          </div>
+          <div class="coin-pack-card popular" data-amount="550" data-price="4.99">
+            <div class="popular-tag">Más Popular</div>
+            <div class="coin-pack-info">
+              <img src="/assets/icons/svg/gamification/coin.svg" class="icon-svg icon-md" alt="" />
+              <div>
+                <h4>Bolsa del Lector</h4>
+                <span>500 + 50 Bonus Coins</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm buy-pack-btn">$4.99 USD</button>
+          </div>
+          <div class="coin-pack-card" data-amount="1200" data-price="9.99">
+            <div class="coin-pack-info">
+              <img src="/assets/icons/svg/gamification/coin.svg" class="icon-svg icon-md" alt="" />
+              <div>
+                <h4>Cofre del Monarca</h4>
+                <span>1,000 + 200 Bonus Coins</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm buy-pack-btn">$9.99 USD</button>
+          </div>
+        </div>
       </div>
     </div>
-  </main>
+  </div>
 
-  <script type="module" src="/js/pages/usuario.js"></script>
+  <!-- MODAL HISTORIAL DE MONEDAS -->
+  <div id="coin-history-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content" style="max-width: 560px;">
+      <header class="modal-header">
+        <h3>Historial de Transacciones</h3>
+        <button id="close-coin-history-btn" class="btn-close" aria-label="Cerrar">&times;</button>
+      </header>
+      <div class="coin-history-body">
+        <div class="coin-filter-bar">
+          <input type="text" id="coin-search-input" class="form-input" placeholder="Buscar transacción..." />
+          <select id="coin-type-filter" class="form-input" style="max-width: 170px;">
+            <option value="ALL">Todos</option>
+            <option value="EARN">Ingresos (+)</option>
+            <option value="SPEND">Gastos (-)</option>
+          </select>
+        </div>
+        <div id="coin-transactions-container" class="coin-transactions-list" data-skeleton="coin-tx" data-skeleton-count="5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REPORTAR PERFIL -->
+  <div id="report-profile-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content" style="max-width: 440px;">
+      <header class="modal-header">
+        <h3>Reportar Usuario</h3>
+        <button id="close-report-modal-btn" class="btn-close" aria-label="Cerrar">&times;</button>
+      </header>
+      <form id="report-profile-form">
+        <div class="form-group">
+          <label for="report-reason">Motivo del reporte</label>
+          <select id="report-reason" class="form-input" required>
+            <option value="" disabled selected>Selecciona un motivo...</option>
+            <option value="SPAM">Spam o publicidad engañosa</option>
+            <option value="OFFENSIVE_AVATAR">Avatar, banner o biografía inapropiada</option>
+            <option value="HARASSMENT">Acoso o comportamiento tóxico</option>
+            <option value="IMPERSONATION">Suplantación de identidad</option>
+            <option value="OTHER">Otro motivo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="report-details">Detalles adicionales (opcional)</label>
+          <textarea id="report-details" class="form-textarea" rows="3" maxlength="300" placeholder="Describe brevemente el problema..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancel-report-btn" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" id="submit-report-btn" class="btn btn-danger">Enviar Reporte</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER GLOBAL -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <!-- SCRIPTS -->
+  <script type="module" src="/js/components/components-loader.js"></script>
+  <script type="module" src="/js/pages/usuario.js?v=7.0"></script>
 </body>
 </html>

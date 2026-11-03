@@ -1,9 +1,6 @@
-/* ==========================================================================
-   YumeZone - Lector Inmersivo de Alta Fidelidad
-   Diseño elegante, navegable y sin redundancias visuales
-   ========================================================================== */
+/* lector */
 
-/* En el lector ocultamos la barra global pesada del sitio para una lectura inmersiva pura */
+/* ocultar header global */
 .reader-body #header {
   display: none !important;
 }
@@ -32,7 +29,7 @@
   border: 0;
 }
 
-/* Contenedor principal */
+/* contenedor principal */
 .reader-container {
   display: flex;
   flex-direction: column;
@@ -43,9 +40,7 @@
   padding-top: 3.25rem;
 }
 
-/* ==========================================================================
-   Barra de progreso superior (Ultra-delgada y sutil)
-   ========================================================================== */
+/* progreso lectura */
 .reader-progress-track {
   position: fixed;
   top: 0;
@@ -65,9 +60,7 @@
   transition: width 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ==========================================================================
-   Barra de navegación del Lector (Toolbar flotante / auto-ocultable)
-   ========================================================================== */
+/* barra superior lector */
 .reader-toolbar {
   position: fixed;
   top: 0;
@@ -116,7 +109,7 @@
   padding: 0 0.5rem;
 }
 
-/* Enlace a Inicio, separador y volver a la obra */
+/* navegacion obra */
 .reader-nav-home {
   display: inline-flex;
   align-items: center;
@@ -180,7 +173,7 @@
   }
 }
 
-/* Cápsula de navegación de capítulos central (< [Capítulo X ▾] >) */
+/* selector capitulo */
 .reader-chapter-pill-group {
   display: inline-flex;
   align-items: center;
@@ -228,9 +221,7 @@
   white-space: nowrap;
 }
 
-/* ==========================================================================
-   Botones y controles del lector
-   ========================================================================== */
+/* controles lector */
 .reader-btn {
   display: inline-flex;
   align-items: center;
@@ -325,7 +316,7 @@
   gap: 0.35rem;
 }
 
-/* Select de capítulos */
+/* select de capítulos */
 .reader-chapter-select {
   background: #0f141f;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -347,7 +338,7 @@
   border-color: var(--teal-400);
 }
 
-/* Panel flotante de Ajustes */
+/* panel ajustes */
 .reader-settings-panel {
   position: absolute;
   top: calc(100% + 8px);
@@ -446,9 +437,7 @@
   padding-top: 0.5rem;
 }
 
-/* ==========================================================================
-   Viewport y Páginas del Lector
-   ========================================================================== */
+/* contenedor paginas */
 .reader-viewport {
   display: flex;
   flex-direction: column;
@@ -460,7 +449,7 @@
   transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Variantes de ancho (Compacto estándar por defecto en webtoons) */
+/* variantes de ancho */
 .reader-viewport.reader-width--narrow {
   max-width: 740px;
 }
@@ -475,7 +464,7 @@
   padding-right: 0;
 }
 
-/* Páginas en cascada continua vertical sin espacio entre paneles */
+/* paginas cascada */
 .reader-pages {
   display: flex;
   flex-direction: column;
@@ -504,7 +493,7 @@
   overflow: visible;
 }
 
-/* Skeleton / Loader por página individual */
+/* loader pagina */
 .reader-page-skeleton {
   position: absolute;
   inset: 0;
@@ -545,7 +534,7 @@
   text-transform: uppercase;
 }
 
-/* Badge discreto de página: completamente transparente durante lectura, visible sólo al pasar el cursor */
+/* numero pagina */
 .reader-page-badge {
   position: absolute;
   top: 10px;
@@ -569,7 +558,7 @@
   opacity: 0.9;
 }
 
-/* Imagen de página con carga atómica instantánea (sin escaneo gradual) */
+/* imagen pagina */
 .reader-page-img {
   display: block;
   width: 100%;
@@ -585,7 +574,7 @@
   opacity: 1;
 }
 
-/* Placeholder cuando falta o carga imagen */
+/* error pagina */
 .reader-page-placeholder {
   min-height: min(70vh, 680px);
   background: linear-gradient(180deg, rgba(14, 19, 28, 0.85) 0%, rgba(8, 11, 16, 0.95) 100%);
@@ -672,9 +661,7 @@
   gap: 0.6rem;
 }
 
-/* ==========================================================================
-   Tarjeta de Fin de Capítulo (End Card)
-   ========================================================================== */
+/* fin de capitulo */
 .reader-end-card {
   width: 100%;
   margin-top: 3rem;
@@ -734,9 +721,7 @@
   width: 100%;
 }
 
-/* ==========================================================================
-   Botón flotante "Ir arriba" (Scroll to top)
-   ========================================================================== */
+/* boton subir */
 .reader-scroll-top {
   position: fixed;
   bottom: 1.25rem;
@@ -771,9 +756,7 @@
   display: none !important;
 }
 
-/* ==========================================================================
-   Modal de Atajos de Teclado
-   ========================================================================== */
+/* modal atajos */
 .reader-modal {
   border: none;
   background: transparent;
@@ -852,9 +835,7 @@ kbd {
   color: var(--neutral-400);
 }
 
-/* ==========================================================================
-   Responsive
-   ========================================================================== */
+/* responsive */
 @media (max-width: 768px) {
   .reader-toolbar {
     height: 3.4rem;
@@ -921,9 +902,7 @@ kbd {
   }
 }
 
-/* --------------------------------------------------------------------------
-   Esqueletos de Carga y Dimensiones de Iconos (Sin estilos inline en HTML)
-   -------------------------------------------------------------------------- */
+/* esqueletos e iconos */
 .yz-skeleton-page--lg {
   min-height: 70vh;
 }
@@ -964,4 +943,5 @@ kbd {
 .reader-scroll-top img {
   width: 18px;
   height: 18px;
+  transform: rotate(180deg);
 }

@@ -1,10 +1,7 @@
-import { renderSiteHeader } from '../components/header.js';
 import { apiRequest, getAccessToken } from '../shared/auth.js';
 import { API_BASE_URL } from '../api/api-config.js';
-import { makeWorkUrl, safeUrl, IMG_FALLBACK } from '../shared/ui-utils.js';
-
-const headerEl = document.getElementById('header');
-if (headerEl) renderSiteHeader(headerEl);
+import { makeWorkUrl, safeUrl, IMG_FALLBACK, formatChapterNumber } from '../shared/ui-utils.js';
+import { renderReaderPagesSkeleton } from '../components/skeletons.js';
 
 const cleanSearch = (window.location.search || '').replace(/&amp;/g, '&');
 const params = new URLSearchParams(cleanSearch);
@@ -12,13 +9,13 @@ const params = new URLSearchParams(cleanSearch);
 let rawSlug = params.get('obra') || params.get('slug') || params.get('series') || params.get('manga');
 let slug = rawSlug && rawSlug !== '[object Object]' ? rawSlug.trim() : null;
 
-let chapterParam = params.get('capitulo') || params.get('cap') || params.get('chapter') || params.get('chapter_id');
+let chapterParam = params.get('capitulo') || params.get('cap') || params.get('chapter');
 let chapterId = Number(params.get('chapter_id') || 0);
 let chapterNumberRequested = null;
 
 if (chapterParam) {
   const cleanParam = String(chapterParam).replace(/^cap-?/i, '').trim();
-  const parsedNum = parseFloat(cleanParam);
+  const parsedNum = parseFloat(cleanParam.replace(',', '.'));
   if (!isNaN(parsedNum)) {
     chapterNumberRequested = parsedNum;
   }
@@ -26,7 +23,7 @@ if (chapterParam) {
 
 let targetPage = Number(params.get('page') || params.get('p') || 0);
 
-// Elementos del DOM - Barras de navegación
+// nodos barra
 const toolbarEl = document.getElementById('reader-toolbar');
 const homeBtnEl = document.getElementById('reader-home-btn');
 if (homeBtnEl) {
@@ -40,18 +37,18 @@ const chapterSelectEl = document.getElementById('reader-chapter-select');
 const progressBarEl = document.getElementById('reader-progress-bar');
 const scrollTopBtn = document.getElementById('reader-scroll-top');
 
-// Botones de navegación superior
+// botones navegacion
 const topPrevBtn = document.getElementById('reader-top-prev-btn');
 const topNextBtn = document.getElementById('reader-top-next-btn');
 
-// Elementos de la tarjeta de fin de capítulo
+// nodos fin capitulo
 const endCardEl = document.getElementById('reader-end-card');
 const endTitleEl = document.getElementById('reader-end-title');
 const endPrevBtn = document.getElementById('reader-end-prev-btn');
 const endNextBtn = document.getElementById('reader-end-next-btn');
 const endWorkLinkEl = document.getElementById('reader-end-work-link');
 
-// Elementos del viewport y páginas
+// nodos paginas
 const viewportEl = document.getElementById('reader-viewport');
 const pagesContainerEl = document.getElementById('reader-pages');
 const loadingEl = document.getElementById('reader-loading');
@@ -59,7 +56,7 @@ const errorEl = document.getElementById('reader-error');
 const errorMsgEl = document.getElementById('reader-error-msg');
 const retryBtn = document.getElementById('reader-retry-btn');
 
-// Ajustes del lector y atajos
+// nodos ajustes
 const settingsBtn = document.getElementById('reader-settings-btn');
 const settingsPanel = document.getElementById('reader-settings-panel');
 const settingsCloseBtn = document.getElementById('reader-settings-close');
@@ -68,7 +65,7 @@ const shortcutsBtn = document.getElementById('reader-shortcuts-btn');
 const shortcutsModal = document.getElementById('reader-shortcuts-modal');
 const shortcutsCloseBtn = document.getElementById('reader-shortcuts-close');
 
-// Estado interno
+// estado interno
 let allChapters = [];
 let currentWork = null;
 let currentWorkId = 0;
@@ -80,49 +77,26 @@ let scrollListenerAttached = false;
 let lastScrollY = window.scrollY;
 let isHudHidden = false;
 
-// Control antifraude y deduplicación de lecturas
+// control lecturas
 let readingStartTime = Date.now();
 let viewLoggedForThisChapter = false;
 let isChapterAlreadyRead = false;
 
-// Verificar si el capítulo ya fue leído para no duplicar conteos y colocarlo en página 1
-async function checkChapterReadStatus(workId, chId) {
+// estado lectura
+function applyChapterReadStatus(userState, chId, workId, currentNum) {
   readingStartTime = Date.now();
   viewLoggedForThisChapter = false;
   isChapterAlreadyRead = false;
 
-  const currentCh = Array.isArray(allChapters) ? allChapters.find(c => Number(c.id) === Number(chId)) : null;
-  const currentNum = currentCh?.chapter_number != null ? Number(currentCh.chapter_number) : null;
-
-  // 1. Si el usuario está autenticado, validar contra capítulos leídos en el servidor
-  if (getAccessToken() && workId) {
-    try {
-      const readChapters = await apiRequest(`/library/works/${workId}/read-chapters`).catch(() => []);
-      if (Array.isArray(readChapters)) {
-        if (readChapters.includes(Number(chId))) {
-          isChapterAlreadyRead = true;
-          viewLoggedForThisChapter = true;
-          try { localStorage.removeItem(`yumezone_last_page_${chId}`); } catch (e) { }
-          return;
-        }
-
-        // Si hay algún capítulo ya leído con número mayor, este capítulo ya fue superado
-        if (currentNum != null && Array.isArray(allChapters)) {
-          const hasHigherRead = allChapters.some(c => readChapters.includes(Number(c.id)) && Number(c.chapter_number) > currentNum);
-          if (hasHigherRead) {
-            isChapterAlreadyRead = true;
-            viewLoggedForThisChapter = true;
-            try { localStorage.removeItem(`yumezone_last_page_${chId}`); } catch (e) { }
-            return;
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Error verificando capítulos leídos:', e);
-    }
+  // verificar lectura backend
+  if (userState?.is_read || userState?.has_higher_chapter_read) {
+    isChapterAlreadyRead = true;
+    viewLoggedForThisChapter = true;
+    try { localStorage.removeItem(`yumezone_last_page_${chId}`); } catch (e) { }
+    return;
   }
 
-  // 2. Si no está autenticado, validar en localStorage
+  // verificar lectura local
   try {
     const anonReads = JSON.parse(localStorage.getItem('yumezone_anon_read_chapters') || '{}');
     if (anonReads[chId]) {
@@ -133,7 +107,7 @@ async function checkChapterReadStatus(workId, chId) {
     }
   } catch (e) { }
 
-  // 3. Validar contra el historial local guardado en este dispositivo (yumezone_reading_history)
+  // verificar historial local
   try {
     const historyMap = JSON.parse(localStorage.getItem('yumezone_reading_history') || '{}');
     const hist = historyMap[workId];
@@ -143,262 +117,155 @@ async function checkChapterReadStatus(workId, chId) {
         isChapterAlreadyRead = true;
         viewLoggedForThisChapter = true;
         try { localStorage.removeItem(`yumezone_last_page_${chId}`); } catch (e) { }
-        return;
       }
     }
   } catch (e) { }
 }
 
-// Contabilizar lectura solo si es legítima: progreso real (>=80% o fin) y tiempo activo (>=8s)
+// registrar lectura
 function checkAndRecordLegitimateView(pageNumber, chapterMeta) {
-  // Si ya fue contabilizado en esta sesión o ya estaba leído anteriormente, no hacer nada
+
   if (viewLoggedForThisChapter || isChapterAlreadyRead) return;
   if (!totalPagesCount || totalPagesCount <= 0) return;
 
-  // 1. Progreso real alcanzado: al menos el 80% o la última página
+  // validar progreso
   const progressRatio = pageNumber / totalPagesCount;
   const reachedThreshold = progressRatio >= 0.8 || pageNumber >= totalPagesCount;
   if (!reachedThreshold) return;
 
-  // 2. Tiempo activo de lectura: al menos 8 segundos en la página
-  // Evita que scrolls rápidos accidentales al 100% o bots inflen estadísticas en falso
+  // validar tiempo activo
+
   const secondsReading = (Date.now() - readingStartTime) / 1000;
   if (secondsReading < 8) return;
 
-  // Bloquear inmediatamente para evitar múltiples ejecuciones en la misma sesión
   viewLoggedForThisChapter = true;
 
   const wId = parseInt(chapterMeta?.work_id || currentWork?.id || currentWorkId, 10);
   const cId = parseInt(chapterId, 10);
   if (!wId || !cId) return;
 
-  // Guardar en el dispositivo para usuarios anónimos
+  // guardar lectura local
   try {
     const anonReads = JSON.parse(localStorage.getItem('yumezone_anon_read_chapters') || '{}');
     anonReads[cId] = Date.now();
     localStorage.setItem('yumezone_anon_read_chapters', JSON.stringify(anonReads));
   } catch (e) { }
 
-  // Enviar métrica de vista legítima a la API
+  // enviar vista api
   apiRequest('/metrics/views', {
     method: 'POST',
     body: { work_id: wId, chapter_id: cId }
   }).catch(err => console.warn('Error registrando vista:', err));
 
-  // Si está autenticado, actualizar el progreso final en biblioteca
+  // guardar progreso api
   if (getAccessToken()) {
     apiRequest('/library/history', {
       method: 'POST',
-      body: { work_id: wId, chapter_id: cId, last_page_read: pageNumber }
+      body: { work_id: wId, chapter_id: cId, last_page_read: pageNumber, completed: true }
     }).catch(() => { });
   }
 }
 
-// Guardado inmediato para garantizar persistencia al salir, retroceder o cambiar de capítulo
+// persistir progreso local de pagina
 function flushSaveProgress(immediatePage = null) {
-  // Si el usuario está releyendo un capítulo que ya completó o superó, NO alterar el historial general de la obra
-  if (isChapterAlreadyRead) return;
-
   const pageToSave = Number(immediatePage || currentPageNumber || 1);
-  const wId = parseInt(currentWork?.id || currentWorkId || 0, 10);
   const cId = parseInt(chapterId, 10);
   if (!cId || !pageToSave || pageToSave < 1) return;
-
-  // 1. Guardar localmente de inmediato
   try {
     localStorage.setItem(`yumezone_last_page_${cId}`, String(pageToSave));
-    if (wId) {
-      const historyMap = JSON.parse(localStorage.getItem('yumezone_reading_history') || '{}');
-      const prev = historyMap[wId];
-
-      let shouldUpdateChapter = true;
-      if (prev && prev.chapter_id && Number(prev.chapter_id) !== cId && Array.isArray(allChapters) && allChapters.length) {
-        const prevCh = allChapters.find(c => Number(c.id) === Number(prev.chapter_id));
-        const currCh = allChapters.find(c => Number(c.id) === Number(cId));
-        if (prevCh && currCh && Number(currCh.chapter_number) < Number(prevCh.chapter_number)) {
-          shouldUpdateChapter = false;
-        }
-      }
-
-      if (shouldUpdateChapter) {
-        historyMap[wId] = {
-          work_id: wId,
-          chapter_id: cId,
-          last_page_read: pageToSave,
-          updated_at: Date.now()
-        };
-        localStorage.setItem('yumezone_reading_history', JSON.stringify(historyMap));
-      }
-    }
   } catch (e) { }
-
   lastSavedPage = pageToSave;
-
-  // 2. Si está autenticado y tenemos wId, enviar a la API
-  const token = getAccessToken();
-  if (token && wId) {
-    clearTimeout(saveHistoryTimeout);
-
-    // Envío regular via apiRequest
-    apiRequest('/library/history', {
-      method: 'POST',
-      body: { work_id: wId, chapter_id: cId, last_page_read: pageToSave }
-    }).catch(() => { });
-
-    // Envío con keepalive (garantizado si el navegador está cerrando la pestaña)
-    try {
-      const payload = JSON.stringify({
-        work_id: wId,
-        chapter_id: cId,
-        last_page_read: pageToSave
-      });
-      const apiUrl = `${API_BASE_URL.replace(/\/+$/, '')}/v1/library/history`;
-      fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: payload,
-        credentials: 'include',
-        keepalive: true
-      }).catch(() => { });
-    } catch (e) { }
-  }
 }
 
-// Debounce para guardar la posición mientras se desplaza (hacia adelante o atrás)
+// debounce progreso en localStorage (alivia completamente SQL de escrituras por scroll)
 function debouncedSaveProgress(pageNumber, workId, chId) {
-  if (!workId || !chId || !pageNumber || pageNumber < 1) return;
+  if (!chId || !pageNumber || pageNumber < 1) return;
   if (pageNumber === lastSavedPage) return;
   clearTimeout(saveHistoryTimeout);
   saveHistoryTimeout = setTimeout(() => {
-    flushSaveProgress(pageNumber);
-  }, 350);
+    try {
+      localStorage.setItem(`yumezone_last_page_${chId}`, String(pageNumber));
+    } catch (e) { }
+    lastSavedPage = pageNumber;
+  }, 400);
 }
 
-// Disparadores automáticos al salir del lector o cambiar de pestaña
+// eventos salida
 window.addEventListener('beforeunload', () => flushSaveProgress());
 window.addEventListener('pagehide', () => flushSaveProgress());
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') flushSaveProgress();
 });
 
-// Cargar metadatos y páginas del capítulo
+// cargar capitulo
 async function loadChapter() {
   showLoading(true);
 
   try {
-    // 1. Si tenemos slug u obra, cargar la obra y sus capítulos para resolver
+    const readerParams = new URLSearchParams();
+    if (chapterId) {
+      readerParams.set('chapter_id', String(chapterId));
+    }
     if (slug) {
-      try {
-        currentWork = await apiRequest(`/works/${encodeURIComponent(slug)}`).catch(() => null);
-        if (currentWork?.id) {
-          currentWorkId = currentWork.id;
-          allChapters = await apiRequest(`/chapters/work/${currentWork.id}?published_only=true&order=asc`).catch(() => []);
+      readerParams.set('work_slug', slug);
+    }
+    if (chapterNumberRequested != null) {
+      readerParams.set('chapter_number', String(chapterNumberRequested));
+    }
 
-          // Si el usuario solicitó un número de capítulo (e.g. capitulo=119 o 3)
-          if (chapterNumberRequested != null && allChapters.length) {
-            const foundByNum = allChapters.find(c => Number(c.chapter_number) === Number(chapterNumberRequested));
-            if (foundByNum) {
-              chapterId = foundByNum.id;
-            }
-          }
-
-          // Si aún no hay chapterId y hay capítulos disponibles, tomar el primero
-          if (!chapterId && allChapters.length) {
-            chapterId = allChapters[0].id;
-          }
-        }
-      } catch (e) {
-        console.warn('Error resolviendo obra y capítulos:', e);
+    if (!chapterId && !slug && chapterParam) {
+      const parsed = Number(chapterParam);
+      if (parsed) {
+        readerParams.set('chapter_id', String(parsed));
       }
     }
 
-    if (!chapterId && chapterParam) {
-      chapterId = Number(chapterParam) || 0;
-    }
-
-    if (!chapterId) {
-      showError('No se especificó un capítulo válido para leer.');
+    if (![...readerParams.keys()].length) {
+      showError('No se especificó una obra o capítulo válido para leer.');
       return;
     }
 
-    // 2. Cargar metadatos del capítulo
-    let chapterMeta = allChapters.find(c => c.id === chapterId);
-    if (!chapterMeta) {
-      chapterMeta = await apiRequest(`/chapters/${chapterId}`);
-    }
-
-    if (!chapterMeta) {
+    // obtener datos capitulo
+    const data = await apiRequest(`/chapters/reader?${readerParams.toString()}`);
+    if (!data || !data.chapter || !data.work) {
       showError('El capítulo solicitado no existe o fue despublicado.');
       return;
     }
 
-    // Cargar obra y lista si aún no estaban disponibles
-    const workId = parseInt(chapterMeta.work_id, 10);
-    currentWorkId = workId || currentWorkId;
-    if (workId && (!currentWork || !allChapters.length)) {
-      try {
-        if (!currentWork) {
-          currentWork = await apiRequest(`/works/${workId}`).catch(() => null);
-          if (currentWork?.slug) slug = currentWork.slug;
-        }
-        if (!allChapters.length) {
-          allChapters = await apiRequest(`/chapters/work/${workId}?published_only=true&order=asc`).catch(() => []);
-        }
-      } catch (err) {
-        console.warn('No se pudo precargar la obra o capítulos:', err);
-      }
-    }
+    const chapterMeta = data.chapter;
+    chapterId = chapterMeta.id;
+    currentWork = data.work;
+    currentWorkId = currentWork.id;
+    allChapters = data.navigation?.chapters || [];
+    const pages = data.pages || [];
 
-    // 3. Limpiar y presentar la URL limpia en la barra de direcciones (sin IDs ni query corruptos)
+    // actualizar url
     try {
-      const workSlug = currentWork?.slug || slug || '';
-      const capNum = chapterMeta.chapter_number != null ? chapterMeta.chapter_number : chapterMeta.id;
+      const workSlug = currentWork.slug || slug || '';
+      const capNum = chapterMeta.chapter_number != null ? formatChapterNumber(chapterMeta.chapter_number) : chapterMeta.id;
       if (workSlug) {
         const cleanUrl = `/pages/leer.html?obra=${encodeURIComponent(workSlug)}&capitulo=${encodeURIComponent(capNum)}`;
         window.history.replaceState({}, '', cleanUrl);
       }
     } catch (e) { }
 
-    // 4. Cargar las páginas del capítulo
-    const pages = await apiRequest(`/chapters/${chapterId}/pages`).catch(() => []);
+    // estado inicial lectura
+    const currentNum = chapterMeta.chapter_number != null ? Number(chapterMeta.chapter_number) : null;
+    applyChapterReadStatus(data.user_state, chapterId, currentWorkId, currentNum);
 
-    // 4. Verificar estado de lectura para evitar lecturas en falso y resetear a página 1 si ya está leído
-    const wId = parseInt(chapterMeta?.work_id || currentWork?.id, 10);
-    const cId = parseInt(chapterId, 10);
-    if (wId > 0 && cId > 0) {
-      await checkChapterReadStatus(wId, cId);
-    }
-
-    // Resolver página objetivo más reciente:
+    // resolver pagina inicial
     if (isChapterAlreadyRead) {
-      // Si el capítulo ya fue leído y superado, siempre arrancar en la página 1 limpia
       targetPage = 1;
       try {
         localStorage.removeItem(`yumezone_last_page_${chapterId}`);
       } catch (e) { }
     } else {
-      // 1) Progreso fresco en este dispositivo (localStorage)
       let localPage = 0;
       try {
         localPage = Number(localStorage.getItem(`yumezone_last_page_${chapterId}`) || 0);
       } catch (e) { }
 
-      // 2) Progreso guardado en servidor para usuario autenticado
-      let serverPage = 0;
-      if (getAccessToken() && workId) {
-        try {
-          const libWork = await apiRequest(`/library/${workId}`).catch(() => null);
-          const prog = libWork?.item?.reading_progress;
-          if (prog && Number(prog.chapter_id) === Number(chapterId) && Number(prog.last_page_read) > 0) {
-            serverPage = Number(prog.last_page_read);
-          }
-        } catch (e) { }
-      }
-
-      // El progreso real más reciente prevalece sobre parámetros estáticos de URL viejos
+      const serverPage = Number(data.user_state?.last_page_read || 0);
       const freshestSavedPage = localPage > 0 ? localPage : serverPage;
       if (freshestSavedPage > 1) {
         targetPage = freshestSavedPage;
@@ -407,7 +274,7 @@ async function loadChapter() {
 
     renderHeaderInfo(chapterMeta);
     renderChapterSelect();
-    renderNavigation(chapterMeta);
+    renderNavigation(chapterMeta, data.navigation);
     renderPages(pages, chapterMeta);
 
     if (targetPage > 1) {
@@ -415,6 +282,14 @@ async function loadChapter() {
     }
 
     showLoading(false);
+
+    // registrar capítulo actual en historial de lectura de la cuenta (1 sola vez al abrir el capítulo)
+    if (getAccessToken() && currentWorkId && chapterId) {
+      apiRequest('/library/history', {
+        method: 'POST',
+        body: { work_id: currentWorkId, chapter_id: chapterId }
+      }).catch(() => { });
+    }
   } catch (err) {
     showError(err.message || 'Error al cargar las páginas del capítulo.');
   }
@@ -422,7 +297,8 @@ async function loadChapter() {
 
 function updateReaderSEO(chapter, work) {
   try {
-    const num = chapter?.chapter_number != null ? `Capítulo ${chapter.chapter_number}` : `Capítulo #${chapterId}`;
+    const numStr = chapter?.chapter_number != null ? formatChapterNumber(chapter.chapter_number) : `#${chapterId}`;
+    const num = `Capítulo ${numStr}`;
     const fullChapterTitle = chapter?.title ? `${num}: ${chapter.title}` : num;
     const workTitle = work?.title || 'Manga';
     const pageTitle = `${fullChapterTitle} - ${workTitle} | Leer Online Gratis en YumeZone`;
@@ -502,7 +378,8 @@ function updateReaderSEO(chapter, work) {
 }
 
 function renderHeaderInfo(chapter) {
-  const num = chapter?.chapter_number != null ? `Capítulo ${chapter.chapter_number}` : `Capítulo #${chapterId}`;
+  const numStr = chapter?.chapter_number != null ? formatChapterNumber(chapter.chapter_number) : `#${chapterId}`;
+  const num = `Capítulo ${numStr}`;
   const title = chapter?.title ? `${num}: ${chapter.title}` : num;
   if (chapterTitleEl) chapterTitleEl.textContent = title;
   if (chapterPillLabelEl) chapterPillLabelEl.textContent = num;
@@ -535,16 +412,17 @@ function renderChapterSelect() {
   allChapters.forEach(c => {
     const opt = document.createElement('option');
     opt.value = String(c.id);
-    opt.textContent = `Cap. ${c.chapter_number}${c.title ? ' - ' + c.title : ''}`;
+    const numStr = formatChapterNumber(c.chapter_number);
+    opt.textContent = `Cap. ${numStr}${c.title ? ' - ' + c.title : ''}`;
     opt.selected = c.id === chapterId;
     if (opt.selected && chapterPillLabelEl) {
-      chapterPillLabelEl.textContent = `Capítulo ${c.chapter_number}`;
+      chapterPillLabelEl.textContent = `Capítulo ${numStr}`;
     }
     chapterSelectEl.append(opt);
   });
 }
 
-function renderNavigation(chapter) {
+function renderNavigation(chapter, navInfo = null) {
   if (!allChapters.length) {
     if (topPrevBtn) topPrevBtn.disabled = true;
     if (topNextBtn) topNextBtn.disabled = true;
@@ -552,9 +430,17 @@ function renderNavigation(chapter) {
     return;
   }
 
-  const currentIndex = allChapters.findIndex(c => c.id === chapterId);
-  const prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
-  const nextChapter = currentIndex >= 0 && currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
+  let prevChapter = null;
+  let nextChapter = null;
+
+  if (navInfo && (navInfo.prev_chapter_id !== undefined || navInfo.next_chapter_id !== undefined)) {
+    prevChapter = navInfo.prev_chapter_id != null ? allChapters.find(c => c.id === navInfo.prev_chapter_id) : null;
+    nextChapter = navInfo.next_chapter_id != null ? allChapters.find(c => c.id === navInfo.next_chapter_id) : null;
+  } else {
+    const currentIndex = allChapters.findIndex(c => c.id === chapterId);
+    prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
+    nextChapter = currentIndex >= 0 && currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
+  }
 
   if (topPrevBtn) {
     topPrevBtn.disabled = !prevChapter;
@@ -565,7 +451,7 @@ function renderNavigation(chapter) {
     topNextBtn.onclick = () => { if (nextChapter) navigateToChapter(nextChapter.id); };
   }
 
-  // Tarjeta de fin de capítulo
+  // tarjeta de fin de capítulo
   if (endCardEl) {
     endCardEl.hidden = false;
     if (endTitleEl) {
@@ -577,7 +463,7 @@ function renderNavigation(chapter) {
       if (nextChapter) {
         endNextBtn.hidden = false;
         const nextNum = nextChapter.chapter_number != null ? `Cap. ${nextChapter.chapter_number}` : 'Siguiente';
-        endNextBtn.innerHTML = `<span>Continuar con ${nextNum}</span> <img src="/assets/icons/svg/arrow-right.svg" alt="" aria-hidden="true" width="16" height="16">`;
+        endNextBtn.innerHTML = `<span>Continuar con ${nextNum}</span> <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true" width="16" height="16">`;
         endNextBtn.onclick = () => navigateToChapter(nextChapter.id);
       } else {
         endNextBtn.hidden = true;
@@ -601,16 +487,16 @@ function navigateToChapter(newChapterId) {
   } catch (e) { }
   flushSaveProgress();
   const nextCh = allChapters.find(c => c.id === newChapterId);
-  const capNum = nextCh?.chapter_number != null ? nextCh.chapter_number : newChapterId;
+  const capNum = nextCh?.chapter_number != null ? formatChapterNumber(nextCh.chapter_number) : newChapterId;
   const workSlug = currentWork?.slug || slug || '';
   if (workSlug) {
-    window.location.href = `/pages/leer.html?obra=${encodeURIComponent(workSlug)}&capitulo=${encodeURIComponent(capNum)}`;
+    window.location.href = `/pages/leer.html?obra=${encodeURIComponent(workSlug)}&capitulo=${encodeURIComponent(capNum)}&chapter_id=${newChapterId}`;
   } else {
     window.location.href = `/pages/leer.html?chapter_id=${newChapterId}`;
   }
 }
 
-// Actualiza la barra de progreso delgada superior
+// actualizar barra progreso
 function updateReadingProgress(currentPage = 1) {
   if (!totalPagesCount || totalPagesCount === 0) {
     if (progressBarEl) progressBarEl.style.width = '0%';
@@ -625,7 +511,7 @@ function updateReadingProgress(currentPage = 1) {
 function handleScrollProgress(chapterMeta) {
   const currentY = window.scrollY || window.pageYOffset;
 
-  // Botón flotante para subir arriba
+  // mostrar boton subir
   if (scrollTopBtn) {
     if (currentY > 450) {
       scrollTopBtn.hidden = false;
@@ -634,23 +520,23 @@ function handleScrollProgress(chapterMeta) {
     }
   }
 
-  // Auto-ocultar barras HUD al hacer scroll hacia abajo y mostrar inmediatamente al devolverse hacia arriba
+  // auto-ocultar hud
   if (currentY <= 30) {
-    // Cerca de la parte superior, siempre visible
+
     setHudVisibility(true);
     lastScrollY = currentY;
   } else if (Math.abs(currentY - lastScrollY) > 12) {
     if (currentY > lastScrollY) {
-      // Seguir bajando (leyendo): ocultar barra para inmersión completa
+      // ocultar hud
       setHudVisibility(false);
     } else {
-      // Devolverse (scroll hacia arriba): hacer aparecer la barra de inmediato
+      // mostrar hud
       setHudVisibility(true);
     }
     lastScrollY = currentY;
   }
 
-  // Si IntersectionObserver no está soportado en este navegador, fallback seguro
+  // fallback scroll
   if (!window.IntersectionObserver) {
     const pageItems = pagesContainerEl.querySelectorAll('.reader-page-item');
     if (!pageItems.length) return;
@@ -671,21 +557,20 @@ function onPageChanged(activePageNumber, chapterMeta) {
   currentPageNumber = activePageNumber;
   updateReadingProgress(activePageNumber);
 
-  // Si este capítulo ya está leído y superado, es una relectura: no guardar ni registrar progreso regresivo
   if (isChapterAlreadyRead) return;
 
-  // Guardar en localStorage de inmediato la página actual
+  // guardar pagina actual
   try {
     localStorage.setItem(`yumezone_last_page_${chapterId}`, String(activePageNumber));
   } catch (e) { }
 
-  // Guardar en backend siempre que cambie de página
+  // sincronizar pagina
   if (activePageNumber !== lastSavedPage) {
     const wId = chapterMeta?.work_id || currentWork?.id;
     debouncedSaveProgress(activePageNumber, wId, chapterId);
   }
 
-  // Verificar si se alcanzó una lectura legítima (>=80% o fin, y >=8s en página) sin repetir conteo
+  // verificar si se alcanzó una lectura legítima sin
   checkAndRecordLegitimateView(activePageNumber, chapterMeta);
 }
 
@@ -711,7 +596,7 @@ function scrollToTargetPage(pageNumber) {
     updateReadingProgress(pageNumber);
   };
 
-  // Reintentos escalonados para adaptarse a la resolución y renderizado
+  // reintentos escalonados para adaptarse a la resolución
   performScroll();
   requestAnimationFrame(performScroll);
   setTimeout(performScroll, 50);
@@ -719,7 +604,7 @@ function scrollToTargetPage(pageNumber) {
   setTimeout(performScroll, 380);
   setTimeout(performScroll, 750);
 
-  // Escuchar cuando las imágenes anteriores terminen de cargarse para evitar que el layout shift empuje hacia arriba
+  // ajustar scroll carga
   const allPrevImages = pagesContainerEl?.querySelectorAll('img') || [];
   allPrevImages.forEach((img, idx) => {
     if (idx + 1 <= pageNumber && !img.complete) {
@@ -734,7 +619,7 @@ function scrollToTargetPage(pageNumber) {
   }, 1600);
 }
 
-// Precarga en memoria de páginas adyacentes para que no haya latencia al avanzar
+// precargar paginas
 function preloadAdjacentPages(currentNum, pagesArray) {
   if (!pagesArray || !pagesArray.length) return;
   for (let i = currentNum; i <= Math.min(currentNum + 2, pagesArray.length); i++) {
@@ -757,7 +642,7 @@ function renderPages(pages, chapter) {
     emptyBox.className = 'reader-empty-chapter-box';
     emptyBox.innerHTML = `
       <div class="reader-placeholder-icon">
-        <img src="/assets/icons/svg/book.svg" width="28" height="28" alt="" aria-hidden="true">
+        <img src="/assets/icons/svg/content/book.svg" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <h3>Capítulo en preparación</h3>
       <p>Este capítulo aún no tiene paneles o páginas subidas por el equipo de scanlation. ¡Vuelve pronto!</p>
@@ -778,7 +663,7 @@ function renderPages(pages, chapter) {
     pageItem.id = `reader-page-${pageNum}`;
     pageItem.dataset.pageNumber = String(pageNum);
 
-    // Skeleton de carga dedicado por página (indica carga limpia e instantánea)
+    // loader pagina
     const skeleton = document.createElement('div');
     skeleton.className = 'reader-page-skeleton';
     skeleton.innerHTML = `
@@ -787,7 +672,7 @@ function renderPages(pages, chapter) {
     `;
     pageItem.append(skeleton);
 
-    // Badge discreto en esquina (sutil al hover)
+    // badge discreto en esquina (sutil al hover)
     const badge = document.createElement('span');
     badge.className = 'reader-page-badge';
     badge.textContent = `${pageNum}`;
@@ -808,7 +693,7 @@ function renderPages(pages, chapter) {
         skeleton.classList.add('is-hidden');
         setTimeout(() => skeleton.remove(), 260);
 
-        // Precargar siguientes 2 páginas para lectura ultra fluida
+        // precarga adyacente
         preloadAdjacentPages(pageNum, pagesArray);
       };
 
@@ -843,7 +728,7 @@ function renderPages(pages, chapter) {
     pagesContainerEl.append(pageItem);
   });
 
-  // Seguimiento de página activa sin layout thrashing mediante IntersectionObserver (120 FPS)
+  // observer paginas
   if (window.IntersectionObserver) {
     if (window._readerPageObserver) {
       window._readerPageObserver.disconnect();
@@ -889,7 +774,7 @@ function renderPagePlaceholder(container, pageNum, chapter, isError = false) {
   content.className = 'reader-placeholder-content';
   content.innerHTML = `
     <div class="reader-placeholder-icon">
-      <img src="/assets/icons/svg/frame.svg" width="24" height="24" alt="" aria-hidden="true">
+      <img src="/assets/icons/svg/gamification/frame.svg" width="24" height="24" alt="" aria-hidden="true">
     </div>
     <span class="reader-placeholder-title">Página ${pageNum}</span>
     <span class="reader-placeholder-sub">
@@ -900,7 +785,10 @@ function renderPagePlaceholder(container, pageNum, chapter, isError = false) {
 }
 
 function showLoading(isLoading) {
-  if (loadingEl) loadingEl.hidden = !isLoading;
+  if (loadingEl) {
+    if (isLoading && !loadingEl.children.length) loadingEl.innerHTML = renderReaderPagesSkeleton();
+    loadingEl.hidden = !isLoading;
+  }
   if (errorEl) errorEl.hidden = true;
   if (isLoading && pagesContainerEl) pagesContainerEl.replaceChildren();
 }
@@ -911,12 +799,12 @@ function showError(msg) {
   if (errorMsgEl) errorMsgEl.textContent = msg;
 }
 
-/* Scroll top */
+// scroll top
 scrollTopBtn?.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-/* Chapter select */
+// chapter select
 chapterSelectEl?.addEventListener('change', e => {
   const selectedId = Number(e.target.value);
   if (selectedId && selectedId !== chapterId) {
@@ -926,14 +814,14 @@ chapterSelectEl?.addEventListener('change', e => {
 
 retryBtn?.addEventListener('click', loadChapter);
 
-/* Settings & Storage */
+// settings & storage
 const STORAGE_WIDTH_KEY = 'yumezone_reader_width';
 const STORAGE_BRIGHTNESS_KEY = 'yumezone_reader_brightness';
 const STORAGE_AUTOHIDE_KEY = 'yumezone_reader_autohide';
 
-let readerAutoHideEnabled = localStorage.getItem(STORAGE_AUTOHIDE_KEY) !== 'false';
+let readerAutoHideEnabled = localStorage.getItem(STORAGE_AUTOHIDE_KEY) === 'true';
 
-/* HUD */
+// hud
 function setHudVisibility(visible) {
   if (!readerAutoHideEnabled) visible = true;
   isHudHidden = !visible;
@@ -950,7 +838,7 @@ function applyReaderSettings() {
     btn.classList.toggle('is-active', btn.dataset.width === savedWidth);
   });
 
-  // 2. Brillo / Atenuación visual nocturna
+  // ajuste brillo
   const savedBrightness = localStorage.getItem(STORAGE_BRIGHTNESS_KEY) || '100';
   if (pagesContainerEl) {
     const numBright = Number(savedBrightness);
@@ -960,8 +848,8 @@ function applyReaderSettings() {
     btn.classList.toggle('is-active', btn.dataset.brightness === savedBrightness);
   });
 
-  // 3. Comportamiento de barra superior (Auto-ocultar vs Fija)
-  readerAutoHideEnabled = localStorage.getItem(STORAGE_AUTOHIDE_KEY) !== 'false';
+  // modo barra superior (por defecto Fija)
+  readerAutoHideEnabled = localStorage.getItem(STORAGE_AUTOHIDE_KEY) === 'true';
   document.querySelectorAll('[data-autohide]').forEach(btn => {
     btn.classList.toggle('is-active', btn.dataset.autohide === String(readerAutoHideEnabled));
   });
@@ -972,7 +860,7 @@ function applyReaderSettings() {
   updateReadingProgress(currentPageNumber);
 }
 
-// Eventos de cambios en Ajustes
+// eventos ajustes
 document.querySelectorAll('[data-width]').forEach(btn => {
   btn.addEventListener('click', () => {
     const width = btn.dataset.width;
@@ -998,7 +886,7 @@ document.querySelectorAll('[data-autohide]').forEach(btn => {
   });
 });
 
-// Toque en el lienzo del lector para alternar la barra superior (HUD)
+// toggle hud click
 pagesContainerEl?.addEventListener('click', e => {
   if (e.target.closest('button, a, input, select, dialog')) return;
   setHudVisibility(isHudHidden);
@@ -1021,7 +909,7 @@ function resetSettingsAutoClose(delay = 4000) {
   }, delay);
 }
 
-// Alternar panel de ajustes
+// toggle ajustes
 settingsBtn?.addEventListener('click', e => {
   e.stopPropagation();
   const willOpen = settingsPanel.hidden;
@@ -1038,12 +926,12 @@ settingsCloseBtn?.addEventListener('click', () => {
   closeSettingsPanel();
 });
 
-// Auto-cierre si el cursor sale del panel o si no se interactúa
+// auto-cerrar ajustes
 settingsPanel?.addEventListener('mouseenter', () => clearTimeout(settingsAutoCloseTimer));
 settingsPanel?.addEventListener('mousemove', () => resetSettingsAutoClose(4000));
 settingsPanel?.addEventListener('mouseleave', () => resetSettingsAutoClose(1200));
 
-// Al hacer scroll o hacer clic fuera del panel, cerrarlo inmediatamente para no estorbar
+// cerrar ajustes
 window.addEventListener('scroll', closeSettingsPanel, { passive: true });
 document.addEventListener('click', e => {
   if (settingsPanel && !settingsPanel.hidden && !settingsPanel.contains(e.target) && e.target !== settingsBtn) {
@@ -1051,7 +939,7 @@ document.addEventListener('click', e => {
   }
 });
 
-// Pantalla completa
+// pantalla completa
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(() => { });
@@ -1062,7 +950,7 @@ function toggleFullscreen() {
 
 fullscreenBtn?.addEventListener('click', toggleFullscreen);
 
-// Modal de atajos de teclado
+// modal atajos
 shortcutsBtn?.addEventListener('click', () => {
   if (shortcutsModal) {
     closeSettingsPanel();
@@ -1078,7 +966,7 @@ shortcutsModal?.addEventListener('click', e => {
   if (e.target === shortcutsModal) shortcutsModal.close();
 });
 
-// Atajos de teclado para navegación fluida
+// atajos teclado
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
@@ -1098,6 +986,6 @@ window.addEventListener('keydown', e => {
   }
 });
 
-// Inicializar ajustes y arrancar lector
+// iniciar lector
 applyReaderSettings();
 loadChapter();

@@ -1,4 +1,4 @@
-/** Tarjetas unificadas de obras, lanzamientos y rankings. */
+// renderizado de tarjetas
 import { esc, safeUrl, IMG_FALLBACK, makeWorkUrl, makeReaderUrl, formatViews } from '../shared/ui-utils.js';
 
 export function renderLaunchItem(item, { isCompact = false } = {}) {
@@ -7,10 +7,10 @@ export function renderLaunchItem(item, { isCompact = false } = {}) {
   const tagLabel = esc(item.tag_label ?? item.tagLabel ?? item.format_name ?? tag).toUpperCase();
   const studio = esc(work.author ?? work.studio ?? item.author ?? 'Scan');
   const title = esc(work.title ?? item.title ?? 'Sin título');
-  
+
   let chapter = esc(item.chapter_text ?? item.chapter ?? '');
   if (chapter && !chapter.toLowerCase().startsWith('c')) chapter = 'C. ' + chapter;
-  
+
   const time = esc(item.published_text ?? item.time ?? '');
   const rating = item.rating ?? work.stats?.rating_average ?? item.rating_average ?? '';
   const ratingFmt = rating ? Number(rating).toFixed(1) : '';
@@ -52,7 +52,7 @@ export function renderLaunchItem(item, { isCompact = false } = {}) {
       </div>
     </div>
     <div class="launch-item--action" aria-hidden="true">
-      <img src="/assets/icons/svg/arrow-right.svg" width="16" height="16" alt="" aria-hidden="true">
+      <img src="/assets/icons/svg/navigation/arrow-right.svg" width="16" height="16" alt="" aria-hidden="true">
     </div>
   </a>`;
 }
@@ -152,84 +152,38 @@ export function renderPopularCard(item) {
 export function renderCatalogCard(work) {
   const workSlug = work.slug || work.work_slug;
   const workUrl = makeWorkUrl(workSlug || work);
-  const readerUrl = (work.first_chapter_id && makeReaderUrl(workSlug || work, work.first_chapter_id)) || workUrl;
   const coverUrl = esc(safeUrl(work.cover_url, IMG_FALLBACK));
   const title = esc(work.title || 'Obra sin título');
 
-  // Formato badge en portada
+  // formato badge en portada
   const formatName = esc(work.format_name ?? work.format?.name ?? '');
   const formatBadgeHtml = formatName
     ? `<span class="catalog-card-badge catalog-card-badge--${formatName.toLowerCase()}">${formatName}</span>`
     : '';
 
-  // Estado (En emisión / Finalizado)
-  const statusName = esc(work.status_name ?? work.status?.name ?? '');
-  const isOngoing = statusName.toLowerCase().includes('emisi');
-  const statusHtml = statusName
-    ? `<span class="catalog-card-status ${isOngoing ? 'is-ongoing' : 'is-completed'}">
-        <span class="catalog-card-status-dot"></span>${statusName}
-       </span>`
-    : '';
-
-  // Meta (autor / artista / título alternativo)
-  const metaParts = [work.alternative_title, work.author]
-    .filter((value, index, values) => value && values.indexOf(value) === index)
-    .map(esc);
-  const metaHtml = metaParts.length ? `<p class="catalog-card-meta">${metaParts.join(' · ')}</p>` : '';
-
-  // Indicadores estadísticos: Rating + Vistas + Estado
-  const rating = work.rating_average ? Number(work.rating_average).toFixed(1) : null;
-  const views = formatViews(work.total_views);
-  let statsHtml = '';
-  if (rating || views || statusHtml) {
-    statsHtml = `
-      <div class="catalog-card-stats">
-        ${rating ? `<span class="catalog-card-rating"><img src="/assets/icons/svg/star.svg" alt="" width="11" height="11"> ${rating}</span>` : ''}
-        ${views ? `<span class="catalog-card-views"><img src="/assets/icons/svg/eye.svg" alt="" width="11" height="11"> ${esc(views)}</span>` : ''}
-        ${statusHtml}
-      </div>`;
-  }
-
-  // Tags de géneros (hasta 3)
-  const rawGenres = work.genres ?? work.tags ?? [];
-  const genreTags = Array.isArray(rawGenres) ? rawGenres.slice(0, 3).map((g) => {
-    const gName = esc(g.name ?? g);
-    return `<span class="catalog-card-genre-pill">${gName}</span>`;
-  }).join('') : '';
-  const genresHtml = genreTags ? `<div class="catalog-card-genres">${genreTags}</div>` : '';
-
-  // Sinopsis
-  const synopsisHtml = work.synopsis ? `<p class="catalog-card-synopsis">${esc(work.synopsis)}</p>` : '';
-
-  // Acciones
-  let actionsHtml = '';
-  if (workUrl) {
-    actionsHtml = `
-      <div class="catalog-card-actions">
-        ${work.first_chapter_id ? `
-          <a class="catalog-card-read" href="${esc(readerUrl)}">
-            <img src="/assets/icons/svg/play.svg" alt="" width="11" height="11"> Leer
-          </a>` : ''}
-        <a class="catalog-card-detail-btn" href="${esc(workUrl)}">Detalles</a>
-      </div>`;
-  } else {
-    actionsHtml = `<span class="catalog-card-unavailable">Próximamente</span>`;
-  }
+  // estado y metadatos
+  const statusName = esc(work.status_name ?? work.status?.name ?? 'En emisión');
+  const rating = work.rating_average && Number(work.rating_average) > 0 ? Number(work.rating_average).toFixed(1) : null;
+  const chapters = Number(work.chapters_count || 0);
+  const chaptersLabel = chapters > 0
+    ? `${chapters} ${chapters === 1 ? 'capítulo' : 'capítulos'}`
+    : (work.total_views ? `${formatViews(work.total_views)} lecturas` : 'Capítulos disponibles');
 
   return `
     <article class="catalog-card">
-      <a class="catalog-card-cover-link" href="${esc(workUrl || '#')}">
-        <img src="${coverUrl}" alt="${title}" loading="lazy">
+      <a class="catalog-card-cover-link" href="${esc(workUrl || '#')}" aria-label="Ver ${title}">
+        <img src="${coverUrl}" alt="${title}" loading="lazy" decoding="async">
         ${formatBadgeHtml}
       </a>
-      <div class="catalog-card-copy">
+      <div class="catalog-card-info">
         <a class="catalog-card-title" href="${esc(workUrl || '#')}" title="${title}">${title}</a>
-        ${metaHtml}
-        ${statsHtml}
-        ${genresHtml}
-        ${synopsisHtml}
-        ${actionsHtml}
+        <div class="catalog-card-meta">
+          <span>${statusName}${formatName ? ` • ${formatName}` : ''}</span>
+          ${rating ? `<span class="catalog-card-score">★ ${rating}</span>` : ''}
+        </div>
+        <div class="catalog-card-chapters">
+          ${chaptersLabel}
+        </div>
       </div>
     </article>`;
 }
-

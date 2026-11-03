@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,34 +12,73 @@
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
   <link rel="stylesheet" href="/css/pages/auth.css">
 </head>
+
 <body>
   <header id="header"></header>
+
   <main class="account-page">
+    <div class="account-page--ambient" aria-hidden="true"></div>
+
     <section class="account-card" aria-labelledby="auth-title">
-      <p class="account-eyebrow">Qué bueno verte</p>
-      <h1 id="auth-title">Iniciar sesión</h1>
-      <p class="account-intro">Entra para continuar con tu biblioteca y tus lecturas.</p>
-      <form id="auth-form" data-auth-mode="login" class="account-form">
-        <label for="auth-email">Correo electrónico</label>
-        <input id="auth-email" name="email" type="email" autocomplete="email"
-          maxlength="100" required>
-        <label for="auth-password">Contraseña</label>
-        <div class="account-password-field">
-          <input id="auth-password" name="password" type="password"
-            autocomplete="current-password" required>
-          <button class="account-password-toggle" type="button" data-password-toggle
-            aria-label="Mostrar contraseña" aria-pressed="false">
-            <img src="/assets/icons/svg/eye.svg" alt="" aria-hidden="true">
-          </button>
+      <div class="account-card--top-glow" aria-hidden="true"></div>
+
+      <div class="account-card-header">
+        <a href="/" class="account-brand" aria-label="Ir a Inicio" title="YumeZone">
+          <img src="/assets/icons/logo.png" alt="YumeZone" width="30" height="30">
+        </a>
+        <div class="account-brand-info">
+          <p class="account-eyebrow">Qué bueno verte</p>
         </div>
+      </div>
+
+      <h1 id="auth-title">Iniciar sesión</h1>
+      <p class="account-intro">Entra a tu cuenta para sincronizar tu biblioteca, historial de lecturas y continuar donde lo dejaste.</p>
+
+      <form id="auth-form" data-auth-mode="login" class="account-form">
+        <div class="account-field-group">
+          <label for="auth-email">Correo electrónico</label>
+          <div class="account-input-wrap">
+            <img class="account-input-icon" src="/assets/icons/svg/social/mail.svg" alt="" aria-hidden="true">
+            <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="ejemplo@correo.com" maxlength="100" required>
+          </div>
+        </div>
+
+        <div class="account-field-group">
+          <label for="auth-password">Contraseña</label>
+          <div class="account-input-wrap account-password-field">
+            <img class="account-input-icon" src="/assets/icons/svg/user/lock.svg" alt="" aria-hidden="true">
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required>
+            <button class="account-password-toggle" type="button" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
+              <img src="/assets/icons/svg/actions/eye.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
         <p id="auth-message" class="account-message" role="status" aria-live="polite"></p>
-        <button id="auth-submit" class="account-submit" type="submit">Iniciar sesión</button>
+
+        <button id="auth-submit" class="account-submit" type="submit">
+          <span>Iniciar sesión</span>
+          <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" width="16" height="16" aria-hidden="true">
+        </button>
       </form>
-      <p class="account-switch">¿Aún no tienes cuenta? <a href="/pages/registro.html">Regístrate</a></p>
+
+      <p class="account-switch">
+        ¿Aún no tienes cuenta? <a href="/pages/registro.html">Regístrate gratis</a>
+      </p>
+
+      <p class="account-legal-note">
+        Al continuar, aceptas nuestros <a href="/pages/terminos.html">Términos de Servicio</a> y <a href="/pages/privacidad.html">Política de Privacidad</a>.
+      </p>
     </section>
   </main>
+
+    <footer id="site-footer" class="site-footer"></footer>
+
+  <script type="module" src="/js/components/components-loader.js"></script>
   <script type="module" src="/js/pages/auth.js"></script>
 </body>
+
 </html>

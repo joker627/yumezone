@@ -3,7 +3,8 @@ import aiomysql
 from fastapi import APIRouter, Depends, Query, status
 
 from app.core.database import get_db_connection
-from app.core.dependencies import get_current_active_user
+from app.core.dependencies import get_current_active_user, get_optional_current_user
+from app.core.rate_limit import enforce_rate_limit
 from app.modules.comments.repository import CommentRepository
 from app.modules.comments.schemas import (
     CommentCreate,
@@ -14,7 +15,7 @@ from app.modules.comments.schemas import (
 from app.modules.comments.services import CommentService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter()
+router = APIRouter(prefix="/comments", tags=["Comentarios"])
 
 
 def get_comment_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> CommentService:
@@ -27,9 +28,12 @@ async def list_comments(
     work_id: Annotated[int, Query(gt=0)],
     chapter_id: Annotated[Optional[int], Query(gt=0)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
     service: CommentService = Depends(get_comment_service),
 ):
-    comments = await service.list_comments(work_id, chapter_id, limit)
+    comments = await service.list_comments(
+        work_id, chapter_id, limit, current_user_id=current_user.id if current_user else None
+    )
     return {"data": comments}
 
 
@@ -39,11 +43,13 @@ async def create_comment(
     current_user: CurrentUser = Depends(get_current_active_user),
     service: CommentService = Depends(get_comment_service),
 ):
+    await enforce_rate_limit(f"comment:{current_user.id}", max_requests=5, window_seconds=30)
     comment_id = await service.create_comment(
         work_id=payload.work_id,
         chapter_id=payload.chapter_id,
         current_user=current_user,
         parent_id=payload.parent_id,
+        reply_to_username=payload.reply_to_username,
         content=payload.content,
         contains_spoiler=payload.contains_spoiler,
     )
@@ -83,8 +89,8 @@ async def react_to_comment(
     current_user: CurrentUser = Depends(get_current_active_user),
     service: CommentService = Depends(get_comment_service),
 ):
-    await service.react_to_comment(comment_id, payload.reaction, current_user)
-    return {"comment_id": comment_id, "reaction": payload.reaction}
+    result = await service.react_to_comment(comment_id, payload.reaction, current_user)
+    return result
 
 
 @router.post("/{comment_id}/reports", status_code=status.HTTP_201_CREATED)

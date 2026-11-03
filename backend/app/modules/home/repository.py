@@ -1,12 +1,13 @@
-import json
 from typing import Any, Dict, List, Optional
 import aiomysql
 
-from app.utils.formatters import (
+from app.core.database import resolve_connection
+from app.utils import (
     format_chapter_number,
     format_relative_time,
     format_views,
     parse_json_safe,
+    to_json_safe,
 )
 
 
@@ -21,6 +22,10 @@ WORK_BASE = """
            COALESCE(ws.total_views,    0)     AS total_views,
            COALESCE(ws.trending_score, 0.00)  AS trending_score,
            COALESCE(ws.favorites_count, 0)    AS favorites_count,
+           COALESCE(ws.chapters_count, 0)     AS chapters_count,
+           ws.latest_chapter_id,
+           ws.latest_chapter_number,
+           ws.last_published_at AS latest_published_at,
            f.name  AS format_name,
            st.name AS status_name,
            COALESCE(
@@ -51,20 +56,23 @@ MISSION_DAILY_CHAPTERS = 3
 
 
 class HomeRepository:
-    def __init__(self, conn: aiomysql.Connection):
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
         self.conn = conn
 
     # Helpers internos
     async def _fetch(self, sql: str, values: tuple = ()) -> List[Dict[str, Any]]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(sql, values)
-            return await cur.fetchall() or []
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(sql, values)
+                return await cur.fetchall() or []
 
     async def _execute(self, sql: str, values: tuple = ()) -> int:
-        async with self.conn.cursor() as cur:
-            await cur.execute(sql, values)
-            await self.conn.commit()
-            return cur.rowcount
+        async with resolve_connection(self.conn) as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(sql, values)
+                if self.conn is None:
+                    await conn.commit()
+                return cur.rowcount
 
 
     async def _attach_latest_chapter(self, works: List[Dict]) -> None:
@@ -101,7 +109,8 @@ class HomeRepository:
         w["href"] = f"/pages/obra.html?slug={w['slug']}"
         w["genres"] = parse_json_safe(w.get("genres_json"), [])
         if w.get("latest_chapter_id"):
-            w["chapter_href"] = f"/pages/leer.html?chapter_id={w['latest_chapter_id']}"
+            cap_str = format_chapter_number(w.get("latest_chapter_number"))
+            w["chapter_href"] = f"/pages/leer.html?obra={w['slug']}&capitulo={cap_str}&chapter_id={w['latest_chapter_id']}"
             if w.get("latest_chapter_number") is not None:
                 w["chapter_text"] = f"Cap. {format_chapter_number(w['latest_chapter_number'])}"
         else:
@@ -211,7 +220,7 @@ class HomeRepository:
             type_clause = " AND type = %s"
             params.append(filter_type)
         else:
-            type_clause = " AND type IN ('sistema', 'evento')"
+            type_clause = ""
 
         rows = await self._fetch(
             f"""
@@ -339,68 +348,54 @@ class HomeRepository:
         streak_days = int(row.get("streak_days") or 0)
         level = (xp // 1000) + 1
 
-        claimed_raw = row.get("claimed_json") or []
-        if isinstance(claimed_raw, str):
-            try:
-                claimed_raw = json.loads(claimed_raw)
-            except Exception:
-                claimed_raw = []
+        claimed_raw = parse_json_safe(row.get("claimed_json"), default=[])
         claimed_map = {r["mission_key"]: r for r in claimed_raw if isinstance(r, dict) and "mission_key" in r}
 
-        missions_def = [
-            {
-                "key": "daily_read_1",
-                "title": "Primer Capítulo",
-                "description": "Lee al menos 1 capítulo completo hoy.",
-                "category": "LECTURA",
-                "icon": "book-open",
-                "target": 1,
-                "current": min(1, chapters_read),
-                "reward_xp": 35,
-                "reward_coins": 5,
-                "action_url": "/pages/catalogo.html",
-                "action_text": "Explorar obras",
-            },
-            {
-                "key": "daily_read_3",
-                "title": "Devorador de Capítulos",
-                "description": "Lee 3 capítulos completos en el día.",
-                "category": "LECTURA",
-                "icon": "flame",
-                "target": 3,
-                "current": min(3, chapters_read),
-                "reward_xp": 75,
-                "reward_coins": 15,
-                "action_url": "/pages/catalogo.html",
-                "action_text": "Leer más",
-            },
-            {
-                "key": "daily_comment",
-                "title": "Voz de la Comunidad",
-                "description": "Deja al menos 1 comentario u opinión.",
-                "category": "COMUNIDAD",
-                "icon": "message-circle",
-                "target": 1,
-                "current": min(1, comments_count),
-                "reward_xp": 40,
-                "reward_coins": 10,
-                "action_url": "/pages/catalogo.html",
-                "action_text": "Comentar",
-            },
-            {
-                "key": "daily_library",
-                "title": "Coleccionista",
-                "description": "Ten al menos 1 obra en tu biblioteca.",
-                "category": "BIBLIOTECA",
-                "icon": "bookmark",
-                "target": 1,
-                "current": min(1, library_count),
-                "reward_xp": 30,
-                "reward_coins": 5,
-                "action_url": "/pages/catalogo.html",
-                "action_text": "Guardar obra",
-            },
-        ]
+        # Cargar definición de misiones persistentes desde la base de datos
+        db_missions = await self._fetch(
+            """
+            SELECT mission_key, title, description, category, icon, target_count,
+                   condition_type, reward_xp, reward_coins, action_url, action_text
+            FROM daily_missions
+            WHERE is_active = TRUE
+            ORDER BY sort_order ASC
+            """
+        )
+
+        missions_def = []
+        db_chest_def = None
+        for dm in db_missions:
+            m_key = dm["mission_key"]
+            m_type = dm["condition_type"]
+            target = int(dm["target_count"] or 1)
+
+            if m_type == "CHAPTERS_READ":
+                curr = chapters_read
+            elif m_type == "COMMENTS":
+                curr = comments_count
+            elif m_type == "LIBRARY_COUNT":
+                curr = library_count
+            else:
+                curr = 0
+
+            item = {
+                "key": m_key,
+                "title": dm["title"],
+                "description": dm["description"],
+                "category": dm["category"],
+                "icon": dm["icon"],
+                "target": target,
+                "current": min(target, curr),
+                "reward_xp": int(dm["reward_xp"]),
+                "reward_coins": int(dm["reward_coins"]),
+                "action_url": dm.get("action_url") or "/pages/catalogo.html",
+                "action_text": dm.get("action_text") or "Explorar",
+            }
+
+            if m_type == "DAILY_CHEST" or m_key == "daily_chest":
+                db_chest_def = item
+            else:
+                missions_def.append(item)
 
         total_completed = 0
         total_claimed = 0
@@ -427,14 +422,19 @@ class HomeRepository:
         chest_claimed = "daily_chest" in claimed_map
         chest_completed = total_claimed >= total_missions_count
         chest_can_claim = chest_completed and not chest_claimed
-        chest_pct = min(100, int((total_claimed / total_missions_count) * 100))
+        chest_pct = min(100, int((total_claimed / total_missions_count) * 100)) if total_missions_count > 0 else 100
+
+        chest_reward_xp = db_chest_def["reward_xp"] if db_chest_def else 120
+        chest_reward_coins = db_chest_def["reward_coins"] if db_chest_def else 30
+        chest_title = db_chest_def["title"] if db_chest_def else "Cofre de Maestría Diaria"
+        chest_desc = db_chest_def["description"] if db_chest_def else "Reclama todas tus misiones del día para abrir este cofre."
 
         chest = {
             "key": "daily_chest",
-            "title": "Cofre de Maestría Diaria",
-            "description": "Reclama todas tus misiones del día para abrir este cofre.",
-            "reward_xp": 120,
-            "reward_coins": 30,
+            "title": chest_title,
+            "description": chest_desc,
+            "reward_xp": chest_reward_xp,
+            "reward_coins": chest_reward_coins,
             "is_completed": chest_completed,
             "is_claimed": chest_claimed,
             "can_claim": chest_can_claim,
@@ -528,7 +528,7 @@ class HomeRepository:
         # Notif reward
         try:
             notif_title = "¡Misión Diaria Completada!" if mission_key != "daily_chest" else "¡Cofre de Maestría Abierto!"
-            notif_payload = json.dumps({
+            notif_payload = to_json_safe({
                 "title": notif_title,
                 "message": f"Has recibido +{xp_to_award} XP y +{coins_to_award} Ghost Monedas.",
                 "reward_type": "mission" if mission_key != "daily_chest" else "chest",
@@ -536,7 +536,7 @@ class HomeRepository:
                 "xp": xp_to_award,
                 "coins": coins_to_award,
                 "url": "/#aside-mision-title"
-            }, ensure_ascii=False)
+            })
             await self._execute(
                 """
                 INSERT INTO notifications (user_id, type, payload)
@@ -549,6 +549,17 @@ class HomeRepository:
 
         new_xp = old_xp + xp_to_award
         new_coins = old_coins + coins_to_award
+
+        if coins_to_award > 0:
+            mission_desc = "Recompensa por misión diaria" if mission_key != "daily_chest" else "Cofre de maestría diario"
+            await self._execute(
+                """
+                INSERT INTO user_coin_transactions (user_id, amount, balance_after, type, description)
+                VALUES (%s, %s, %s, 'DAILY_MISSION', %s)
+                """,
+                (user_id, coins_to_award, new_coins, mission_desc),
+            )
+
         old_level = (old_xp // 1000) + 1
         new_level = (new_xp // 1000) + 1
         leveled_up = new_level > old_level
@@ -556,12 +567,12 @@ class HomeRepository:
         # Notif level up
         if leveled_up:
             try:
-                lvl_payload = json.dumps({
+                lvl_payload = to_json_safe({
                     "title": f"¡Subiste a Nivel {new_level}!",
                     "message": f"¡Felicidades! Alcanzaste el Nivel {new_level} con tu actividad en YumeZone.",
                     "level": new_level,
                     "url": "/pages/usuario.html"
-                }, ensure_ascii=False)
+                })
                 await self._execute(
                     """
                     INSERT INTO notifications (user_id, type, payload)

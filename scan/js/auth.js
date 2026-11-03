@@ -1,7 +1,5 @@
-// Cada panel se despliega aparte, asi que las URLs no pueden derivarse del propio hostname.
-// En local (http) se asume el backend en el puerto 8000 y el frontend en el 5500 del mismo host.
 const hostname = (typeof window !== 'undefined' && window.location.hostname) ? window.location.hostname : 'localhost';
-const isLocal = (typeof window !== 'undefined' && window.location.protocol === 'http:');
+const isLocal = (typeof window !== 'undefined' && (window.location.protocol === 'http:' || hostname === 'localhost' || hostname === '127.0.0.1'));
 
 export const API_BASE_URL = isLocal ? `http://${hostname}:8000/api` : 'https://yumezone.vercel.app/api';
 export const FRONTEND_URL = isLocal ? `http://${hostname}:5500` : 'https://yumezone.page';
@@ -29,7 +27,7 @@ export function clearAccessToken() {
 export async function logoutUser() {
     try {
         await apiRequest('/chat/heartbeat', { method: 'DELETE' }).catch(() => {});
-        await apiRequest('/logout', { method: 'POST' });
+        await apiRequest('/auth/logout', { method: 'POST' });
     } catch (e) {
         console.error("Error al cerrar sesión", e);
     } finally {

@@ -1,9 +1,5 @@
 import { authRequest, setAccessToken } from '../shared/auth.js';
-import { renderSiteHeader } from '../components/header.js';
-import { showToast } from '../shared/toast.js';
-
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
+import { showToast, flashToast } from '../shared/toast.js';
 
 const form = document.getElementById('auth-form');
 const message = document.getElementById('auth-message');
@@ -21,8 +17,8 @@ form?.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
         toggle.setAttribute('aria-label', showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
         toggle.setAttribute('aria-pressed', String(showPassword));
         icon.src = showPassword
-            ? '/assets/icons/svg/eye-off.svg'
-            : '/assets/icons/svg/eye.svg';
+            ? '/assets/icons/svg/actions/eye-off.svg'
+            : '/assets/icons/svg/actions/eye.svg';
     });
 });
 
@@ -31,6 +27,16 @@ function setMessage(text, kind = 'error') {
         message.textContent = text;
         message.dataset.kind = kind;
     }
+}
+
+// bloquea el formulario mientras se procesa (atenuado, sin mensajes)
+function setBusy(busy) {
+    form?.classList.toggle('is-busy', busy);
+    form?.setAttribute('aria-busy', String(busy));
+    form?.querySelectorAll('input, button').forEach((el) => { el.disabled = busy; });
+    submit.textContent = busy
+        ? (mode === 'register' ? 'Creando cuenta…' : 'Iniciando sesión…')
+        : (mode === 'register' ? 'Crear cuenta' : 'Iniciar sesión');
 }
 
 function getReturnPath() {
@@ -67,8 +73,7 @@ form?.addEventListener('submit', async (event) => {
         }
     }
 
-    submit.disabled = true;
-    submit.textContent = mode === 'register' ? 'Creando cuenta…' : 'Iniciando sesión…';
+    setBusy(true);
     if (message) {
         message.textContent = '';
         delete message.dataset.kind;
@@ -81,7 +86,6 @@ form?.addEventListener('submit', async (event) => {
                 token: '',
                 body: { username, email, password },
             });
-            showToast('¡Cuenta creada con éxito! Iniciando sesión…', 'success');
         }
 
         const token = await authRequest('/login', {
@@ -90,16 +94,14 @@ form?.addEventListener('submit', async (event) => {
             body: { email, password },
         });
         setAccessToken(token.access_token);
-        setMessage('Sesión iniciada. Redirigiendo…', 'success');
-        showToast('¡Inicio de sesión exitoso!', 'success');
-        setTimeout(() => {
-            window.location.assign(getReturnPath());
-        }, 400);
+        // el aviso se muestra en la pagina de destino
+        flashToast(mode === 'register' ? '¡Cuenta creada! Bienvenido a YumeZone' : 'Sesión iniciada', 'success');
+        // el formulario queda bloqueado hasta que el navegador cambia de página
+        window.location.replace(getReturnPath());
     } catch (error) {
         const errText = error.message || 'Correo o contraseña incorrectos.';
         setMessage(errText, 'error');
         showToast(errText, 'error');
-        submit.disabled = false;
-        submit.textContent = mode === 'register' ? 'Crear cuenta' : 'Iniciar sesión';
+        setBusy(false);
     }
 });

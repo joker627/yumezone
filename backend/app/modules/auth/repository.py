@@ -1,22 +1,23 @@
-import json
 from typing import Any, Dict, Optional
 
 import aiomysql
 
-from app.core.database import get_db_pool
+from app.core.database import resolve_connection
 from app.modules.users.models import CurrentUser, User
+from app.utils import to_json_safe
+
+_LOOKUP_FIELDS = {"username", "email"}
 
 
 class AuthRepository:
-    """Repositorio de usuarios.
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+        self.conn = conn
 
-    Abre su propia conexión porque se usa tanto desde dependencias de FastAPI
-    (donde no hay conexión inyectada) como desde servicios con conexión propia.
-    """
-
+    # buscar usuario por campo permitido
     async def _get_user_by_field(self, field: str, value) -> Optional[User]:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        if field not in _LOOKUP_FIELDS:
+            raise ValueError(f"Campo de búsqueda no permitido: {field}")
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
                 await cur.execute(
                     f"SELECT * FROM users WHERE {field} = %s",
@@ -25,25 +26,27 @@ class AuthRepository:
                 row = await cur.fetchone()
                 return User(**row) if row else None
 
+    # buscar usuario por username
     async def get_user(self, username: str) -> Optional[User]:
         return await self._get_user_by_field("username", username)
 
+    # buscar usuario por email
     async def get_user_by_email(self, email: str) -> Optional[User]:
         return await self._get_user_by_field("email", email)
 
-    async def is_scan_leader(self, user_id: int) -> bool:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+    # verificar si pertenece a un scan
+    async def is_scan_member(self, user_id: int) -> bool:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
-                    "SELECT 1 FROM scan_group_members WHERE user_id = %s AND UPPER(role) IN ('ADMIN', 'MODERATOR', 'LEADER', 'OWNER') LIMIT 1",
-                    (user_id,)
+                    "SELECT 1 FROM scan_group_members WHERE user_id = %s LIMIT 1",
+                    (user_id,),
                 )
                 return bool(await cur.fetchone())
 
+    # registrar nuevo usuario
     async def create_user(self, user: User) -> User:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
                     """
@@ -64,23 +67,25 @@ class AuthRepository:
                         user.status,
                     ),
                 )
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
         return user
 
+    # actualizar contraseña
     async def update_password(self, user: User) -> User:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
                     "UPDATE users SET password = %s WHERE id = %s",
                     (user.password, user.id),
                 )
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
         return user
 
+    # actualizar perfil de usuario
     async def update_user(self, user: CurrentUser) -> CurrentUser:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
                     """
@@ -96,26 +101,23 @@ class AuthRepository:
                         user.id,
                     ),
                 )
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
         return user
 
+    # eliminar usuario
     async def delete_user(self, user_id: int) -> bool:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor() as cur:
                 await cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
         return True
 
+    # validar y actualizar racha diaria
     async def update_streak(self, user_id: int) -> Dict[str, Any]:
-        """Valida y actualiza la racha diaria del usuario al iniciar sesión o consultar perfil.
-        - Mismo día: no altera la racha ni duplica.
-        - Día consecutivo siguiente (diff_days == 1): streak += 1 (racha aumentada).
-        - Más de 1 día (diff_days > 1): streak = 1 (racha perdida si previous_streak > 1).
-        - Primera vez (last_streak_date is None): streak = 1 (racha iniciada).
-        """
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
+
+        async with resolve_connection(self.conn) as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
                 await cur.execute(
                     """
@@ -150,7 +152,7 @@ class AuthRepository:
                     streak = 1
                     event = "started"
                     message = "¡Comenzaste tu racha diaria! Día 1 completado 🔥"
-                    notification_payload = json.dumps({
+                    notification_payload = to_json_safe({
                         "title": "¡Racha iniciada! 🔥",
                         "message": "Has comenzado tu racha de lectura. ¡Inicia sesión cada día para aumentarla!",
                         "url": "/pages/usuario.html"
@@ -169,7 +171,7 @@ class AuthRepository:
                     streak += 1
                     event = "increased"
                     message = f"¡Racha aumentada! Llevas {streak} días consecutivos de lectura 🔥"
-                    notification_payload = json.dumps({
+                    notification_payload = to_json_safe({
                         "title": "¡Racha aumentada! 🔥",
                         "message": f"¡Increíble constancia! Has alcanzado {streak} días consecutivos de lectura.",
                         "url": "/pages/usuario.html"
@@ -179,7 +181,7 @@ class AuthRepository:
                     if previous_streak > 1:
                         event = "lost"
                         message = f"¡Has perdido tu racha de {previous_streak} días! Tu racha se ha reiniciado a 1 día 💔"
-                        notification_payload = json.dumps({
+                        notification_payload = to_json_safe({
                             "title": "¡Racha perdida! 💔",
                             "message": f"No iniciaste sesión ayer y perdiste tu racha de {previous_streak} días. ¡No te rindas y empieza de nuevo hoy!",
                             "url": "/pages/usuario.html"
@@ -187,7 +189,7 @@ class AuthRepository:
                     else:
                         event = "started"
                         message = "¡Racha diaria activada! Día 1 completado 🔥"
-                        notification_payload = json.dumps({
+                        notification_payload = to_json_safe({
                             "title": "¡Racha diaria activada! 🔥",
                             "message": "Has validado tu racha diaria de lectura. ¡Vuelve mañana para continuarla!",
                             "url": "/pages/usuario.html"
@@ -209,7 +211,8 @@ class AuthRepository:
                     except Exception as err:
                         print(f"Error insertando notificación de racha: {err}")
 
-                await conn.commit()
+                if self.conn is None:
+                    await conn.commit()
                 return {
                     "streak_days": streak,
                     "last_streak_date": today,

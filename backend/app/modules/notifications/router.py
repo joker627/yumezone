@@ -8,7 +8,7 @@ from app.modules.notifications.repository import NotificationRepository
 from app.modules.notifications.services import NotificationService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter()
+router = APIRouter(prefix="/notifications", tags=["Notificaciones"])
 
 
 def get_notification_service(

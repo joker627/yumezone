@@ -1,17 +1,34 @@
-from typing import Optional, List
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator, Optional, List, Tuple
 import aiomysql
 
-from app.utils.formatters import format_chapter_number
+from app.core.database import resolve_connection
+from app.utils import format_chapter_number
 
 
 class LibraryRepository:
-    def __init__(self, conn: aiomysql.Connection):
+    def __init__(self, conn: Optional[aiomysql.Connection] = None):
         self.conn = conn
 
+    @asynccontextmanager
+    async def _cursor(self, cursor_cls=None) -> AsyncGenerator[Tuple[aiomysql.Connection, aiomysql.Cursor], None]:
+        async with resolve_connection(self.conn) as conn:
+            if cursor_cls:
+                async with conn.cursor(cursor_cls) as cur:
+                    yield conn, cur
+            else:
+                async with conn.cursor() as cur:
+                    yield conn, cur
+
+    async def _commit_if_needed(self, conn: aiomysql.Connection) -> None:
+        if self.conn is None:
+            await conn.commit()
+
+    # obtener preferencia de notificaciones
     async def get_notification_preference(
         self, user_id: int, work_id: int
     ) -> Optional[bool]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
+        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
             await cur.execute(
                 """
                 SELECT notify_new_chapters
@@ -26,9 +43,10 @@ class LibraryRepository:
     async def list_for_user(
         self, user_id: int, work_id: Optional[int] = None
     ) -> list[dict]:
+        status_filter = " AND ul.status IS NOT NULL" if work_id is None else ""
         work_filter = " AND w.id = %s" if work_id is not None else ""
         values = (user_id, work_id) if work_id is not None else (user_id,)
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
+        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
             await cur.execute(
                 f"""
                 SELECT w.id, w.title, w.slug, w.alternative_title, w.synopsis,
@@ -37,54 +55,72 @@ class LibraryRepository:
                        COALESCE(ws.total_views, 0) AS total_views,
                        COALESCE(ws.rating_average, 0) AS rating_average,
                        COALESCE(ws.rating_count, 0) AS rating_count,
-                       COALESCE(ws.followers_count, 0) AS followers_count,
                        COALESCE(ws.favorites_count, 0) AS favorites_count,
                        COALESCE(ws.trending_score, 0) AS trending_score,
-                       (SELECT c.id FROM chapters AS c
-                        WHERE c.work_id = w.id AND c.status = 'PUBLISHED'
-                        ORDER BY c.chapter_number ASC, c.published_at ASC
-                        LIMIT 1) AS first_chapter_id,
-                       COALESCE(ul.status, 'FOLLOWING') AS library_status,
+                       ws.first_chapter_id,
+                       ul.status AS library_status,
                        ul.rating,
-                       COALESCE(ul.notify_new_chapters, TRUE) AS notify_new_chapters,
-                       ul.added_at,
+                       COALESCE(ul.notify_new_chapters, FALSE) AS notify_new_chapters,
+                       COALESCE(ul.added_at, rh.read_at) AS added_at,
                        rh.chapter_id AS last_chapter_id,
                        rh_c.chapter_number AS last_chapter_number,
                        rh.last_page_read,
                        rh.read_at AS last_read_at,
-                       COALESCE((SELECT COUNT(*) FROM chapter_images WHERE chapter_id = rh.chapter_id), 0) AS last_chapter_total_pages
+                       COALESCE(ws.chapters_count, 0) AS total_published_chapters,
+                       COALESCE((
+                           SELECT COUNT(DISTINCT urc.chapter_id)
+                           FROM user_read_chapters AS urc
+                           WHERE urc.user_id = ul.user_id AND urc.work_id = w.id
+                       ), 0) AS read_chapters_count
                 FROM user_library AS ul
                 JOIN works AS w ON w.id = ul.work_id
-                LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
-                LEFT JOIN reading_history AS rh ON rh.user_id = ul.user_id AND rh.work_id = ul.work_id
+                LEFT JOIN reading_history AS rh ON rh.user_id = ul.user_id AND rh.work_id = w.id
                 LEFT JOIN chapters AS rh_c ON rh_c.id = rh.chapter_id
-                WHERE ul.user_id = %s
-                {work_filter}
-                ORDER BY ul.added_at DESC, w.title ASC
+                LEFT JOIN work_statistics AS ws ON ws.work_id = w.id
+                WHERE ul.user_id = %s{status_filter}{work_filter}
+                ORDER BY COALESCE(rh.read_at, ul.added_at) DESC
                 """,
                 values,
             )
-            rows = await cur.fetchall()
+            rows = await cur.fetchall() or []
             items = []
             for r in rows:
+                total_chaps = int(r.get("total_published_chapters") or 0)
+                read_chaps = int(r.get("read_chapters_count") or 0)
+                remaining = max(0, total_chaps - read_chaps)
+                progress_pct = round((read_chaps / total_chaps) * 100) if total_chaps > 0 else 0
+
                 reading_progress = None
-                if r.get("last_chapter_id") is not None:
-                    chap_num = float(r.get("last_chapter_number") or 1)
+                if r.get("last_chapter_id") or read_chaps > 0:
+                    chap_num = float(r["last_chapter_number"]) if r.get("last_chapter_number") is not None else 1.0
                     chap_str = format_chapter_number(chap_num)
                     last_page = int(r.get("last_page_read") or 1)
-                    tot_pages = int(r.get("last_chapter_total_pages") or 0)
-                    pct = round((last_page / tot_pages) * 100) if tot_pages > 0 else 0
                     reading_progress = {
-                        "chapter_id": r["last_chapter_id"],
+                        "chapter_id": r.get("last_chapter_id") or r.get("first_chapter_id") or 0,
                         "chapter_number": chap_num,
                         "chapter_text": f"Cap. {chap_str}",
                         "last_page_read": last_page,
-                        "total_pages": tot_pages,
-                        "page_text": f"Pág. {last_page}/{tot_pages}" if tot_pages else "",
-                        "progress_pct": pct,
+                        "total_pages": 1,
+                        "read_chapters": read_chaps,
+                        "total_chapters": total_chaps,
+                        "remaining_chapters": remaining,
+                        "page_text": f"{read_chaps}/{total_chaps} leídos" if total_chaps > 0 else "",
+                        "progress_pct": progress_pct,
                         "read_at": r.get("last_read_at"),
-                        "reader_url": f"/pages/leer.html?slug={r['slug']}&chapter_id={r['last_chapter_id']}",
+                        "reader_url": (
+                            f"/pages/leer.html?obra={r['slug']}&capitulo={chap_str}&chapter_id={r['last_chapter_id']}"
+                            if r.get("last_chapter_id")
+                            else f"/pages/leer.html?obra={r['slug']}&chapter_id={r.get('first_chapter_id')}"
+                        ),
                     }
+                raw_status = r.get("library_status")
+                if raw_status in ("FAVORITE", "FOLLOWING", "LIKED"):
+                    raw_status = "READING"
+                elif raw_status == "READ_LATER":
+                    raw_status = "PLAN_TO_READ"
+                elif raw_status == "PAUSED":
+                    raw_status = "ON_HOLD"
+                r["library_status"] = raw_status
                 r["reading_progress"] = reading_progress
                 items.append(r)
             return items
@@ -94,68 +130,94 @@ class LibraryRepository:
         return items[0] if items else None
 
     async def work_exists(self, work_id: int) -> bool:
-        async with self.conn.cursor() as cur:
+        async with self._cursor() as (conn, cur):
             await cur.execute("SELECT 1 FROM works WHERE id = %s", (work_id,))
             return await cur.fetchone() is not None
 
-    async def add_work(self, user_id: int, work_id: int, status: str) -> None:
-        async with self.conn.cursor() as cur:
+    async def add_work(self, user_id: int, work_id: int, status: str = "READING") -> None:
+        notify = status != "DROPPED"
+        async with self._cursor() as (conn, cur):
             await cur.execute(
                 """
                 INSERT INTO user_library (user_id, work_id, status, notify_new_chapters)
-                VALUES (%s, %s, %s, TRUE)
-                ON DUPLICATE KEY UPDATE status = VALUES(status), notify_new_chapters = TRUE
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE status = VALUES(status), notify_new_chapters = VALUES(notify_new_chapters)
                 """,
-                (user_id, work_id, status),
+                (user_id, work_id, status, notify),
             )
             await cur.execute(
                 """
                 UPDATE work_statistics
-                SET favorites_count = (SELECT COUNT(*) FROM user_library WHERE work_id = %s)
+                SET favorites_count = (SELECT COUNT(*) FROM user_library WHERE work_id = %s AND status IS NOT NULL AND status != 'DROPPED')
                 WHERE work_id = %s
                 """,
                 (work_id, work_id),
             )
-            await self.conn.commit()
+            await self._commit_if_needed(conn)
 
     async def update_status(self, user_id: int, work_id: int, status: str) -> bool:
-        async with self.conn.cursor() as cur:
+        notify = status != "DROPPED"
+        async with self._cursor() as (conn, cur):
+            await cur.execute("SELECT 1 FROM works WHERE id = %s", (work_id,))
+            if not await cur.fetchone():
+                return False
+            await cur.execute(
+                """
+                INSERT INTO user_library (user_id, work_id, status, notify_new_chapters)
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE status = VALUES(status), notify_new_chapters = VALUES(notify_new_chapters)
+                """,
+                (user_id, work_id, status, notify),
+            )
+            await cur.execute(
+                """
+                UPDATE work_statistics
+                SET favorites_count = (SELECT COUNT(*) FROM user_library WHERE work_id = %s AND status IS NOT NULL AND status != 'DROPPED')
+                WHERE work_id = %s
+                """,
+                (work_id, work_id),
+            )
+            await self._commit_if_needed(conn)
+            return True
+
+    async def remove_work(self, user_id: int, work_id: int) -> bool:
+        async with self._cursor() as (conn, cur):
+            # Si tiene calificación (rating), conservamos la fila limpiando el estado de biblioteca
             await cur.execute(
                 """
                 UPDATE user_library
-                SET status = %s
-                WHERE user_id = %s AND work_id = %s
+                SET status = NULL, notify_new_chapters = FALSE
+                WHERE user_id = %s AND work_id = %s AND rating IS NOT NULL
                 """,
-                (status, user_id, work_id),
-            )
-            await self.conn.commit()
-            await cur.execute(
-                "SELECT 1 FROM user_library WHERE user_id = %s AND work_id = %s",
                 (user_id, work_id),
             )
-            return await cur.fetchone() is not None
+            updated_rating = cur.rowcount
 
-    async def remove_work(self, user_id: int, work_id: int) -> bool:
-        async with self.conn.cursor() as cur:
+            # Si no tenía calificación, eliminamos la fila por completo
             await cur.execute(
-                "DELETE FROM user_library WHERE user_id = %s AND work_id = %s",
+                """
+                DELETE FROM user_library
+                WHERE user_id = %s AND work_id = %s AND rating IS NULL
+                """,
                 (user_id, work_id),
             )
+            deleted_lib = cur.rowcount + updated_rating
+
             await cur.execute(
                 """
                 UPDATE work_statistics
-                SET favorites_count = (SELECT COUNT(*) FROM user_library WHERE work_id = %s)
+                SET favorites_count = (SELECT COUNT(*) FROM user_library WHERE work_id = %s AND status IS NOT NULL AND status != 'DROPPED')
                 WHERE work_id = %s
                 """,
                 (work_id, work_id),
             )
-            await self.conn.commit()
-            return cur.rowcount > 0
+            await self._commit_if_needed(conn)
+            return deleted_lib > 0
 
     async def update_notification_preference(
         self, user_id: int, work_id: int, notify_new_chapters: bool
     ) -> bool:
-        async with self.conn.cursor() as cur:
+        async with self._cursor() as (conn, cur):
             await cur.execute(
                 """
                 UPDATE user_library
@@ -164,7 +226,9 @@ class LibraryRepository:
                 """,
                 (notify_new_chapters, user_id, work_id),
             )
-            await self.conn.commit()
+            await self._commit_if_needed(conn)
+            if cur.rowcount > 0:
+                return True
             await cur.execute(
                 """
                 SELECT 1
@@ -175,51 +239,29 @@ class LibraryRepository:
             )
             return await cur.fetchone() is not None
 
-    async def save_reading_history(self, user_id: int, work_id: int, chapter_id: int, page: int) -> None:
-        async with self.conn.cursor() as cur:
-            # 1. Obtener número del capítulo entrante
-            await cur.execute("SELECT chapter_number FROM chapters WHERE id = %s", (chapter_id,))
-            ch_row = await cur.fetchone()
-            if not ch_row:
-                return
-            incoming_num = float(ch_row[0])
-
-            # 2. Marcar capítulo como leído si alcanza el 80% o la última página
-            await cur.execute("SELECT COUNT(*) FROM chapter_images WHERE chapter_id = %s", (chapter_id,))
-            row = await cur.fetchone()
-            total_pages = int(row[0]) if row and row[0] else 1
-            if total_pages > 0 and (page >= total_pages or page >= max(1, int(total_pages * 0.8))):
+    async def save_reading_history(
+        self, user_id: int, work_id: int, chapter_id: int, page: int = 1, completed: bool = False
+    ) -> None:
+        async with self._cursor() as (conn, cur):
+            if completed:
                 await cur.execute(
                     """
-                    INSERT IGNORE INTO user_read_chapters (user_id, work_id, chapter_id)
+                    INSERT INTO user_read_chapters (user_id, work_id, chapter_id)
                     VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE read_at = CURRENT_TIMESTAMP
                     """,
                     (user_id, work_id, chapter_id),
                 )
-
-            # 3. Buscar el capítulo leído más avanzado del usuario para esta obra
-            await cur.execute(
-                """
-                SELECT c.id, c.chapter_number
-                FROM user_read_chapters urc
-                JOIN chapters c ON c.id = urc.chapter_id
-                WHERE urc.user_id = %s AND urc.work_id = %s
-                ORDER BY c.chapter_number DESC, c.id DESC
-                LIMIT 1
-                """,
-                (user_id, work_id),
-            )
-            highest_read = await cur.fetchone()
-
-            target_chapter_id = chapter_id
-            target_page = page
-
-            # Si el usuario ya leyó o va en un capítulo más avanzado, NO alterar reading_history con un capítulo viejo
-            if highest_read:
-                highest_num = float(highest_read[1])
-                if highest_num > incoming_num:
-                    await self.conn.commit()
-                    return
+                await cur.execute(
+                    """
+                    INSERT INTO user_library (user_id, work_id, status, notify_new_chapters)
+                    VALUES (%s, %s, 'READING', TRUE)
+                    ON DUPLICATE KEY UPDATE
+                        status = IF(status IS NULL OR status IN ('PLAN_TO_READ', 'ON_HOLD'), 'READING', status),
+                        notify_new_chapters = TRUE
+                    """,
+                    (user_id, work_id),
+                )
 
             await cur.execute(
                 """
@@ -230,13 +272,12 @@ class LibraryRepository:
                     last_page_read = VALUES(last_page_read),
                     read_at = CURRENT_TIMESTAMP
                 """,
-                (user_id, work_id, chapter_id, page),
+                (user_id, work_id, chapter_id, page or 1),
             )
-            await self.conn.commit()
-            await self.conn.commit()
+            await self._commit_if_needed(conn)
 
     async def get_user_read_chapters(self, user_id: int, work_id: int) -> List[int]:
-        async with self.conn.cursor() as cur:
+        async with self._cursor() as (conn, cur):
             await cur.execute(
                 """
                 SELECT chapter_id
@@ -249,7 +290,7 @@ class LibraryRepository:
             return [int(r[0]) for r in rows]
 
     async def toggle_chapter_read(self, user_id: int, chapter_id: int) -> dict:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
+        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
             await cur.execute("SELECT work_id, chapter_number FROM chapters WHERE id = %s", (chapter_id,))
             ch = await cur.fetchone()
             if not ch:
@@ -305,7 +346,7 @@ class LibraryRepository:
                     (user_id, work_id, latest_id, latest_id),
                 )
 
-            await self.conn.commit()
+            await self._commit_if_needed(conn)
 
             await cur.execute(
                 "SELECT COUNT(*) as cnt FROM user_read_chapters WHERE user_id = %s AND work_id = %s",
@@ -322,7 +363,7 @@ class LibraryRepository:
             }
 
     async def get_chapter_page_count(self, work_id: int, chapter_id: int) -> Optional[int]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
+        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
             await cur.execute(
                 """
                 SELECT COUNT(ci.id) AS total_pages
@@ -337,11 +378,11 @@ class LibraryRepository:
             return int(row["total_pages"]) if row is not None else None
 
     async def set_work_rating(self, user_id: int, work_id: int, rating: float) -> dict:
-        async with self.conn.cursor() as cur:
+        async with self._cursor() as (conn, cur):
             await cur.execute(
                 """
                 INSERT INTO user_library (user_id, work_id, status, rating)
-                VALUES (%s, %s, 'FOLLOWING', %s)
+                VALUES (%s, %s, NULL, %s)
                 ON DUPLICATE KEY UPDATE rating = VALUES(rating)
                 """,
                 (user_id, work_id, rating),
@@ -356,9 +397,9 @@ class LibraryRepository:
                 """,
                 (work_id, rating, work_id, work_id),
             )
-            await self.conn.commit()
+            await self._commit_if_needed(conn)
 
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
+        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
             await cur.execute(
                 """
                 SELECT COALESCE(rating_average, 0.0) AS rating_average,
@@ -377,7 +418,7 @@ class LibraryRepository:
             }
 
     async def get_user_work_rating(self, user_id: int, work_id: int) -> Optional[float]:
-        async with self.conn.cursor(aiomysql.DictCursor) as cur:
+        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
             await cur.execute(
                 "SELECT rating FROM user_library WHERE user_id = %s AND work_id = %s",
                 (user_id, work_id),
@@ -388,7 +429,7 @@ class LibraryRepository:
             return float(row["rating"])
 
     async def mark_all_chapters_read(self, user_id: int, work_id: int, read: bool = True) -> int:
-        async with self.conn.cursor() as cur:
+        async with self._cursor() as (conn, cur):
             if not read:
                 await cur.execute(
                     "DELETE FROM user_read_chapters WHERE user_id = %s AND work_id = %s",
@@ -407,5 +448,5 @@ class LibraryRepository:
                     (user_id, work_id),
                 )
                 affected = cur.rowcount
-            await self.conn.commit()
+            await self._commit_if_needed(conn)
             return affected

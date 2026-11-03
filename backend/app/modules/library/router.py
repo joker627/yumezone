@@ -21,7 +21,7 @@ from app.modules.library.schemas import (
 from app.modules.library.services import LibraryService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter()
+router = APIRouter(prefix="/library", tags=["Biblioteca"])
 
 def get_library_service(
     conn: aiomysql.Connection = Depends(get_db_connection),
@@ -44,11 +44,11 @@ async def get_library_work_status(
     library_service: LibraryService = Depends(get_library_service),
 ):
     item = await library_service.get_for_user(current_user.id, work_id)
-    if not item:
+    if not item or not item.get("library_status"):
         return {"in_library": False, "status": None, "item": None}
     return {
         "in_library": True,
-        "status": item.get("library_status", "FOLLOWING"),
+        "status": item.get("library_status", "READING"),
         "item": item,
     }
 
@@ -63,7 +63,8 @@ async def save_reading_history(
         current_user.id,
         history.work_id,
         history.chapter_id,
-        history.last_page_read
+        history.last_page_read or 1,
+        completed=bool(history.completed),
     )
     return None
 

@@ -1,6 +1,7 @@
 # imports internal
-from pydantic import BaseModel, Field
+from decimal import Decimal
 from typing import Optional
+from pydantic import BaseModel, Field, field_serializer
 
 # imports external
 from datetime import datetime
@@ -31,10 +32,10 @@ class WorkResponse(BaseModel):
     total_views: int = 0
     rating_average: float = 0.0
     rating_count: int = 0
-    followers_count: int = 0
     favorites_count: int = 0
     trending_score: float = 0.0
     views_last_24h: int = 0
+    chapters_count: int = 0
     first_chapter_id: Optional[int] = None
     genres: list[WorkFilterOption] = Field(default_factory=list)
     created_at: Optional[datetime] = None
@@ -96,3 +97,52 @@ class WorkFiltersResponse(BaseModel):
     statuses: list[WorkFilterOption]
     demographics: list[WorkFilterOption]
     genres: list[WorkFilterOption]
+
+
+class WorkDetailChapterItem(BaseModel):
+    id: int
+    chapter_number: Decimal
+    title: Optional[str] = None
+    slug: str
+    published_at: Optional[datetime] = None
+
+    @field_serializer("chapter_number")
+    def serialize_chapter_number(self, val: Decimal) -> str:
+        return f"{float(val):.1f}"
+
+
+class WorkDetailReadingProgress(BaseModel):
+    chapter_id: int
+    chapter_number: Optional[Decimal] = None
+    last_page_read: int = 1
+    read_at: Optional[datetime] = None
+
+    @field_serializer("chapter_number")
+    def serialize_chapter_number(self, val: Optional[Decimal]) -> Optional[str]:
+        if val is None:
+            return None
+        return f"{float(val):.1f}"
+
+
+class WorkDetailUserState(BaseModel):
+    in_library: bool = False
+    library_status: Optional[str] = None
+    read_chapter_ids: list[int] = []
+    reading_progress: Optional[WorkDetailReadingProgress] = None
+
+
+class WorkLibraryStats(BaseModel):
+    reading: int = 0
+    plan_to_read: int = 0
+    completed: int = 0
+    on_hold: int = 0
+    dropped: int = 0
+    total: int = 0
+
+
+class WorkDetailResponse(BaseModel):
+    work: WorkResponse
+    chapters: list[WorkDetailChapterItem] = []
+    user_state: WorkDetailUserState
+    library_stats: Optional[WorkLibraryStats] = None
+

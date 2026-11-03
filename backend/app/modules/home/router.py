@@ -1,20 +1,28 @@
 from typing import Annotated, Optional
-import aiomysql
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.core.database import get_db_connection
 from app.core.dependencies import get_current_user, get_optional_current_user
 from app.modules.home.repository import HomeRepository
 from app.modules.home.schemas import ClaimMissionPayload
 from app.modules.home.services import HomeService
 from app.modules.users.models import CurrentUser
 
-router = APIRouter()
+router = APIRouter(prefix="/home", tags=["Inicio"])
 
 
-def get_home_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> HomeService:
-    repo = HomeRepository(conn)
+def get_home_service() -> HomeService:
+    repo = HomeRepository()
     return HomeService(repo)
+
+
+# feed consolidado del home
+@router.get("/feed/")
+async def get_home_feed(
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
+    service: HomeService = Depends(get_home_service),
+):
+    user_id = current_user.id if current_user else None
+    return await service.get_home_feed(user_id=user_id)
 
 
 @router.get("/launches/")
@@ -45,8 +53,6 @@ async def get_popular(
 ):
     items = await service.get_popular(format=format, limit=limit)
     return {"results": items, "count": len(items)}
-
-
 
 
 @router.get("/continue/")

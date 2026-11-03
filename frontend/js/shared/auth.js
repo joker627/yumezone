@@ -46,7 +46,7 @@ export async function apiRequest(path, options = {}) {
         ...requestOptions,
         headers,
         body,
-        credentials: 'include' // Obligatorio para cookies HttpOnly
+        credentials: 'include' // obligatorio para cookies httponly
     });
     const payload = await response.json().catch(() => null);
 
@@ -60,7 +60,7 @@ export async function apiRequest(path, options = {}) {
         throw error;
     }
 
-    // Disparador reactivo global: si se realiza una acción mutante (POST, PUT, PATCH, DELETE) que altera datos
+    // evento mutacion api
     const method = (requestOptions.method || 'GET').toUpperCase();
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !path.includes('/notifications') && !path.includes('/chat/heartbeat')) {
         try {

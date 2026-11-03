@@ -6,8 +6,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 TRUNCATE TABLE view_logs;
 TRUNCATE TABLE reading_history;
+TRUNCATE TABLE user_read_chapters;
 TRUNCATE TABLE user_library;
 TRUNCATE TABLE work_statistics;
+TRUNCATE TABLE chapter_submissions;
 TRUNCATE TABLE chapter_images;
 TRUNCATE TABLE chapters;
 TRUNCATE TABLE work_tags;
@@ -21,9 +23,11 @@ TRUNCATE TABLE genres;
 TRUNCATE TABLE announcements;
 TRUNCATE TABLE hero_queue;
 TRUNCATE TABLE scan_group_members;
+TRUNCATE TABLE scan_roles;
 TRUNCATE TABLE scan_groups;
 TRUNCATE TABLE platform_settings;
 TRUNCATE TABLE notifications;
+TRUNCATE TABLE user_coin_transactions;
 TRUNCATE TABLE user_daily_missions;
 TRUNCATE TABLE user_inventory;
 TRUNCATE TABLE shop_items;
@@ -93,8 +97,15 @@ INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by) VALUES
 (5, 1, 1);
 
 -- ==========================================
--- 2. GRUPOS SCAN
+-- 2. GRUPOS SCAN Y ROLES DE SCAN
 -- ==========================================
+INSERT IGNORE INTO scan_roles (id, code, name) VALUES
+(1, 'LEADER', 'Líder de Scan'),
+(2, 'CO_LEADER', 'Colíder'),
+(3, 'UPLOADER', 'Subidor de Capítulos'),
+(4, 'EDITOR', 'Editor / Typesetter'),
+(5, 'TRANSLATOR', 'Traductor');
+
 INSERT IGNORE INTO scan_groups (id, owner_user_id, name, slug, logo_url, banner_url, description, social_links, status) VALUES
 (1, 2, 'GhostScans', 'ghostscans', 'https://s1.cdnlxd.xyz/avatars/gqjoqnqwzqr3z42t_1787169934547.webp?v=1787169934793', 'https://placehold.co/1200x400/10b981/ffffff?text=GhostScans', 'Grupo líder en manhuas de cultivo espectral.', '{"discord":"https://discord.gg/ghostscans","web":"https://ghostscans.com"}', 'ACTIVE'),
 (2, 1, 'YumeScans', 'yumescans', 'https://placehold.co/200x200/8b5cf6/ffffff?text=YS', 'https://placehold.co/1200x400/8b5cf6/ffffff?text=YumeScans', 'Especialistas en manhwas de acción y romance.', '{"discord":"https://discord.gg/yumescans"}', 'ACTIVE'),
@@ -104,9 +115,10 @@ INSERT IGNORE INTO scan_groups (id, owner_user_id, name, slug, logo_url, banner_
 
 INSERT IGNORE INTO scan_group_members (group_id, user_id, role, permissions) VALUES
 (1, 2, 'LEADER', '{"can_upload":true,"can_edit":true}'),
-(1, 3, 'UPLOADER', '{"can_upload":false,"can_comment":true}'),
+(1, 3, 'TRANSLATOR', '{"can_upload":false,"can_comment":true}'),
 (2, 4, 'LEADER', '{"can_upload":true,"can_edit":true}'),
-(3, 5, 'UPLOADER', '{"can_upload":false}');
+(3, 5, 'TRANSLATOR', '{"can_upload":false}'),
+(1, 5, 'EDITOR', '{"can_upload":false,"can_edit":true}');
 
 -- ==========================================
 -- 3. CLASIFICACIÓN
@@ -141,7 +153,7 @@ INSERT IGNORE INTO works (id, title, slug, alternative_title, synopsis, author, 
  'En un mundo donde los cazadores luchan contra monstruos que salen de portales, Sung Jin-Woo es conocido como el cazador más débil de rango E. Tras sobrevivir a una mazmorra doble que acaba con casi todo su equipo, despierta con un sistema misterioso que le permite subir de nivel infinitamente como en un videojuego. Ahora tiene la oportunidad de convertirse en el cazador más fuerte de la historia.',
  'Chugong',
  '/assets/comic/manhua/solo-leveling/portada/portada.webp',
- 'https://i.pinimg.com/originals/a7/2f/0a/a72f0adb6991d05d8b4d64cdd73727c2.webp',
+ '/assets/comic/manhua/solo-leveling/portada/portada.webp',
  2,3,1,1),
 
 (2,'Martial Peak','martial-peak','Wu Lian Feng Dian',
@@ -255,53 +267,53 @@ INSERT IGNORE INTO work_tags (work_id, tag_id) VALUES
 -- ==========================================
 -- 6. CAPÍTULOS
 -- ==========================================
-INSERT IGNORE INTO chapters (id, work_id, scan_group_id, chapter_number, title, slug, status, published_at) VALUES
+INSERT IGNORE INTO chapters (id, work_id, scan_group_id, chapter_number, title, slug, status, translator_user_id, reward_coins, published_at) VALUES
 -- Solo Leveling (Capítulos reales organizados)
-(28, 1,1,  0.00,'Prólogo','sl-cap-0','PUBLISHED','2023-01-01 09:00:00'),
-(1,  1,1,  1.00,'El Cazador Más Débil','sl-cap-1','PUBLISHED','2023-01-01 10:00:00'),
-(2,  1,1,  2.00,'La Doble Mazmorra','sl-cap-2','PUBLISHED','2023-01-08 10:00:00'),
-(3,  1,1,  3.00,'La Estatua de Dios','sl-cap-3','PUBLISHED','2023-01-15 10:00:00'),
-(4,  1,1,  4.00,'Prueba de Valor','sl-cap-4','PUBLISHED','2023-01-22 10:00:00'),
-(29, 1,1,  5.00,'Misiones Diarias','sl-cap-5','PUBLISHED','2023-01-29 10:00:00'),
-(30, 1,1,  6.00,'Mazmorra Instantánea','sl-cap-6','PUBLISHED','2023-02-05 10:00:00'),
-(31, 1,1,  7.00,'El Asesino del Pantano','sl-cap-7','PUBLISHED','2023-02-12 10:00:00'),
-(32, 1,1,  8.00,'El Escuadrón C','sl-cap-8','PUBLISHED','2023-02-19 10:00:00'),
-(33, 1,1,  9.00,'El Ejército de las Sombras','sl-cap-9','PUBLISHED',NOW() - INTERVAL 2 HOUR),
-(34, 1,1, 10.00,'La Puerta Roja','sl-cap-10','SCHEDULED',NOW() + INTERVAL 2 DAY),
+(28, 1,1,  0.00,'Prólogo','sl-cap-0','PUBLISHED', 2, 50, '2023-01-01 09:00:00'),
+(1,  1,1,  1.00,'El Cazador Más Débil','sl-cap-1','PUBLISHED', 3, 50, '2023-01-01 10:00:00'),
+(2,  1,1,  2.00,'La Doble Mazmorra','sl-cap-2','PUBLISHED', 3, 50, '2023-01-08 10:00:00'),
+(3,  1,1,  3.00,'La Estatua de Dios','sl-cap-3','PUBLISHED', 3, 50, '2023-01-15 10:00:00'),
+(4,  1,1,  4.00,'Prueba de Valor','sl-cap-4','PUBLISHED', 3, 50, '2023-01-22 10:00:00'),
+(29, 1,1,  5.00,'Misiones Diarias','sl-cap-5','PUBLISHED', 2, 50, '2023-01-29 10:00:00'),
+(30, 1,1,  6.00,'Mazmorra Instantánea','sl-cap-6','PUBLISHED', 2, 50, '2023-02-05 10:00:00'),
+(31, 1,1,  7.00,'El Asesino del Pantano','sl-cap-7','PUBLISHED', 2, 50, '2023-02-12 10:00:00'),
+(32, 1,1,  8.00,'El Escuadrón C','sl-cap-8','PUBLISHED', 2, 50, '2023-02-19 10:00:00'),
+(33, 1,1,  9.00,'El Ejército de las Sombras','sl-cap-9','PUBLISHED', 2, 50, NOW() - INTERVAL 2 HOUR),
+(34, 1,1, 10.00,'La Puerta Roja','sl-cap-10','SCHEDULED', 3, 75, NOW() + INTERVAL 2 DAY),
 -- Martial Peak
-(5, 2,1,  1.00,'El Libro Negro','mp-cap-1','PUBLISHED','2022-01-01 10:00:00'),
-(6, 2,1,3000.00,'La Cima Marcial','mp-cap-3000','PUBLISHED',NOW() - INTERVAL 1 DAY),
-(7, 2,1,3600.00,'El Nuevo Mundo','mp-cap-3600','PUBLISHED',NOW() - INTERVAL 4 HOUR),
+(5, 2,1,  1.00,'El Libro Negro','mp-cap-1','PUBLISHED', 5, 50, '2022-01-01 10:00:00'),
+(6, 2,1,3000.00,'La Cima Marcial','mp-cap-3000','PUBLISHED', 5, 50, NOW() - INTERVAL 1 DAY),
+(7, 2,1,3600.00,'El Nuevo Mundo','mp-cap-3600','PUBLISHED', 5, 50, NOW() - INTERVAL 4 HOUR),
 -- TBATE
-(8, 3,2,  1.00,'El Rey Gris','tbate-cap-1','PUBLISHED','2022-03-15 10:00:00'),
-(9, 3,2,175.00,'La Guerra de los Dioses','tbate-cap-175','PUBLISHED',NOW() - INTERVAL 5 HOUR),
+(8, 3,2,  1.00,'El Rey Gris','tbate-cap-1','PUBLISHED', 4, 50, '2022-03-15 10:00:00'),
+(9, 3,2,175.00,'La Guerra de los Dioses','tbate-cap-175','PUBLISHED', 4, 50, NOW() - INTERVAL 5 HOUR),
 -- ORV
-(10,4,2,  1.00,'El Escenario Comienza','orv-cap-1','PUBLISHED','2022-05-01 10:00:00'),
-(11,4,2,190.00,'El Lector Omnisciente','orv-cap-190','PUBLISHED',NOW() - INTERVAL 12 HOUR),
+(10,4,2,  1.00,'El Escenario Comienza','orv-cap-1','PUBLISHED', 1, 50, '2022-05-01 10:00:00'),
+(11,4,2,190.00,'El Lector Omnisciente','orv-cap-190','PUBLISHED', 1, 50, NOW() - INTERVAL 12 HOUR),
 -- WMMAP
-(12,5,4,  1.00,'El Despertar','wmmap-cap-1','PUBLISHED','2022-04-01 10:00:00'),
-(13,5,4,120.00,'El Amor del Emperador','wmmap-cap-120','PUBLISHED',NOW() - INTERVAL 3 DAY),
+(12,5,4,  1.00,'El Despertar','wmmap-cap-1','PUBLISHED', 4, 50, '2022-04-01 10:00:00'),
+(13,5,4,120.00,'El Amor del Emperador','wmmap-cap-120','PUBLISHED', 4, 50, NOW() - INTERVAL 3 DAY),
 -- Tales of Demons and Gods
-(14,6,3,  1.00,'El Renacer de Nie Li','tdg-cap-1','PUBLISHED','2022-06-01 10:00:00'),
-(15,6,3,400.00,'La Secta Divina','tdg-cap-400','PUBLISHED',NOW() - INTERVAL 10 HOUR),
+(14,6,3,  1.00,'El Renacer de Nie Li','tdg-cap-1','PUBLISHED', 5, 50, '2022-06-01 10:00:00'),
+(15,6,3,400.00,'La Secta Divina','tdg-cap-400','PUBLISHED', 5, 50, NOW() - INTERVAL 10 HOUR),
 -- Nano Machine
-(16,7,5,  1.00,'Las Nanomáquinas','nm-cap-1','PUBLISHED','2023-02-01 10:00:00'),
-(17,7,5,200.00,'El Príncipe Demonio','nm-cap-200','PUBLISHED',NOW() - INTERVAL 6 HOUR),
+(16,7,5,  1.00,'Las Nanomáquinas','nm-cap-1','PUBLISHED', 2, 50, '2023-02-01 10:00:00'),
+(17,7,5,200.00,'El Príncipe Demonio','nm-cap-200','PUBLISHED', 2, 50, NOW() - INTERVAL 6 HOUR),
 -- TGMR
-(18,8,5,  1.00,'El Regreso','tgmr-cap-1','PUBLISHED','2023-03-01 10:00:00'),
-(19,8,5,150.00,'La Nueva Era','tgmr-cap-150','PUBLISHED',NOW() - INTERVAL 8 HOUR),
+(18,8,5,  1.00,'El Regreso','tgmr-cap-1','PUBLISHED', 2, 50, '2023-03-01 10:00:00'),
+(19,8,5,150.00,'La Nueva Era','tgmr-cap-150','PUBLISHED', 2, 50, NOW() - INTERVAL 8 HOUR),
 -- VADTD
-(20,9,4,  1.00,'La Villana Despierta','vadtd-cap-1','PUBLISHED','2023-04-01 10:00:00'),
-(21,9,4,130.00,'El Afecto del Príncipe','vadtd-cap-130','PUBLISHED',NOW() - INTERVAL 4 HOUR),
+(20,9,4,  1.00,'La Villana Despierta','vadtd-cap-1','PUBLISHED', 4, 50, '2023-04-01 10:00:00'),
+(21,9,4,130.00,'El Afecto del Príncipe','vadtd-cap-130','PUBLISHED', 4, 50, NOW() - INTERVAL 4 HOUR),
 -- Against the Gods
-(22,10,3,  1.00,'El Renacer de Yun Che','atg-cap-1','PUBLISHED',NOW() - INTERVAL 20 HOUR),
-(23,10,3,2000.00,'La Cima de los Dioses','atg-cap-2000','PUBLISHED',NOW() - INTERVAL 20 HOUR),
+(22,10,3,  1.00,'El Renacer de Yun Che','atg-cap-1','PUBLISHED', 5, 50, NOW() - INTERVAL 20 HOUR),
+(23,10,3,2000.00,'La Cima de los Dioses','atg-cap-2000','PUBLISHED', 5, 50, NOW() - INTERVAL 20 HOUR),
 -- BTTH
-(24,11,3,  1.00,'La Caída del Genio','btth-cap-1','PUBLISHED',NOW() - INTERVAL 12 HOUR),
-(25,11,3,500.00,'El Alquimista Legendario','btth-cap-500','PUBLISHED',NOW() - INTERVAL 12 HOUR),
+(24,11,3,  1.00,'La Caída del Genio','btth-cap-1','PUBLISHED', 5, 50, NOW() - INTERVAL 12 HOUR),
+(25,11,3,500.00,'El Alquimista Legendario','btth-cap-500','PUBLISHED', 5, 50, NOW() - INTERVAL 12 HOUR),
 -- Overgeared
-(26,12,2,  1.00,'El Objeto Legendario','og-cap-1','PUBLISHED',NOW() - INTERVAL 6 HOUR),
-(27,12,2,150.00,'El Rey del Servidor','og-cap-150','PUBLISHED',NOW() - INTERVAL 6 HOUR);
+(26,12,2,  1.00,'El Objeto Legendario','og-cap-1','PUBLISHED', 3, 50, NOW() - INTERVAL 6 HOUR),
+(27,12,2,150.00,'El Rey del Servidor','og-cap-150','PUBLISHED', 3, 50, NOW() - INTERVAL 6 HOUR);
 
 -- ==========================================
 -- 7. IMÁGENES DE CAPÍTULOS (suficientes para pruebas)
@@ -579,33 +591,43 @@ INSERT IGNORE INTO chapter_images (chapter_id, image_url, order_number) VALUES
 (17,'',12);
 
 -- ==========================================
+-- 7.1 ENTREGAS / BORRADORES DE CAPÍTULOS (CHAPTER_SUBMISSIONS)
+-- ==========================================
+INSERT IGNORE INTO chapter_submissions (id, chapter_id, user_id, content_url, page_count, status, notes, rejection_reason, reviewed_by, reviewed_at, created_at) VALUES
+(1, 1, 3, '/assets/comic/manhua/solo-leveling/capitulo-1/', 24, 'APPROVED', 'Traducción inicial completa del capítulo 1.', NULL, 1, NOW() - INTERVAL 10 DAY, NOW() - INTERVAL 11 DAY),
+(2, 2, 3, '/assets/comic/manhua/solo-leveling/capitulo-2/', 20, 'APPROVED', 'Revisión y edición aprobada por YumeMaster.', NULL, 1, NOW() - INTERVAL 5 DAY, NOW() - INTERVAL 6 DAY),
+(3, 34, 3, '/assets/comic/manhua/solo-leveling/capitulo-10/', 22, 'PENDING', 'Borrador del capítulo 10 listo para control de calidad.', NULL, NULL, NULL, NOW() - INTERVAL 2 HOUR),
+(4, 7, 5, 'https://cdn.example.com/drafts/mp-3600.zip', 18, 'PENDING', 'Traducción completa de Martial Peak 3600.', NULL, NULL, NULL, NOW() - INTERVAL 4 HOUR),
+(5, 6, 5, 'https://cdn.example.com/drafts/mp-3000-v1.zip', 15, 'REJECTED', 'Primera versión con marcas de agua del raw.', 'Imágenes de baja resolución con marcas de agua del raw original. Por favor resubir en HD.', 2, NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 3 DAY);
+
+-- ==========================================
 -- 8. ESTADÍSTICAS
 -- ==========================================
-INSERT IGNORE INTO work_statistics (work_id, total_views, daily_views, weekly_views, monthly_views, rating_average, rating_count, trending_score, views_last_24h, followers_count, favorites_count, last_published_at, latest_chapter_id, latest_chapter_number, first_chapter_id) VALUES
-(1, 5500000,120000, 850000,4800000, 9.94,125000, 9850.00,120000, 95000,88000, NOW() - INTERVAL 2 HOUR, 33, 9.00, 28),
-(2, 4200000, 98000, 720000,3800000, 9.87, 95000, 9200.00, 98000, 72000,65000, NOW() - INTERVAL 4 HOUR, 7, 3600.00, 5),
-(3, 3800000, 85000, 680000,3400000, 9.75, 88000, 8700.00, 85000, 68000,60000, NOW() - INTERVAL 5 HOUR, 9, 175.00, 8),
-(4, 2900000, 72000, 890000,2600000, 9.65, 78000, 7800.00, 72000, 58000,52000, NOW() - INTERVAL 12 HOUR, 11, 190.00, 10),
-(5, 2400000, 65000, 850000,2200000, 9.50, 62000, 7200.00, 65000, 48000,42000, NOW() - INTERVAL 3 DAY, 13, 120.00, 12),
-(6, 3100000, 68000, 820000,2800000, 9.20, 85000, 7500.00, 68000, 62000,55000, NOW() - INTERVAL 10 HOUR, 15, 400.00, 14),
-(7,  180000, 45000, 180000, 180000, 8.50, 12500, 1200.00, 45000,  8200, 6800, NOW() - INTERVAL 6 HOUR, 17, 200.00, 16),
-(8,  150000, 38000, 150000, 150000, 8.20,  9800, 1000.00, 38000,  6400, 5200, NOW() - INTERVAL 8 HOUR, 19, 150.00, 18),
-(9,  210000, 52000, 210000, 210000, 8.90, 15800, 1500.00, 52000,  9400, 7800, NOW() - INTERVAL 4 HOUR, 21, 130.00, 20),
-(10,1800000, 48000, 620000,1700000, 9.10, 62000, 5500.00, 48000, 42000,36000, NOW() - INTERVAL 20 HOUR, 23, 2000.00, 22),
-(11,2200000, 42000, 580000,2100000, 8.80, 75000, 4200.00, 42000, 52000,44000, NOW() - INTERVAL 12 HOUR, 25, 500.00, 24),
-(12,1650000, 40000, 550000,1550000, 9.30, 58000, 6000.00, 40000, 38000,32000, NOW() - INTERVAL 6 HOUR, 27, 150.00, 26);
+INSERT IGNORE INTO work_statistics (work_id, total_views, daily_views, weekly_views, monthly_views, rating_average, rating_count, trending_score, views_last_24h, favorites_count, last_published_at, latest_chapter_id, latest_chapter_number, first_chapter_id) VALUES
+(1, 5500000,120000, 850000,4800000, 9.94,125000, 9850.00,120000,88000, NOW() - INTERVAL 2 HOUR, 33, 9.00, 28),
+(2, 4200000, 98000, 720000,3800000, 9.87, 95000, 9200.00, 98000,65000, NOW() - INTERVAL 4 HOUR, 7, 3600.00, 5),
+(3, 3800000, 85000, 680000,3400000, 9.75, 88000, 8700.00, 85000,60000, NOW() - INTERVAL 5 HOUR, 9, 175.00, 8),
+(4, 2900000, 72000, 890000,2600000, 9.65, 78000, 7800.00, 72000,52000, NOW() - INTERVAL 12 HOUR, 11, 190.00, 10),
+(5, 2400000, 65000, 850000,2200000, 9.50, 62000, 7200.00, 65000,42000, NOW() - INTERVAL 3 DAY, 13, 120.00, 12),
+(6, 3100000, 68000, 820000,2800000, 9.20, 85000, 7500.00, 68000,55000, NOW() - INTERVAL 10 HOUR, 15, 400.00, 14),
+(7,  180000, 45000, 180000, 180000, 8.50, 12500, 1200.00, 45000, 6800, NOW() - INTERVAL 6 HOUR, 17, 200.00, 16),
+(8,  150000, 38000, 150000, 150000, 8.20,  9800, 1000.00, 38000, 5200, NOW() - INTERVAL 8 HOUR, 19, 150.00, 18),
+(9,  210000, 52000, 210000, 210000, 8.90, 15800, 1500.00, 52000, 7800, NOW() - INTERVAL 4 HOUR, 21, 130.00, 20),
+(10,1800000, 48000, 620000,1700000, 9.10, 62000, 5500.00, 48000,36000, NOW() - INTERVAL 20 HOUR, 23, 2000.00, 22),
+(11,2200000, 42000, 580000,2100000, 8.80, 75000, 4200.00, 42000,44000, NOW() - INTERVAL 12 HOUR, 25, 500.00, 24),
+(12,1650000, 40000, 550000,1550000, 9.30, 58000, 6000.00, 40000,32000, NOW() - INTERVAL 6 HOUR, 27, 150.00, 26);
 
 -- ==========================================
 -- 9. BIBLIOTECA DE USUARIOS
 -- ==========================================
 INSERT IGNORE INTO user_library (user_id, work_id, status, rating, notify_new_chapters) VALUES
-(1,1,'FAVORITE',10.0,TRUE),
-(1,3,'FOLLOWING',NULL,TRUE),
-(1,7,'FAVORITE',9.5,TRUE),
-(2,1,'FAVORITE',10.0,TRUE),(2,3,'FAVORITE',9.0,TRUE),
-(3,1,'FAVORITE',10.0,TRUE),(3,4,'FAVORITE',9.5,TRUE),(3,7,'FOLLOWING',NULL,TRUE),(3,2,'READ_LATER',NULL,FALSE),
-(4,5,'FAVORITE',10.0,TRUE),(4,9,'FAVORITE',9.0,TRUE),(4,6,'FOLLOWING',8.5,TRUE),
-(5,1,'FOLLOWING',9.0,TRUE),(5,11,'COMPLETED',9.5,FALSE),(5,7,'FAVORITE',10.0,TRUE),(5,12,'FOLLOWING',NULL,TRUE);
+(1,1,'READING',10.0,TRUE),
+(1,3,'READING',NULL,TRUE),
+(1,7,'READING',9.5,TRUE),
+(2,1,'READING',10.0,TRUE),(2,3,'READING',9.0,TRUE),
+(3,1,'READING',10.0,TRUE),(3,4,'READING',9.5,TRUE),(3,7,'READING',NULL,TRUE),(3,2,'PLAN_TO_READ',NULL,TRUE),
+(4,5,'READING',10.0,TRUE),(4,9,'READING',9.0,TRUE),(4,6,'READING',8.5,TRUE),
+(5,1,'READING',9.0,TRUE),(5,11,'COMPLETED',9.5,FALSE),(5,7,'READING',10.0,TRUE),(5,12,'READING',NULL,TRUE);
 
 -- ==========================================
 -- 10. HISTORIAL DE LECTURA
@@ -620,6 +642,41 @@ INSERT IGNORE INTO reading_history (user_id, work_id, chapter_id, last_page_read
 (3,1,3,15,NOW() - INTERVAL 1 HOUR),(3,4,11,8,NOW() - INTERVAL 3 HOUR),(3,7,17,20,NOW() - INTERVAL 1 DAY),
 (4,5,13,5,NOW() - INTERVAL 2 HOUR),(4,9,21,18,NOW() - INTERVAL 1 DAY),
 (5,1,3,22,NOW() - INTERVAL 30 MINUTE),(5,7,17,12,NOW() - INTERVAL 4 HOUR),(5,12,27,10,NOW() - INTERVAL 5 HOUR);
+
+-- ==========================================
+-- 10.1 CAPÍTULOS LEÍDOS POR USUARIOS (USER_READ_CHAPTERS)
+-- ==========================================
+INSERT IGNORE INTO user_read_chapters (user_id, work_id, chapter_id, read_at) VALUES
+(1, 1, 28, NOW() - INTERVAL 3 DAY),
+(1, 1, 1, NOW() - INTERVAL 2 DAY),
+(1, 1, 2, NOW() - INTERVAL 1 DAY),
+(1, 1, 3, NOW() - INTERVAL 1 HOUR),
+(1, 2, 5, NOW() - INTERVAL 4 DAY),
+(1, 2, 7, NOW() - INTERVAL 2 HOUR),
+(1, 3, 8, NOW() - INTERVAL 6 DAY),
+(1, 3, 9, NOW() - INTERVAL 4 HOUR),
+(2, 1, 1, NOW() - INTERVAL 2 DAY),
+(2, 1, 2, NOW() - INTERVAL 1 DAY),
+(2, 1, 3, NOW() - INTERVAL 10 MINUTE),
+(3, 1, 28, NOW() - INTERVAL 5 DAY),
+(3, 1, 1, NOW() - INTERVAL 4 DAY),
+(3, 1, 2, NOW() - INTERVAL 2 DAY),
+(3, 1, 3, NOW() - INTERVAL 1 HOUR),
+(3, 4, 10, NOW() - INTERVAL 3 DAY),
+(3, 4, 11, NOW() - INTERVAL 3 HOUR),
+(3, 7, 16, NOW() - INTERVAL 2 DAY),
+(3, 7, 17, NOW() - INTERVAL 1 DAY),
+(4, 5, 12, NOW() - INTERVAL 3 DAY),
+(4, 5, 13, NOW() - INTERVAL 2 HOUR),
+(4, 9, 20, NOW() - INTERVAL 2 DAY),
+(4, 9, 21, NOW() - INTERVAL 1 DAY),
+(5, 1, 1, NOW() - INTERVAL 3 DAY),
+(5, 1, 2, NOW() - INTERVAL 2 DAY),
+(5, 1, 3, NOW() - INTERVAL 30 MINUTE),
+(5, 7, 16, NOW() - INTERVAL 1 DAY),
+(5, 7, 17, NOW() - INTERVAL 4 HOUR),
+(5, 12, 26, NOW() - INTERVAL 1 DAY),
+(5, 12, 27, NOW() - INTERVAL 5 HOUR);
 
 -- ==========================================
 -- 11. LOGS DE VISTAS
@@ -703,12 +760,46 @@ INSERT IGNORE INTO user_inventory (user_id, item_id, is_equipped) VALUES
 (3, 2, TRUE),
 (3, 5, TRUE);
 -- ==========================================
+-- 17.1 HISTORIAL DE TRANSACCIONES DE MONEDAS (USER_COIN_TRANSACTIONS)
+-- ==========================================
+INSERT IGNORE INTO user_coin_transactions (id, user_id, amount, balance_after, type, description, reference_id, created_at) VALUES
+(1, 1, 1000, 3000, 'ADMIN_ADJUSTMENT', 'Carga inicial de saldo del sistema SuperAdmin', NULL, NOW() - INTERVAL 15 DAY),
+(2, 2, 500, 800, 'ADMIN_ADJUSTMENT', 'Bono de bienvenida para líder de GhostScans', NULL, NOW() - INTERVAL 12 DAY),
+(3, 2, 100, 800, 'TRANSLATION_REWARD', 'Recompensa por revisión de traducción', 1, NOW() - INTERVAL 5 DAY),
+(4, 3, 50, 300, 'DAILY_MISSION', 'Misión diaria: Leer 3 capítulos', 1, NOW() - INTERVAL 1 DAY),
+(5, 3, 50, 350, 'TRANSLATION_REWARD', 'Recompensa por capítulo aprobado (Solo Leveling Cap 1)', 1, NOW() - INTERVAL 10 DAY),
+(6, 4, 350, 550, 'DAILY_MISSION', 'Recompensas acumuladas de misiones diarias', NULL, NOW() - INTERVAL 4 DAY),
+(7, 4, -350, 200, 'SHOP_PURCHASE', 'Compra en tienda: Marco Anillo Alpha', 1, NOW() - INTERVAL 2 DAY),
+(8, 5, 600, 600, 'DAILY_MISSION', 'Recompensa racha de lectura semanal', NULL, NOW() - INTERVAL 3 DAY),
+(9, 5, 50, 650, 'DAILY_MISSION', 'Misión diaria: Comentario en la comunidad', 2, NOW() - INTERVAL 1 DAY);
+
+-- ==========================================
+-- 17.2 MISIONES DIARIAS RECLAMADAS (USER_DAILY_MISSIONS)
+-- ==========================================
+INSERT IGNORE INTO user_daily_missions (id, user_id, mission_key, claimed_date, xp_awarded, coins_awarded, claimed_at) VALUES
+(1, 1, 'read_3_chapters', CURDATE(), 50, 50, NOW() - INTERVAL 1 HOUR),
+(2, 1, 'leave_comment', CURDATE(), 30, 25, NOW() - INTERVAL 30 MINUTE),
+(3, 3, 'read_3_chapters', CURDATE(), 50, 50, NOW() - INTERVAL 2 HOUR),
+(4, 4, 'daily_login', CURDATE(), 20, 10, NOW() - INTERVAL 4 HOUR),
+(5, 5, 'read_3_chapters', CURDATE(), 50, 50, NOW() - INTERVAL 3 HOUR);
+
+-- ==========================================
 -- 18. COMENTARIOS DE OBRAS
 -- ==========================================
 INSERT IGNORE INTO comments (id, work_id, chapter_id, user_id, parent_id, content, contains_spoiler, status) VALUES
 (1, 1, NULL, 1, NULL, 'obra maestra', FALSE, 'VISIBLE'),
 (2, 1, NULL, 2, 1, 'Totalmente de acuerdo, el dibujo del manhwa es de otro nivel.', FALSE, 'VISIBLE'),
 (3, 1, NULL, 3, NULL, '¿Cada cuánto tiempo salen los capítulos traducidos?', FALSE, 'VISIBLE');
+
+-- ==========================================
+-- 18.1 REACCIONES DE COMENTARIOS (COMMENT_REACTIONS)
+-- ==========================================
+INSERT IGNORE INTO comment_reactions (comment_id, user_id, reaction, created_at) VALUES
+(1, 2, 'LIKE', NOW() - INTERVAL 20 MINUTE),
+(1, 3, 'LIKE', NOW() - INTERVAL 15 MINUTE),
+(1, 4, 'LIKE', NOW() - INTERVAL 10 MINUTE),
+(2, 1, 'LIKE', NOW() - INTERVAL 10 MINUTE),
+(3, 1, 'LIKE', NOW() - INTERVAL 5 MINUTE);
 
 -- ==========================================
 -- 19. CHAT EN VIVO DE LA COMUNIDAD (CHATS)
@@ -727,3 +818,27 @@ INSERT IGNORE INTO chat_reactions (message_id, user_id, reaction) VALUES
 (2, 1, '🔥'),
 (2, 3, '👍'),
 (3, 1, '❤️');
+
+-- ==========================================
+-- 21. REPORTES DE CONTENIDO (CONTENT_REPORTS)
+-- ==========================================
+INSERT IGNORE INTO content_reports (id, reporter_user_id, entity_type, entity_id, reason, details, status, reviewed_by, reviewed_at, created_at) VALUES
+(1, 3, 'COMMENT', 3, 'Spam o publicidad encubierta', 'Pregunta reiterada en múltiples capítulos sin aportar al debate.', 'OPEN', NULL, NULL, NOW() - INTERVAL 2 HOUR),
+(2, 4, 'CHAT', 2, 'Lenguaje inapropiado o spoiler', 'Comentario revelando giros de la trama sin etiqueta de advertencia.', 'REVIEWING', 2, NOW() - INTERVAL 30 MINUTE, NOW() - INTERVAL 1 HOUR),
+(3, 5, 'WORK', 1, 'Error en metadatos o sinopsis', 'El autor de la obra tenía un error tipográfico en la traducción.', 'RESOLVED', 1, NOW() - INTERVAL 1 DAY, NOW() - INTERVAL 2 DAY);
+
+-- ==========================================
+-- 22. REGISTROS DE AUDITORÍA (AUDIT_LOGS)
+-- ==========================================
+INSERT IGNORE INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, before_data, after_data, ip_address, created_at) VALUES
+(1, 1, 'UPDATE_ROLE', 'USER', '2', '{"role":"USER"}', '{"role":"ADMIN"}', '192.168.1.1', NOW() - INTERVAL 7 DAY),
+(2, 1, 'APPROVE_SUBMISSION', 'CHAPTER_SUBMISSION', '1', '{"status":"PENDING"}', '{"status":"APPROVED"}', '192.168.1.1', NOW() - INTERVAL 10 DAY),
+(3, 2, 'REJECT_SUBMISSION', 'CHAPTER_SUBMISSION', '5', '{"status":"PENDING"}', '{"status":"REJECTED"}', '192.168.1.12', NOW() - INTERVAL 2 DAY);
+
+-- ==========================================
+-- 23. CONFIGURACIÓN DE PLATAFORMA (PLATFORM_SETTINGS)
+-- ==========================================
+INSERT IGNORE INTO platform_settings (id, setting_key, setting_value, description) VALUES
+(1, 'hero_new_rotation_hours', '{"hours": 24}', 'Duración en horas de cada obra nueva en el Hero'),
+(2, 'site_maintenance_mode', '{"enabled": false}', 'Interruptor global de modo de mantenimiento'),
+(3, 'default_chapter_reward', '{"coins": 50}', 'Recompensa estándar en monedas por capítulo traducido');

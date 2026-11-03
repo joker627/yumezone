@@ -7,7 +7,7 @@ from pydantic import BaseModel
 class UserLibrary(BaseModel):
     user_id: int
     work_id: int
-    status: str = "FOLLOWING"
+    status: str = "LIKED"
     rating: Optional[float] = None
     notify_new_chapters: bool = True
     added_at: Optional[datetime] = None

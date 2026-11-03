@@ -1,14 +1,9 @@
 import { apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
 import { safeUrl, IMG_FALLBACK } from '../shared/ui-utils.js';
-import { renderSiteHeader } from '../components/header.js';
-import { renderLibrarySkeletons } from '../components/loader.js';
+import { renderLibrarySkeletons } from '../components/skeletons.js';
 
-const header = document.getElementById('header');
-if (header) renderSiteHeader(header);
-
-// Esqueletos mientras llega la biblioteca
 const loadingSection = document.getElementById('library-loading');
-if (loadingSection) {
+if (loadingSection && !loadingSection.children.length) {
     loadingSection.innerHTML = renderLibrarySkeletons(6);
     loadingSection.hidden = false;
 }
@@ -30,12 +25,27 @@ const emptyTitle = document.getElementById('library-empty-title');
 const emptyCopy = document.getElementById('library-empty-copy');
 
 const STATUS_LABELS = {
-    FOLLOWING: 'Siguiendo',
-    READ_LATER: 'Leer después',
-    FAVORITE: 'Favorito',
+    READING: 'Leyendo',
     COMPLETED: 'Completado',
-    DROPPED: 'Pausado',
+    ON_HOLD: 'En espera',
+    PLAN_TO_READ: 'Planeado',
+    DROPPED: 'Abandonado',
 };
+
+const LEGACY_STATUS_MAP = {
+    LIKED: 'READING',
+    FOLLOWING: 'READING',
+    FAVORITE: 'READING',
+    READ_LATER: 'PLAN_TO_READ',
+    PAUSED: 'ON_HOLD',
+};
+
+function normalizeStatus(rawStatus) {
+    if (!rawStatus) return null;
+    const upper = String(rawStatus).toUpperCase();
+    const mapped = LEGACY_STATUS_MAP[upper] || upper;
+    return STATUS_LABELS[mapped] ? mapped : null;
+}
 
 let libraryItems = [];
 let activeFilter = 'ALL';
@@ -47,7 +57,7 @@ function makeWorkUrl(work) {
 
 function makeReaderUrl(work) {
     if (!work.slug || !work.first_chapter_id) return null;
-    return `/pages/leer.html?slug=${encodeURIComponent(work.slug)}&chapter_id=${work.first_chapter_id}`;
+    return `/pages/leer.html?obra=${encodeURIComponent(work.slug)}&chapter_id=${work.first_chapter_id}`;
 }
 
 function setFeedback(text, isError = false) {
@@ -68,12 +78,11 @@ function clearPendingAdd(params) {
 }
 
 function updateCounts() {
-    const counts = { ALL: libraryItems.length, READING: 0 };
+    const counts = { ALL: libraryItems.length };
     Object.keys(STATUS_LABELS).forEach((status) => { counts[status] = 0; });
     libraryItems.forEach((item) => {
-        counts[item.library_status] = (counts[item.library_status] || 0) + 1;
-        if (item.reading_progress) {
-            counts.READING += 1;
+        if (item.library_status && counts[item.library_status] !== undefined) {
+            counts[item.library_status] += 1;
         }
     });
     filters.querySelectorAll('[data-library-count]').forEach((element) => {
@@ -83,7 +92,7 @@ function updateCounts() {
     if (libraryItems.length === 0) {
         summary.textContent = 'Todavía no has guardado obras.';
     } else {
-        summary.textContent = `${libraryItems.length} ${libraryItems.length === 1 ? 'obra guardada' : 'obras guardadas'} para volver cuando quieras.`;
+        summary.textContent = `${libraryItems.length} ${libraryItems.length === 1 ? 'obra guardada' : 'obras guardadas'} en tu colección personal.`;
     }
 }
 
@@ -105,9 +114,11 @@ function createCard(work) {
 
     const topLine = document.createElement('div');
     topLine.className = 'library-card-topline';
+
     const status = document.createElement('span');
-    status.className = `library-status library-status-${work.library_status.toLowerCase()}`;
-    status.textContent = STATUS_LABELS[work.library_status] || 'En biblioteca';
+    const validStatus = normalizeStatus(work.library_status) || 'READING';
+    status.className = `library-status library-status-${validStatus.toLowerCase()}`;
+    status.textContent = STATUS_LABELS[validStatus] || 'Leyendo';
     topLine.append(status);
 
     const remove = document.createElement('button');
@@ -116,7 +127,7 @@ function createCard(work) {
     remove.setAttribute('aria-label', `Quitar ${work.title} de la biblioteca`);
     remove.title = 'Quitar de la biblioteca';
     const removeIcon = document.createElement('img');
-    removeIcon.src = '/assets/icons/svg/x.svg';
+    removeIcon.src = '/assets/icons/svg/actions/x.svg';
     removeIcon.alt = '';
     removeIcon.setAttribute('aria-hidden', 'true');
     remove.append(removeIcon);
@@ -160,11 +171,11 @@ function createCard(work) {
 
         const pagSpan = document.createElement('span');
         pagSpan.className = 'library-progress-pag';
-        pagSpan.textContent = prog.page_text;
+        pagSpan.textContent = prog.page_text || (prog.total_chapters ? `${prog.read_chapters || 0}/${prog.total_chapters} leídos` : '');
 
         const pctSpan = document.createElement('span');
         pctSpan.className = 'library-progress-pct';
-        pctSpan.textContent = `${prog.progress_pct}%`;
+        pctSpan.textContent = `${prog.progress_pct || 0}%`;
 
         progHeader.append(chapSpan, pagSpan, pctSpan);
 
@@ -184,20 +195,19 @@ function createCard(work) {
 
     const statusLabel = document.createElement('label');
     statusLabel.className = 'library-status-label';
-    const statusText = document.createElement('span');
-    statusText.textContent = 'Estado';
     const statusSelect = document.createElement('select');
     statusSelect.className = 'library-status-select';
     statusSelect.setAttribute('aria-label', `Estado de ${work.title}`);
+    const currentStatus = normalizeStatus(work.library_status) || 'READING';
     Object.entries(STATUS_LABELS).forEach(([value, label]) => {
         const option = document.createElement('option');
         option.value = value;
         option.textContent = label;
-        option.selected = value === work.library_status;
+        option.selected = value === currentStatus;
         statusSelect.append(option);
     });
     statusSelect.addEventListener('change', () => updateStatus(work, statusSelect));
-    statusLabel.append(statusText, statusSelect);
+    statusLabel.append(statusSelect);
     cardFooter.append(statusLabel);
 
     const readUrl = work.reading_progress?.reader_url || makeReaderUrl(work);
@@ -205,22 +215,10 @@ function createCard(work) {
         const readLink = document.createElement('a');
         readLink.className = 'library-read-link' + (work.reading_progress ? ' library-read-link--resume' : '');
         readLink.href = readUrl;
-        readLink.textContent = work.reading_progress ? '▶ Reanudar' : 'Leer';
+        readLink.textContent = work.reading_progress ? 'Reanudar' : 'Leer';
         cardFooter.append(readLink);
     }
     body.append(cardFooter);
-
-    const preferences = document.createElement('label');
-    preferences.className = 'library-notification-setting';
-    const notify = document.createElement('input');
-    notify.type = 'checkbox';
-    notify.checked = Boolean(work.notify_new_chapters);
-    notify.setAttribute('aria-label', `Avisarme de capítulos nuevos de ${work.title}`);
-    notify.addEventListener('change', () => updateNotifications(work, notify));
-    const notifyText = document.createElement('span');
-    notifyText.textContent = 'Avisarme de capítulos nuevos';
-    preferences.append(notify, notifyText);
-    body.append(preferences);
 
     card.append(body);
     return card;
@@ -232,7 +230,6 @@ function renderLibrary() {
     const visibleItems = libraryItems
         .filter((item) => {
             if (activeFilter === 'ALL') return true;
-            if (activeFilter === 'READING') return Boolean(item.reading_progress);
             return item.library_status === activeFilter;
         })
         .filter((item) => !query || [
@@ -253,22 +250,15 @@ function renderLibrary() {
         emptyTitle.textContent = 'Tu biblioteca empieza aquí';
         emptyCopy.textContent = 'Explora el catálogo y guarda las obras que quieras seguir.';
     } else if (query || activeFilter !== 'ALL') {
-        emptyTitle.textContent = activeFilter === 'READING'
-            ? 'No tienes lecturas en curso'
-            : 'No hay obras en esta selección';
+        emptyTitle.textContent = 'No hay obras en esta sección';
         emptyCopy.textContent = query
             ? 'Prueba con otro título, nombre alternativo o autor.'
-            : (activeFilter === 'READING'
-                ? 'Abre y lee cualquier capítulo para registrar tu progreso automáticamente.'
-                : 'Guarda una obra en este estado y aparecerá aquí.');
+            : 'Cambia el estado de una obra o explora el catálogo para agregar más.';
     }
 }
 
 function showSignedOut() {
     summary.textContent = 'Tu biblioteca personal, siempre a mano.';
-    const returnPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    signInLink.href = `/pages/login.html?next=${encodeURIComponent(returnPath)}`;
-    signUpLink.href = `/pages/registro.html?next=${encodeURIComponent(returnPath)}`;
     if (loadingSection) loadingSection.hidden = true;
     authPrompt.hidden = false;
     errorPanel.hidden = true;
@@ -286,33 +276,13 @@ async function updateStatus(work, select) {
             body: { status: select.value },
         });
         work.library_status = select.value;
-        setFeedback(`${work.title}: ${STATUS_LABELS[work.library_status].toLocaleLowerCase()}.`);
+        work.notify_new_chapters = select.value !== 'DROPPED';
+        setFeedback(`${work.title}: ${STATUS_LABELS[work.library_status]}.`);
         renderLibrary();
     } catch (error) {
         select.value = previousStatus;
         select.disabled = false;
         setFeedback(error.message || 'No se pudo cambiar el estado.', true);
-    }
-}
-
-async function updateNotifications(work, checkbox) {
-    const previousValue = work.notify_new_chapters;
-    checkbox.disabled = true;
-    clearFeedback();
-    try {
-        const result = await apiRequest(`/library/${work.id}/notifications`, {
-            method: 'PATCH',
-            body: { notify_new_chapters: checkbox.checked },
-        });
-        work.notify_new_chapters = Boolean(result.notify_new_chapters);
-        setFeedback(work.notify_new_chapters
-            ? `Te avisaremos de los capítulos nuevos de ${work.title}.`
-            : `Desactivaste los avisos de ${work.title}.`);
-    } catch (error) {
-        checkbox.checked = previousValue;
-        setFeedback(error.message || 'No se pudo guardar la preferencia.', true);
-    } finally {
-        checkbox.disabled = false;
     }
 }
 
@@ -353,7 +323,7 @@ async function loadLibrary() {
                 try {
                     const addedWork = await apiRequest(`/library/${pendingWorkId}`, {
                         method: 'POST',
-                        body: { status: 'FOLLOWING' },
+                        body: { status: 'READING' },
                     });
                     clearPendingAdd(params);
                     setFeedback(`${addedWork.title} ya está en tu biblioteca.`);
@@ -369,20 +339,26 @@ async function loadLibrary() {
         libraryItems = Array.isArray(result)
             ? result.map((item) => ({
                 ...item,
-                library_status: STATUS_LABELS[item.library_status]
-                    ? item.library_status
-                    : 'FOLLOWING',
+                library_status: normalizeStatus(item.library_status),
             }))
             : [];
+
         const filterParam = (params.get('filter') || '').toUpperCase();
-        if (filterParam === 'READING' || filterParam === 'HISTORY' || filterParam === 'HISTORIAL') {
-            activeFilter = 'READING';
+        const normalizedFilter = LEGACY_STATUS_MAP[filterParam] || filterParam;
+        if (STATUS_LABELS[normalizedFilter]) {
+            activeFilter = normalizedFilter;
+        } else {
+            activeFilter = 'ALL';
+        }
+
+        if (activeFilter !== 'ALL') {
             filters.querySelectorAll('[data-library-filter]').forEach((filter) => {
-                const isActive = filter.dataset.libraryFilter === 'READING';
+                const isActive = filter.dataset.libraryFilter === activeFilter;
                 filter.classList.toggle('is-active', isActive);
                 filter.setAttribute('aria-pressed', String(isActive));
             });
         }
+
         content.hidden = false;
         if (loadingSection) loadingSection.hidden = true;
         renderLibrary();

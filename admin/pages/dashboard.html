@@ -30,7 +30,7 @@
   <header id="header" class="header">
     <div class="header-brand-group">
       <button id="mobile-menu-btn" class="mobile-toggle" type="button" aria-label="Abrir menú">
-        <img src="/assets/icons/svg/menu.svg" class="icon" alt="">
+        <img src="/assets/icons/svg/navigation/menu.svg" class="icon" alt="">
       </button>
 
       <a class="brand" href="/pages/dashboard.html#inicio">
@@ -45,7 +45,7 @@
     <!-- Buscador Rápido -->
     <div class="search-box">
       <input type="text" id="global-search" class="search-input" placeholder="Buscar usuario, obra o reporte...">
-      <img src="/assets/icons/svg/search.svg" class="icon icon-xs search-icon" alt="">
+      <img src="/assets/icons/svg/actions/search.svg" class="icon icon-xs search-icon" alt="">
     </div>
 
     <!-- Estado y Menú de Administración -->
@@ -57,7 +57,7 @@
 
       <div class="user-menu">
         <button class="avatar-btn" id="avatar-btn" type="button" title="Perfil">
-          <img src="/assets/icons/svg/user.svg" class="icon icon-sm" alt="Usuario">
+          <img src="/assets/icons/svg/user/user.svg" class="icon icon-sm" alt="Usuario">
         </button>
 
         <div class="dropdown-menu" id="dropdown-menu">
@@ -66,7 +66,7 @@
             <div class="dropdown-role" id="user-display-role">ADMIN</div>
           </div>
           <button class="dropdown-item danger" id="btn-logout" type="button">
-            <img src="/assets/icons/svg/logout.svg" class="icon icon-sm" alt="">
+            <img src="/assets/icons/svg/user/logout.svg" class="icon icon-sm" alt="">
             <span>Cerrar Sesión</span>
           </button>
         </div>
@@ -85,7 +85,7 @@
           <div class="nav-title">Principal</div>
           <a class="nav-link active" href="#inicio" data-route="inicio">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/home.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/navigation/home.svg" class="icon" alt="">
               <span>Panel de Inicio</span>
             </div>
             <span class="status-dot"></span>
@@ -96,25 +96,25 @@
           <div class="nav-title">Gestión de la Web</div>
           <a class="nav-link" href="#usuarios" data-route="usuarios">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/user.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/user/user.svg" class="icon" alt="">
               <span>Usuarios & Rangos</span>
             </div>
           </a>
           <a class="nav-link" href="#obras" data-route="obras">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/book.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/content/book.svg" class="icon" alt="">
               <span>Catálogo de Obras</span>
             </div>
           </a>
           <a class="nav-link" href="#ajustes" data-route="ajustes">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/settings.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/user/settings.svg" class="icon" alt="">
               <span>Ajustes de la Web</span>
             </div>
           </a>
           <a class="nav-link" href="#anuncios" data-route="anuncios">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/bell.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/user/bell.svg" class="icon" alt="">
               <span>Anuncios Oficiales</span>
             </div>
           </a>
@@ -124,13 +124,13 @@
           <div class="nav-title">Moderación & Control</div>
           <a class="nav-link" href="#reportes" data-route="reportes">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/flag.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/actions/flag.svg" class="icon" alt="">
               <span>Reportes de Lectores</span>
             </div>
           </a>
           <a class="nav-link" href="#auditoria" data-route="auditoria">
             <div class="nav-link-content">
-              <img src="/assets/icons/svg/history.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/navigation/history.svg" class="icon" alt="">
               <span>Auditoría de Admin</span>
             </div>
           </a>
@@ -148,7 +148,7 @@
           <div class="hero-main">
             <div class="hero-info">
               <div class="hero-icon-wrap">
-                <img src="/assets/icons/svg/settings.svg" class="icon icon-teal" alt="">
+                <img src="/assets/icons/svg/user/settings.svg" class="icon icon-teal" alt="">
               </div>
               <div>
                 <h1 class="hero-title">
@@ -179,7 +179,7 @@
               </div>
 
               <button id="btn-refresh-inicio" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
-                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
                 <span>Actualizar</span>
               </button>
             </div>
@@ -191,7 +191,7 @@
           <div class="metric-card">
             <div class="metric-head">
               <span class="metric-label">Usuarios Totales</span>
-              <img src="/assets/icons/svg/user.svg" class="icon icon-xs" alt="">
+              <img src="/assets/icons/svg/user/user.svg" class="icon icon-xs" alt="">
             </div>
             <div class="metric-value" id="stat-total-users">—</div>
             <div class="metric-sub"><span id="stat-active-users" class="trend-up">—</span> activos</div>
@@ -200,7 +200,7 @@
           <div class="metric-card">
             <div class="metric-head">
               <span class="metric-label">Obras en Catálogo</span>
-              <img src="/assets/icons/svg/book.svg" class="icon icon-xs icon-amber" alt="">
+              <img src="/assets/icons/svg/content/book.svg" class="icon icon-xs icon-amber" alt="">
             </div>
             <div class="metric-value" id="stat-total-works">—</div>
             <div class="metric-sub">Títulos registrados</div>
@@ -209,7 +209,7 @@
           <div class="metric-card">
             <div class="metric-head">
               <span class="metric-label">Capítulos Publicados</span>
-              <img src="/assets/icons/svg/bolt.svg" class="icon icon-xs icon-teal" alt="">
+              <img src="/assets/icons/svg/gamification/bolt.svg" class="icon icon-xs icon-teal" alt="">
             </div>
             <div class="metric-value" id="stat-published-chapters">—</div>
             <div class="metric-sub">Lectura disponible</div>
@@ -218,7 +218,7 @@
           <div class="metric-card">
             <div class="metric-head">
               <span class="metric-label">Vistas (Últimas 24h)</span>
-              <img src="/assets/icons/svg/eye.svg" class="icon icon-xs" alt="">
+              <img src="/assets/icons/svg/actions/eye.svg" class="icon icon-xs" alt="">
             </div>
             <div class="metric-value" id="stat-views-24h">—</div>
             <div class="metric-sub"><span id="stat-total-views">—</span> acumuladas</div>
@@ -227,7 +227,7 @@
           <div class="metric-card">
             <div class="metric-head">
               <span class="metric-label">Comentarios Activos</span>
-              <img src="/assets/icons/svg/trending.svg" class="icon icon-xs" alt="">
+              <img src="/assets/icons/svg/navigation/trending.svg" class="icon icon-xs" alt="">
             </div>
             <div class="metric-value" id="stat-total-comments">—</div>
             <div class="metric-sub">Comunidad e interacción</div>
@@ -236,7 +236,7 @@
           <div class="metric-card">
             <div class="metric-head">
               <span class="metric-label">Reportes Abiertos</span>
-              <img src="/assets/icons/svg/warning.svg" class="icon icon-xs icon-ruby" alt="">
+              <img src="/assets/icons/svg/content/warning.svg" class="icon icon-xs icon-ruby" alt="">
             </div>
             <div class="metric-value" id="stat-open-reports">—</div>
             <div class="metric-sub">Pendientes de atención</div>
@@ -249,7 +249,7 @@
           <div class="card summary-card">
             <div class="card-header">
               <div class="card-title">
-                <img src="/assets/icons/svg/book.svg" class="icon icon-sm icon-amber" alt="">
+                <img src="/assets/icons/svg/content/book.svg" class="icon icon-sm icon-amber" alt="">
                 <span>Últimas Obras Añadidas</span>
               </div>
               <a href="#obras" class="btn btn-secondary btn-sm">Ver Todas</a>
@@ -263,7 +263,7 @@
           <div class="card summary-card">
             <div class="card-header">
               <div class="card-title">
-                <img src="/assets/icons/svg/warning.svg" class="icon icon-sm icon-ruby" alt="">
+                <img src="/assets/icons/svg/content/warning.svg" class="icon icon-sm icon-ruby" alt="">
                 <span>Reportes Recientes</span>
               </div>
               <a href="#reportes" class="btn btn-secondary btn-sm">Moderar</a>
@@ -277,7 +277,7 @@
           <div class="card summary-card">
             <div class="card-header">
               <div class="card-title">
-                <img src="/assets/icons/svg/history.svg" class="icon icon-sm" alt="">
+                <img src="/assets/icons/svg/navigation/history.svg" class="icon icon-sm" alt="">
                 <span>Acciones Recientes de Admin</span>
               </div>
               <a href="#auditoria" class="btn btn-secondary btn-sm">Historial</a>
@@ -294,17 +294,17 @@
         <div class="table-wrapper">
           <div class="table-toolbar">
             <div class="table-title">
-              <img src="/assets/icons/svg/user.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/user/user.svg" class="icon" alt="">
               <span>Control de Usuarios & Asignación de Roles</span>
               <span id="users-total-badge" class="badge active">Cargando...</span>
             </div>
             <div class="table-controls">
               <div class="table-search-box">
                 <input type="text" id="users-search-input" class="search-input" placeholder="Buscar usuario o correo...">
-                <img src="/assets/icons/svg/search.svg" class="icon icon-xs search-icon" alt="">
+                <img src="/assets/icons/svg/actions/search.svg" class="icon icon-xs search-icon" alt="">
               </div>
               <button id="btn-refresh-users" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
-                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
               </button>
             </div>
           </div>
@@ -347,17 +347,17 @@
         <div class="table-wrapper">
           <div class="table-toolbar">
             <div class="table-title">
-              <img src="/assets/icons/svg/book.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/content/book.svg" class="icon" alt="">
               <span>Supervisión del Catálogo de Obras</span>
               <span id="works-total-badge" class="badge active">Cargando...</span>
             </div>
             <div class="table-controls">
               <div class="table-search-box">
                 <input type="text" id="works-search-input" class="search-input" placeholder="Buscar por título...">
-                <img src="/assets/icons/svg/search.svg" class="icon icon-xs search-icon" alt="">
+                <img src="/assets/icons/svg/actions/search.svg" class="icon icon-xs search-icon" alt="">
               </div>
               <button id="btn-refresh-works" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
-                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
               </button>
             </div>
           </div>
@@ -390,13 +390,13 @@
           <div class="card-header">
             <div class="card-title-group">
               <h2 class="card-title">
-                <img src="/assets/icons/svg/settings.svg" class="icon icon-teal" alt="">
+                <img src="/assets/icons/svg/user/settings.svg" class="icon icon-teal" alt="">
                 <span>Ajustes de la Plataforma Web</span>
               </h2>
               <p class="card-desc">Parámetros directos de la base de datos (tabla platform_settings)</p>
             </div>
             <button id="btn-refresh-settings" class="btn btn-secondary btn-sm" type="button">
-              <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+              <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
             </button>
           </div>
 
@@ -410,7 +410,7 @@
           <div class="card-header">
             <div class="card-title-group">
               <h3 class="card-title">
-                <img src="/assets/icons/svg/copy.svg" class="icon" alt="">
+                <img src="/assets/icons/svg/actions/copy.svg" class="icon" alt="">
                 <span>Modificar o Añadir Parámetro</span>
               </h3>
               <p class="card-desc">Directivas de comportamiento para el funcionamiento del portal</p>
@@ -434,7 +434,7 @@
             </div>
             <div class="form-actions-bar">
               <button type="submit" id="btn-save-setting" class="btn btn-primary">
-                <img src="/assets/icons/svg/check.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/check.svg" class="icon icon-xs" alt="">
                 <span>Guardar en BD</span>
               </button>
             </div>
@@ -449,7 +449,7 @@
           <div class="card-header">
             <div class="card-title-group">
               <h2 class="card-title">
-                <img src="/assets/icons/svg/bell.svg" class="icon icon-teal" alt="">
+                <img src="/assets/icons/svg/user/bell.svg" class="icon icon-teal" alt="">
                 <span>Publicar Anuncio Oficial de la Web</span>
               </h2>
               <p class="card-desc">Notificaciones visibles en el feed y cabecera de la plataforma para los lectores</p>
@@ -487,7 +487,7 @@
 
             <div class="form-actions-bar">
               <button type="submit" id="btn-save-ann" class="btn btn-primary">
-                <img src="/assets/icons/svg/copy.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/copy.svg" class="icon icon-xs" alt="">
                 <span>Publicar Anuncio</span>
               </button>
             </div>
@@ -498,13 +498,13 @@
         <div class="table-wrapper">
           <div class="table-toolbar">
             <div class="table-title">
-              <img src="/assets/icons/svg/bell.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/user/bell.svg" class="icon" alt="">
               <span>Anuncios Registrados en la Web</span>
               <span id="ann-count-badge" class="badge">0</span>
             </div>
             <div class="table-controls">
               <button id="btn-refresh-ann" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
-                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
               </button>
             </div>
           </div>
@@ -539,7 +539,7 @@
         <div class="table-wrapper">
           <div class="table-toolbar">
             <div class="table-title">
-              <img src="/assets/icons/svg/flag.svg" class="icon icon-ruby" alt="">
+              <img src="/assets/icons/svg/actions/flag.svg" class="icon icon-ruby" alt="">
               <span>Reportes de Contenido & Moderación</span>
               <span id="reports-total-badge" class="badge danger">Cargando...</span>
             </div>
@@ -553,7 +553,7 @@
                 <option value="DISMISSED">Descartados (DISMISSED)</option>
               </select>
               <button id="btn-refresh-reports" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
-                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
               </button>
             </div>
           </div>
@@ -588,13 +588,13 @@
         <div class="table-wrapper">
           <div class="table-toolbar">
             <div class="table-title">
-              <img src="/assets/icons/svg/history.svg" class="icon" alt="">
+              <img src="/assets/icons/svg/navigation/history.svg" class="icon" alt="">
               <span>Historial de Auditoría de Administradores</span>
               <span id="audit-count-badge" class="badge neutral">0 registros</span>
             </div>
             <div class="table-controls">
               <button id="btn-refresh-audit" class="btn btn-secondary btn-sm" type="button" title="Refrescar">
-                <img src="/assets/icons/svg/swap.svg" class="icon icon-xs" alt="">
+                <img src="/assets/icons/svg/actions/swap.svg" class="icon icon-xs" alt="">
               </button>
             </div>
           </div>

@@ -1,6 +1,4 @@
-/* =====================================================
-   COMING SOON — Página en construcción / próximamente
-   ===================================================== */
+/* coming soon */
 
 .coming-soon-page {
   display: flex;
@@ -27,7 +25,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Icono */
+/* icono */
 .coming-soon-icon-wrap {
   width: 96px;
   height: 96px;
@@ -59,7 +57,7 @@
   50%       { box-shadow: 0 0 60px rgb(57 198 165 / 0.16); }
 }
 
-/* Texto */
+/* texto */
 .coming-soon-eyebrow {
   font-size: 0.7rem;
   font-weight: 700;
@@ -84,7 +82,7 @@
   max-width: 440px;
 }
 
-/* Badge */
+/* badge */
 .coming-soon-badge {
   display: inline-flex;
   align-items: center;
@@ -106,7 +104,7 @@
   opacity: 0.7;
 }
 
-/* Features */
+/* features */
 .coming-soon-features {
   list-style: none;
   padding: 0;
@@ -144,7 +142,7 @@
   flex-shrink: 0;
 }
 
-/* CTA */
+/* cta */
 .coming-soon-cta {
   display: inline-flex;
   align-items: center;
@@ -165,7 +163,7 @@
   transform: translateY(-1px);
 }
 
-/* Responsive */
+/* responsive */
 @media (max-width: 480px) {
   .coming-soon-features {
     flex-direction: column;

@@ -1,4 +1,6 @@
 import { GIPHY_ID } from '../api/api-config.js';
+import { esc } from '../shared/ui-utils.js';
+import { renderGifSkeletons } from './skeletons.js';
 
 export function getChatPickerTemplate() {
   return `
@@ -16,9 +18,7 @@ export function getChatPickerTemplate() {
       <div class="chat-gif-search-wrap">
         <input type="text" class="chat-gif-search-input" id="chat-gif-search" placeholder="Buscar GIFs (ej: anime, luffy, dance)..." autocomplete="off" />
       </div>
-      <div class="chat-gif-grid" id="chat-gif-grid">
-        <p class="chat-online-empty">Cargando GIFs en vivo...</p>
-      </div>
+      <div class="chat-gif-grid" id="chat-gif-grid">${renderGifSkeletons(12)}</div>
     </div>
   `;
 }
@@ -46,7 +46,7 @@ export function initChatPicker({
     }
     currentAbortController = new AbortController();
 
-    gifGrid.innerHTML = '<p class="chat-online-empty">Buscando GIFs en vivo...</p>';
+    gifGrid.innerHTML = renderGifSkeletons(12);
 
     try {
       const clean = query.trim();
@@ -68,10 +68,10 @@ export function initChatPicker({
       gifGrid.innerHTML = list.map(g => {
         const preview = g.images?.fixed_height_small?.url || g.images?.downsized_medium?.url || g.images?.original?.url;
         const full = g.images?.downsized_medium?.url || g.images?.original?.url || preview;
-        const title = (g.title || 'GIF').replace(/"/g, '&quot;');
+        const title = esc(g.title || 'GIF');
         return `
-          <button type="button" class="chat-gif-item" data-gif-url="${full}" title="${title}">
-            <img src="${preview}" alt="${title}" loading="lazy" />
+          <button type="button" class="chat-gif-item" data-gif-url="${esc(full)}" title="${title}">
+            <img src="${esc(preview)}" alt="${title}" loading="lazy" />
           </button>
         `;
       }).join('');

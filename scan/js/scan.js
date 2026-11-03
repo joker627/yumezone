@@ -2,14 +2,14 @@ import { apiRequest, getAccessToken, logoutUser, FRONTEND_URL } from './auth.js'
 
 let currentUser = null;
 let currentScan = {
-  id: 1,
-  name: "Ghost Scans [Official Team]",
-  role: "LÍDER",
-  active_series: 18,
-  total_chapters: 420,
-  accumulated_views: "4.8M",
-  active_members: 12,
-  monthly_balance: 1420.00
+  id: null,
+  name: "Grupo Scan",
+  role: "MIEMBRO",
+  active_series: 0,
+  total_chapters: 0,
+  accumulated_views: "0",
+  active_members: 0,
+  monthly_balance: 0.00
 };
 
 // Rutas de navegación del Scan
@@ -32,7 +32,7 @@ async function init() {
     currentUser = await apiRequest('/auth/me');
     const role = (currentUser.platform_role || '').toUpperCase();
     const isSuperAdmin = role === 'SUPERADMIN';
-    const isStaff = ['ADMIN', 'SUPERADMIN'].includes(role);
+    const isPlatformAdmin = ['ADMIN', 'SUPERADMIN'].includes(role);
 
     // Verificar si pertenece a algún scan
     let myScans = [];
@@ -43,15 +43,20 @@ async function init() {
 
     const isScanMember = myScans.length > 0;
 
-    if (!isStaff && !isScanMember) {
-      alert('Acceso restringido: Se requieren permisos de Scanlation o Staff para acceder a este panel.');
+    if (!isPlatformAdmin && !isScanMember) {
+      alert('Acceso restringido: Se requieren permisos de Scanlation o Administrador para acceder a este panel.');
       window.location.href = '/frontend/';
       return;
     }
 
     if (myScans.length > 0) {
-      currentScan.name = myScans[0].name || currentScan.name;
-      currentScan.id = myScans[0].id || currentScan.id;
+      currentScan.id = myScans[0].id;
+      currentScan.name = myScans[0].name || "Grupo Scan";
+      currentScan.role = (myScans[0].role || "MIEMBRO").toUpperCase();
+      currentScan.active_series = myScans[0].works_count || 0;
+    } else if (isPlatformAdmin) {
+      currentScan.name = "Supervisión Global";
+      currentScan.role = role;
     }
 
     // Configurar interfaz superior

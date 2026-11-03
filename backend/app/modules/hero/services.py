@@ -67,8 +67,6 @@ class HeroService:
             "rating_average": float(work["rating_average"]),
             "rating_count": int(work["rating_count"]),
             "rating_count_formatted": self._format_count(work["rating_count"]),
-            "followers_count": int(work["followers_count"]),
-            "followers_count_formatted": self._format_count(work["followers_count"]),
             "favorites_count": int(work["favorites_count"]),
             "total_views": int(work["total_views"]),
             "trending_score": float(work["trending_score"]),
@@ -80,13 +78,18 @@ class HeroService:
         first_number = first["number"] if first else 1
         first_text = f"Empezar a leer • Cap. {self._number(first_number)}"
         first_url = (
-            f"/pages/leer.html?slug={work['slug']}&chapter_id={first['id']}"
+            f"/pages/leer.html?obra={work['slug']}&capitulo={self._number(first_number)}&chapter_id={first['id']}"
             if first
             else None
         )
         count = int(library["count"])
         is_added = bool(library["is_added"])
         is_subscribed = bool(library["is_subscribed"])
+        user_rating = (
+            float(library["user_rating"])
+            if library.get("user_rating") is not None
+            else None
+        )
         return HeroItem(
             id=work["id"],
             title=work["title"],
@@ -114,7 +117,7 @@ class HeroService:
                     url=first_url,
                 ),
                 library=LibraryAction(
-                    text="En Biblioteca" if is_added else "Añadir a Biblioteca",
+                    text="Te gusta" if is_added else "Me gusta",
                     count=count,
                     count_formatted=self._format_count(count),
                     is_added=is_added,
@@ -130,6 +133,7 @@ class HeroService:
                 group=group,
                 position_in_group=position,
             ),
+            user_rating=user_rating,
         )
 
     @staticmethod
@@ -158,8 +162,7 @@ class HeroService:
 
     @staticmethod
     def _number(value: Any) -> str:
-        number = float(value)
-        return str(int(number)) if number.is_integer() else str(number)
+        return f"{float(value):.1f}"
 
     @classmethod
     def _latest_chapter(cls, chapter: Optional[Dict[str, Any]]) -> LatestChapter:

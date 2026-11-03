@@ -1,8 +1,6 @@
-/* =========================================================================
-   Componente Modular: Selector de GIFs de Anime (Cyber-Luxury Dark)
-   ========================================================================= */
+/* selector gifs */
 
-/* Popover Flotante */
+/* popover flotante */
 .chat-picker-popover {
   position: absolute;
   bottom: 58px;
@@ -24,7 +22,7 @@
   display: none !important;
 }
 
-/* Cabecera del Selector de GIFs */
+/* cabecera gifs */
 .chat-picker-header {
   display: flex;
   align-items: center;
@@ -69,7 +67,7 @@
   display: block;
 }
 
-/* Buscador de GIFs */
+/* buscador gifs */
 .chat-gif-search-wrap {
   margin-bottom: 0.45rem;
 }
@@ -92,7 +90,7 @@
   box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
 }
 
-/* Grilla de GIFs */
+/* grid gifs */
 .chat-gif-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

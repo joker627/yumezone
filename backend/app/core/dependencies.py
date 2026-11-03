@@ -1,75 +1,85 @@
-# imports external
-import aiomysql
 import json
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import aiomysql
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-# imports internal
-from app.core.database import get_db_pool
 from app.core.redis import get_redis_client
 from app.core.security import decode_access_token
 from app.modules.auth.repository import AuthRepository
+from app.modules.scans.repository import ScanGroupRepository
 from app.modules.users.models import CurrentUser
 
+
 security = HTTPBearer(auto_error=False)
-optional_security = HTTPBearer(auto_error=False)
 
-USER_SESSION_CACHE_TTL = 300  # 5 minutos
+USER_SESSION_CACHE_TTL = 300
+PLATFORM_ADMIN_ROLES = ("ADMIN", "SUPERADMIN")
 
 
-# Obtener usuario actual
+def _session_key(email: str) -> str:
+    return f"yume:user_session:{email}"
+
+
+def is_platform_admin(user: CurrentUser) -> bool:
+    return user.platform_role.upper() in PLATFORM_ADMIN_ROLES
+
+
+# Debe llamarse tras cambiar rol, estado o datos de perfil para que no se sirva una sesión vieja
+async def invalidate_user_session(email: Optional[str]) -> None:
+    redis = get_redis_client()
+    if not redis or not email:
+        return
+    try:
+        await redis.delete(_session_key(email))
+    except Exception:
+        pass
+
+
+def _extract_token(request: Request, credentials: Optional[HTTPAuthorizationCredentials]) -> Optional[str]:
+    if credentials:
+        return credentials.credentials
+    return request.cookies.get("access_token")
+
+
+# Sesión
 async def get_current_user(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> CurrentUser:
-    token = None
-    if credentials:
-        token = credentials.credentials
-    else:
-        token = request.cookies.get("access_token")
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="No se pudieron validar las credenciales",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if not token:
+    token = _extract_token(request, credentials)
+    payload = decode_access_token(token) if token else None
+    email = payload.get("sub") if payload else None
+    if not email:
         raise credentials_exception
 
-    payload = decode_access_token(token)
-    if payload is None:
-        raise credentials_exception
-
-    email = payload.get("sub")
-    if email is None:
-        raise credentials_exception
-
-    # 1. Intentar resolver desde caché Redis para evitar 2 queries SQL por petición
     redis = get_redis_client()
-    cache_key = f"yume:user_session:{email}"
+    cache_key = _session_key(email)
     if redis:
         try:
-            cached_data = await redis.get(cache_key)
-            if cached_data:
-                return CurrentUser(**json.loads(cached_data))
+            cached = await redis.get(cache_key)
+            if cached:
+                return CurrentUser(**json.loads(cached))
         except Exception:
             pass
 
-    # 2. Si no está en caché, consultar MySQL
     repository = AuthRepository()
     user = await repository.get_user_by_email(email)
-
     if user is None or user.id is None:
         raise credentials_exception
 
-    user_dict = user.model_dump()
-    user_dict["is_scan_member"] = await repository.is_scan_leader(user.id)
-    current_user = CurrentUser(**user_dict)
+    current_user = CurrentUser(
+        **user.model_dump(),
+        is_scan_member=await repository.is_scan_member(user.id),
+    )
 
-    # 3. Guardar en caché Redis
     if redis:
         try:
             await redis.set(cache_key, current_user.model_dump_json(), ex=USER_SESSION_CACHE_TTL)
@@ -79,34 +89,30 @@ async def get_current_user(
     return current_user
 
 
-# validar usuario 
 async def get_optional_current_user(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[CurrentUser]:
-    token = credentials.credentials if credentials else request.cookies.get("access_token")
-    if not token:
+    if not _extract_token(request, credentials):
         return None
     try:
         return await get_current_user(request, credentials)
-    except HTTPException:
+    except Exception:
         return None
 
 
-# Obtener usuario activo
 async def get_current_active_user(
     current_user: CurrentUser = Depends(get_current_user),
 ) -> CurrentUser:
     if current_user.status.upper() != "ACTIVE":
-        raise HTTPException(status_code=400, detail="Usuario inactivo")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuario inactivo")
     return current_user
 
 
-# Obtener usuario administrador activo
 async def get_current_admin_user(
     current_user: CurrentUser = Depends(get_current_active_user),
 ) -> CurrentUser:
-    if current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]:
+    if not is_platform_admin(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="El usuario no tiene permisos suficientes",
@@ -114,46 +120,32 @@ async def get_current_admin_user(
     return current_user
 
 
-# Verificar permisos de subida
+# Permisos de subida
 async def verify_upload_permission(
-    user: CurrentUser, scan_group_id: Optional[int] = None
-):
-    if user.platform_role.upper() in ["ADMIN", "SUPERADMIN"]:
+    user: CurrentUser,
+    scan_group_id: Optional[int] = None,
+    conn: Optional[aiomysql.Connection] = None,
+) -> bool:
+    if is_platform_admin(user):
         return True
-    if scan_group_id:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(
-                    "SELECT role, permissions FROM scan_group_members "
-                    "WHERE group_id = %s AND user_id = %s",
-                    (scan_group_id, user.id),
-                )
-                member = await cur.fetchone()
-                if not member:
-                    raise HTTPException(
-                        status_code=403,
-                        detail="No perteneces a este grupo scan.",
-                    )
-
-                if member["role"] in ["LEADER", "CO_LEADER", "UPLOADER", "ADMIN", "MODERATOR"]:
-                    return True
-
-                if member["permissions"]:
-                    perms = (
-                        json.loads(member["permissions"])
-                        if isinstance(member["permissions"], str)
-                        else member["permissions"]
-                    )
-                    if perms.get("can_upload"):
-                        return True
-
+    if not scan_group_id:
         raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para subir contenido en este grupo.",
-        )
-    else:
-        raise HTTPException(
-            status_code=403,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Debes pertenecer a un grupo scan para subir contenido.",
         )
+
+    scan_repo = ScanGroupRepository(conn)
+    member = await scan_repo.get_member(scan_group_id, user.id)
+
+    if not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No perteneces a este grupo scan.")
+
+    if member.can_upload:
+        return True
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="No tienes permisos para subir contenido en este grupo.",
+    )
+
+

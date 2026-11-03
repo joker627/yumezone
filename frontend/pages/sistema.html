@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="description" content="Blog y registro del sistema de YumeZone. Hilo cronológico de actualizaciones, creaciones y mejoras a lo largo de 2 años de desarrollo, desde la v1.0 hasta la v1.9 actual y el camino a la v2.0.">
+  <meta name="keywords" content="yumezone sistema, blog yumezone, hilo de actualizaciones, versiones, novedades, changelog">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="YumeZone">
+  <meta property="og:url" content="https://yumezone.page/pages/sistema.html">
+  <meta property="og:title" content="Sistema & Hilo de Actualizaciones | YumeZone">
+  <meta property="og:description" content="Blog oficial del sistema: 2 años de historia, mejoras continuas, creaciones y el camino hacia YumeZone 2.0.">
+  <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://yumezone.page/pages/sistema.html">
+  <meta name="twitter:title" content="Sistema & Hilo de Actualizaciones | YumeZone">
+  <meta name="twitter:description" content="Blog oficial del sistema: 2 años de historia, mejoras continuas, creaciones y el camino hacia YumeZone 2.0.">
+  <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png">
+
+  <link rel="canonical" href="https://yumezone.page/pages/sistema.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="YumeZone">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="/manifest.json">
+  <title>Sistema & Blog de Actualizaciones | YumeZone</title>
+
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/pages/sistema.css">
+</head>
+<body>
+  <header id="header"></header>
+
+  <main id="app" class="sis-page">
+    <div class="sis-container">
+
+      <!-- Cabecera del Blog del Sistema -->
+      <section class="sis-hero">
+        <div class="sis-badge">
+          <svg class="sis-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg>
+          <span>BLOG DEL SISTEMA</span>
+        </div>
+        <h1 class="sis-title">Hilo de Actualizaciones & Creaciones</h1>
+        <p class="sis-lead">
+          Un recorrido continuo por los 2 años de vida de YumeZone (2024 - 2026). Descubre cada función lanzada,
+          los hitos de nuestra comunidad y el rumbo del proyecto hacia la versión 2.0.
+        </p>
+
+        <!-- Tarjetas de Estado -->
+        <dl class="sis-status">
+          <div class="sis-status-item">
+            <dt>Plataforma Web</dt>
+            <dd>v1.9.5 <span class="sis-pill sis-pill--live">En Producción</span></dd>
+          </div>
+          <div class="sis-status-item">
+            <dt>Trayectoria Activa</dt>
+            <dd>2 Años <span class="sis-pill sis-pill--info">Nov 2024 - Actual</span></dd>
+          </div>
+          <div class="sis-status-item">
+            <dt>Próxima Versión Mayor</dt>
+            <dd>v2.0 <span class="sis-pill sis-pill--soon">En Definición</span></dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="sis-layout">
+
+        <!-- Panel Lateral de Navegación Rápida -->
+        <nav class="sis-index" aria-label="Navegación de Versiones e Hitos">
+          <p class="sis-index-title">Versiones & Hitos</p>
+          <ul class="sis-index-list">
+            <li><a href="#v2-0" data-target="v2-0"><span>v2.0</span><small>En camino</small></a></li>
+            <li class="sis-index-year">2026</li>
+            <li><a href="#v1-9-5" data-target="v1-9-5"><span>v1.9.5</span><small>Actual</small></a></li>
+            <li><a href="#h-2026-10-24" data-target="h-2026-10-24"><span>Hito</span><small>Moderación</small></a></li>
+            <li><a href="#v1-9-3" data-target="v1-9-3"><span>v1.9.3</span></a></li>
+            <li><a href="#v1-9-2" data-target="v1-9-2"><span>v1.9.2</span></a></li>
+            <li><a href="#v1-9-0" data-target="v1-9-0"><span>v1.9.0</span></a></li>
+            <li><a href="#h-2026-07-10" data-target="h-2026-07-10"><span>Hito</span><small>Eventos</small></a></li>
+            <li><a href="#v1-8-0" data-target="v1-8-0"><span>v1.8.0</span></a></li>
+            <li><a href="#h-2026-03-06" data-target="h-2026-03-06"><span>Hito</span><small>Comunidad</small></a></li>
+            <li><a href="#v1-7-0" data-target="v1-7-0"><span>v1.7.0</span></a></li>
+            <li class="sis-index-year">2025</li>
+            <li><a href="#v1-6-0" data-target="v1-6-0"><span>v1.6.0</span></a></li>
+            <li><a href="#v1-5-0" data-target="v1-5-0"><span>v1.5.0</span></a></li>
+            <li><a href="#v1-4-0" data-target="v1-4-0"><span>v1.4.0</span></a></li>
+            <li><a href="#v1-3-0" data-target="v1-3-0"><span>v1.3.0</span></a></li>
+            <li><a href="#h-2025-02-08" data-target="h-2025-02-08"><span>Hito</span><small>Diseño</small></a></li>
+            <li><a href="#v1-1-0" data-target="v1-1-0"><span>v1.1.0</span></a></li>
+            <li class="sis-index-year">2024</li>
+            <li><a href="#v1-0-0" data-target="v1-0-0"><span>v1.0.0</span><small>Génesis</small></a></li>
+          </ul>
+        </nav>
+
+        <!-- Hilo Continuo de Actualizaciones -->
+        <div class="sis-feed">
+
+          <!-- v2.0 (Futuro / En Desarrollo) -->
+          <article class="sis-item sis-item--soon" id="v2-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version sis-version--soon">v2.0</span> El Siguiente Gran Salto</h2>
+              <span class="sis-pill sis-pill--soon">En Desarrollo Activo</span>
+            </header>
+            <div class="sis-notice">
+              <strong>Aviso de la versión 2.0:</strong>
+              Aún nos encontramos consolidando y puliendo la rama 1.9. La versión 2.0 está en proceso de definición y toma de decisiones. Pronto daremos a conocer las funciones oficiales definitivas y las fechas estimadas de lanzamiento.
+            </div>
+            <h3 class="sis-group sis-group--idea">Ideas en evaluación para la 2.0</h3>
+            <ul class="sis-list">
+              <li><strong>Lector Libro Físico:</strong> Modo de lectura en doble página horizontal diseñado para mangas tradicionales.</li>
+              <li><strong>Espacios para Clanes:</strong> Salas de debate y encuentro para equipos de traducción y lectores.</li>
+              <li><strong>Eventos Cooperativos:</strong> Misiones comunitarias con metas globales y recompensas exclusivas.</li>
+            </ul>
+            <p class="sis-footnote">Estas funciones son propuestas en desarrollo y pueden evolucionar antes del estreno oficial.</p>
+          </article>
+
+          <!-- Separador 2026 -->
+          <div class="sis-year" aria-hidden="true"><span>AÑO 2026</span></div>
+
+          <!-- v1.9.5 (Versión Actual) -->
+          <article class="sis-item sis-item--current" id="v1-9-5">
+            <header class="sis-item-head">
+              <h2><span class="sis-version sis-version--current">v1.9.5</span> Comunidad, Lector Fijo y Navegación Fluida</h2>
+              <time datetime="2026-10-31">31 Oct 2026 • Actual</time>
+            </header>
+
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li><strong>Respuestas en Hilo:</strong> Los comentarios ahora se responden de forma anidada con mención automática (<code>↳ respondiendo a @usuario</code>) y lectura cronológica ordenada.</li>
+              <li><strong>Tiempo de Edición:</strong> Si un lector edita su comentario, se indica de manera clara (ej. <em>hace 5 min</em>).</li>
+              <li><strong>Indicador «Al Día»:</strong> Si ya leíste hasta el último capítulo publicado de una serie, el botón principal te confirma que estás 100% al corriente.</li>
+              <li><strong>Sección de Eventos y Sistema:</strong> Nuevos accesos directos dedicados en la barra superior para estar al tanto de las actividades y parches.</li>
+            </ul>
+
+            <h3 class="sis-group sis-group--better">Mejoras de Experiencia</h3>
+            <ul class="sis-list">
+              <li><strong>Lector Más Cómodo:</strong> La barra superior ahora se mantiene fija por defecto para cambiar de capítulo sin scrolls innecesarios (con opción a auto-ocultar).</li>
+              <li><strong>Perfil Organizado:</strong> El nivel, la barra de XP, la racha y las monedas ahora se integran de forma elegante dentro del menú de usuario.</li>
+              <li><strong>Carga Instantánea:</strong> Navegación optimizada en catálogo, inicio y biblioteca para una experiencia rápida y fluida en cualquier dispositivo.</li>
+              <li><strong>Avisos Sutiles:</strong> Notificaciones emergentes compactas en la esquina superior, diseñadas para no interrumpir tu lectura.</li>
+            </ul>
+
+            <h3 class="sis-group sis-group--fix">Correcciones</h3>
+            <ul class="sis-list">
+              <li>Sincronización precisa en el conteo de obras favoritas y pendientes en el perfil.</li>
+              <li>Los marcos de avatar ahora se muestran correctamente en todos los mensajes del chat global.</li>
+            </ul>
+          </article>
+
+          <!-- Hito: Moderación -->
+          <article class="sis-item sis-milestone" id="h-2026-10-24">
+            <header class="sis-item-head">
+              <h2><span class="sis-tag-hito">Creación</span> Centro de Moderación y Reportes</h2>
+              <time datetime="2026-10-24">24 Oct 2026</time>
+            </header>
+            <p class="sis-text">
+              Lanzamiento del sistema de reportes comunitarios para que los lectores puedan marcar comentarios o mensajes fuera de lugar, garantizando una convivencia sana y respetuosa en toda la web.
+            </p>
+          </article>
+
+          <!-- v1.9.3 -->
+          <article class="sis-item" id="v1-9-3">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.9.3</span> Privacidad de Perfil e Insignias</h2>
+              <time datetime="2026-10-16">16 Oct 2026</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li><strong>Modo Privado:</strong> Opción para proteger tus estadísticas, inventario y lecturas frente a otros visitantes.</li>
+              <li><strong>Insignias con Progreso:</strong> Visualiza cuánto te falta en capítulos leídos, días de racha o comentarios para desbloquear nuevas medallas.</li>
+            </ul>
+          </article>
+
+          <!-- v1.9.2 -->
+          <article class="sis-item" id="v1-9-2">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.9.2</span> Calificación con Estrellas</h2>
+              <time datetime="2026-10-08">8 Oct 2026</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li>Puntúa tus obras favoritas del 1 al 10 con una ventana interactiva de estrellas y actualiza tu nota cuando gustes.</li>
+              <li>El promedio de la comunidad y la cantidad de votos se reflejan inmediatamente en la portada de la obra.</li>
+            </ul>
+          </article>
+
+          <!-- v1.9.0 -->
+          <article class="sis-item" id="v1-9-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.9.0</span> Misiones Diarias y Recompensas</h2>
+              <time datetime="2026-08-20">20 Ago 2026</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li><strong>Misiones del Día:</strong> Lee capítulos, participa en comentarios o añade obras a tu lista para ganar experiencia (XP) y Yume Coins.</li>
+              <li><strong>Cofre Diario:</strong> Reclama el cofre maestro completando las tareas del día para obtener premios extra.</li>
+            </ul>
+          </article>
+
+          <!-- Hito: Blog de Eventos -->
+          <article class="sis-item sis-milestone" id="h-2026-07-10">
+            <header class="sis-item-head">
+              <h2><span class="sis-tag-hito">Creación</span> Portal de Eventos y Anuncios</h2>
+              <time datetime="2026-07-10">10 Jul 2026</time>
+            </header>
+            <p class="sis-text">
+              Creación de un espacio dedicado para informar a todos los usuarios sobre dinámicas especiales, eventos de temporada y noticias directas del equipo.
+            </p>
+          </article>
+
+          <!-- v1.8.0 -->
+          <article class="sis-item" id="v1-8-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.8.0</span> Chat en Vivo, Notificaciones y App PWA</h2>
+              <time datetime="2026-04-24">24 Abr 2026</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li><strong>Campana de Notificaciones:</strong> Entérate al segundo cuando un scan suba un nuevo capítulo de tus series en seguimiento.</li>
+              <li><strong>Chat Global:</strong> Conéctate con otros lectores en tiempo real, comparte GIFs animados y reacciona con emojis a los mensajes.</li>
+              <li><strong>Instalación como App:</strong> Añade YumeZone a la pantalla de inicio de tu móvil como una aplicación ligera y rápida.</li>
+            </ul>
+          </article>
+
+          <!-- Hito: Redes Sociales -->
+          <article class="sis-item sis-milestone" id="h-2026-03-06">
+            <header class="sis-item-head">
+              <h2><span class="sis-tag-hito">Creación</span> Comunidad Oficial en Discord & Telegram</h2>
+              <time datetime="2026-03-06">6 Mar 2026</time>
+            </header>
+            <p class="sis-text">
+              Apertura del servidor oficial de Discord y canales comunitarios para que lectores y traductores compartan recomendaciones, memes y charlas sobre sus obras preferidas.
+            </p>
+          </article>
+
+          <!-- v1.7.0 -->
+          <article class="sis-item" id="v1-7-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.7.0</span> Tienda Yume & Cosméticos de Perfil</h2>
+              <time datetime="2026-01-28">28 Ene 2026</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li>Llega la Tienda: canjea tus Yume Coins por marcos de avatar dinámicos, títulos de cultivador e insignias decorativas.</li>
+              <li>Inventario personal para equipar y cambiar tu estilo en cualquier momento.</li>
+            </ul>
+          </article>
+
+          <!-- Separador 2025 -->
+          <div class="sis-year" aria-hidden="true"><span>AÑO 2025</span></div>
+
+          <!-- v1.6.0 -->
+          <article class="sis-item" id="v1-6-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.6.0</span> Cultivo Cósmico y Rachas de Lectura</h2>
+              <time datetime="2025-11-28">28 Nov 2025</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li><strong>Rango de Cultivador:</strong> Gana experiencia por cada capítulo leído y sube de rango desde <em>Iniciado</em> hasta <em>Soberano Cósmico</em>.</li>
+              <li><strong>Racha Activa:</strong> Lee todos los días para conservar tu fuego encendido y desbloquear multiplicadores.</li>
+              <li><strong>Yume Coins:</strong> Presentación oficial de las monedas gratuitas que ganas por tu actividad.</li>
+            </ul>
+          </article>
+
+          <!-- v1.5.0 -->
+          <article class="sis-item" id="v1-5-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.5.0</span> Portada Interactiva y Ranking</h2>
+              <time datetime="2025-09-22">22 Sep 2025</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li>Carrusel de series destacadas en la página principal con estrenos recomendados.</li>
+              <li>Tablas de Ranking semanal, mensual y global para descubrir las obras más populares de la comunidad.</li>
+              <li>Fila «Continuar Leyendo» para retomar tus lecturas exactamente donde las pausaste.</li>
+            </ul>
+          </article>
+
+          <!-- v1.4.0 -->
+          <article class="sis-item" id="v1-4-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.4.0</span> Lector Optimizado para Webtoons</h2>
+              <time datetime="2025-07-12">12 Jul 2025</time>
+            </header>
+            <h3 class="sis-group sis-group--better">Mejoras de Experiencia</h3>
+            <ul class="sis-list">
+              <li>Lectura en cascada vertical ultra suave, optimizada especialmente para manhwas y manhuas largos.</li>
+              <li>Navegación cómoda con teclado mediante flechas y barra espaciadora.</li>
+            </ul>
+          </article>
+
+          <!-- v1.3.0 -->
+          <article class="sis-item" id="v1-3-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.3.0</span> Directorio de Clanes & Alianza con Scans</h2>
+              <time datetime="2025-05-20">20 May 2025</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li>Directorio público para dar reconocimiento y créditos a los equipos scanlation de habla hispana.</li>
+              <li>Panel especial para que los miembros autorizados suban y actualicen sus propios proyectos.</li>
+            </ul>
+          </article>
+
+          <!-- Hito: Identidad Visual -->
+          <article class="sis-item sis-milestone" id="h-2025-02-08">
+            <header class="sis-item-head">
+              <h2><span class="sis-tag-hito">Creación</span> Identidad Visual & Modo Nocturno Neón</h2>
+              <time datetime="2025-02-08">8 Feb 2025</time>
+            </header>
+            <p class="sis-text">
+              Creación del logotipo oficial de YumeZone, la paleta turquesa neón y la interfaz oscura pensada para leer cómodamente durante horas sin fatiga visual.
+            </p>
+          </article>
+
+          <!-- v1.1.0 -->
+          <article class="sis-item" id="v1-1-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version">v1.1.0</span> Biblioteca Personal y Filtros de Catálogo</h2>
+              <time datetime="2025-01-18">18 Ene 2025</time>
+            </header>
+            <h3 class="sis-group sis-group--new">Novedades</h3>
+            <ul class="sis-list">
+              <li>Sincronización en la nube de tu biblioteca personal (Leyendo, Pendiente, Completado, En Pausa y Abandonado).</li>
+              <li>Buscador de catálogo con filtros combinados por género, demografía y formato.</li>
+            </ul>
+          </article>
+
+          <!-- Separador 2024 -->
+          <div class="sis-year" aria-hidden="true"><span>AÑO 2024</span></div>
+
+          <!-- v1.0.0 (Génesis) -->
+          <article class="sis-item sis-item--genesis" id="v1-0-0">
+            <header class="sis-item-head">
+              <h2><span class="sis-version sis-version--genesis">v1.0.0</span> Nace YumeZone</h2>
+              <time datetime="2024-11-02">2 Nov 2024 • Génesis</time>
+            </header>
+            <p class="sis-text">
+              Lanzamiento público de la primera versión de YumeZone: una plataforma moderna, rápida, sin publicidad invasiva
+              y diseñada por y para apasionados de los manhwas, mangas y manhuas en español. Cuentas de usuario seguras,
+              catálogo inicial y visor de lectura limpio.
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script type="module" src="/js/components/components-loader.js"></script>
+  <script type="module" src="/js/pages/sistema.js"></script>
+</body>
+</html>

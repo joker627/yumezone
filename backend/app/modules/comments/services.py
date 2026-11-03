@@ -9,9 +9,9 @@ class CommentService:
         self.repository = repository
 
     async def list_comments(
-        self, work_id: int, chapter_id: Optional[int], limit: int
+        self, work_id: int, chapter_id: Optional[int], limit: int, current_user_id: Optional[int] = None
     ) -> List[Dict[str, Any]]:
-        return await self.repository.list_comments(work_id, chapter_id, limit)
+        return await self.repository.list_comments(work_id, chapter_id, limit, current_user_id)
 
     async def create_comment(
         self,
@@ -19,6 +19,7 @@ class CommentService:
         chapter_id: Optional[int],
         current_user: CurrentUser,
         parent_id: Optional[int],
+        reply_to_username: Optional[str],
         content: str,
         contains_spoiler: bool,
     ) -> int:
@@ -48,7 +49,7 @@ class CommentService:
                 )
 
         return await self.repository.create_comment(
-            work_id, chapter_id, current_user.id, parent_id, clean_content, contains_spoiler
+            work_id, chapter_id, current_user.id, parent_id, reply_to_username, clean_content, contains_spoiler
         )
 
     async def update_comment(
@@ -98,14 +99,14 @@ class CommentService:
 
     async def react_to_comment(
         self, comment_id: int, reaction: str, current_user: CurrentUser
-    ) -> None:
+    ) -> Dict[str, Any]:
         comment = await self.repository.get_comment(comment_id)
         if not comment or comment.get("status") != "VISIBLE":
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Comentario no encontrado"
             )
 
-        await self.repository.set_reaction(comment_id, current_user.id, reaction)
+        return await self.repository.toggle_reaction(comment_id, current_user.id, reaction)
 
     async def report_comment(
         self,
@@ -118,6 +119,12 @@ class CommentService:
         if not comment:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Comentario no encontrado"
+            )
+
+        if await self.repository.has_pending_report(current_user.id, comment_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Ya has enviado un reporte que se encuentra pendiente de revisión.",
             )
 
         return await self.repository.create_report(

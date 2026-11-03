@@ -1,17 +1,16 @@
 import json
-import logging
-from typing import Optional, Any
-import redis.asyncio as aioredis
-from app.core.settings.config import get_settings
+from typing import Optional
 
-logger = logging.getLogger("yumezone.redis")
+import redis.asyncio as aioredis
+
+from app.core.config import get_settings
 
 _redis_client: Optional[aioredis.Redis] = None
-_redis_available: bool = False
 
 
+# inicializar conexion con pool de redis
 async def init_redis_pool():
-    global _redis_client, _redis_available
+    global _redis_client
     settings = get_settings()
     try:
         client = aioredis.from_url(
@@ -22,24 +21,45 @@ async def init_redis_pool():
         )
         await client.ping()
         _redis_client = client
-        _redis_available = True
         print(" Conexión con Redis inicializada exitosamente.")
     except Exception as e:
-        print(f" Aviso: Redis no disponible en {settings.redis_url} ({e}). Operando con fallback en memoria.")
+        print(f" Aviso: Redis no disponible en {settings.redis_url} ({e}). Se opera sin caché.")
         _redis_client = None
-        _redis_available = False
 
 
+# cerrar conexion de redis de forma segura
 async def close_redis_pool():
     global _redis_client
     if _redis_client is not None:
         await _redis_client.aclose()
+        _redis_client = None
         print(" Conexión con Redis cerrada.")
 
 
+# obtener cliente activo de redis
 def get_redis_client() -> Optional[aioredis.Redis]:
-    return _redis_client if _redis_available else None
+    return _redis_client
 
 
-def is_redis_available() -> bool:
-    return _redis_available
+# consulta con cache redis y ejecucion de fallback seguro
+async def cached_query(key: str, query_func, ttl: int = 60):
+    client = get_redis_client()
+    if client:
+        try:
+            cached = await client.get(key)
+            if cached:
+                return json.loads(cached)
+        except Exception:
+            pass
+
+    res = query_func()
+    data = await res if hasattr(res, "__await__") else res
+
+    if client and data is not None:
+        try:
+            await client.set(key, json.dumps(data, default=str), ex=ttl)
+        except Exception:
+            pass
+
+    return data
+

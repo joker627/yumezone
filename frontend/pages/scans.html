@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d14">
+  <meta name="description" content="Directorio de clanes y equipos de traducción en YumeZone. Conoce a los scans detrás de tus mangas y manhwas favoritos, apoya su trabajo o únete a sus filas.">
+  <meta name="keywords" content="scans manga, clanes manhwa, equipos traduccion manga, scanlators español, yumescans, ghostscans, yumezone">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="YumeZone">
+  <meta property="og:url" content="https://yumezone.page/pages/scans.html">
+  <meta property="og:title" content="Clanes & Scans de Traducción | YumeZone">
+  <meta property="og:description" content="Conoce a los equipos de traducción detrás de tus series favoritas. Explora sus obras o únete a su clan.">
+  <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://yumezone.page/pages/scans.html">
+  <meta name="twitter:title" content="Clanes & Scans de Traducción | YumeZone">
+  <meta name="twitter:description" content="Conoce a los equipos de traducción detrás de tus series favoritas. Explora sus obras o únete a su clan.">
+  <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png">
+
+  <link rel="canonical" href="https://yumezone.page/pages/scans.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="YumeZone">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="/manifest.json">
+  <title>Clanes & Scans de Traducción | YumeZone</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/pages/scans.css">
+</head>
+<body>
+  <header id="header"></header>
+
+  <main id="app" class="scans-page">
+    <div class="scans-container">
+
+      <!-- Hero Header -->
+      <section class="scans-hero">
+        <div class="scans-hero-badge">
+          <span class="scans-hero-dot"></span>
+          <span>GREMIOS DE TRADUCCIÓN</span>
+        </div>
+        <h1 class="scans-hero-title">Clanes & Scans de Traducción</h1>
+        <p class="scans-hero-subtitle">
+          Descubre a los equipos que dan vida a tus mangas, manhwas y manhuas favoritos en español.
+          Explora sus catálogos, conoce a sus miembros o postúlate para unirte a su clan.
+        </p>
+
+        <!-- Stats Globales -->
+        <div class="scans-global-stats" id="scans-global-stats">
+          <div class="scans-stat-card">
+            <span class="scans-stat-val" id="stat-clans-count"><span class="is-loading is-loading--sm"></span></span>
+            <span class="scans-stat-lbl">Clanes Activos</span>
+          </div>
+          <div class="scans-stat-card">
+            <span class="scans-stat-val" id="stat-works-count"><span class="is-loading is-loading--sm"></span></span>
+            <span class="scans-stat-lbl">Obras Traducidas</span>
+          </div>
+          <div class="scans-stat-card">
+            <span class="scans-stat-val" id="stat-chapters-count"><span class="is-loading is-loading--sm"></span></span>
+            <span class="scans-stat-lbl">Capítulos Subidos</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección Mi Clan (Condicional si el usuario pertenece a uno) -->
+      <section id="my-clan-section" class="my-clan-section" hidden>
+        <div class="my-clan-card" id="my-clan-card">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </section>
+
+      <!-- Filtros y Búsqueda -->
+      <section class="scans-filter-bar">
+        <div class="scans-search-wrap">
+          <img src="/assets/icons/svg/actions/search.svg" class="scans-search-icon" alt="" aria-hidden="true" width="16" height="16">
+          <input type="text" id="scans-search-input" class="scans-search-input" placeholder="Buscar clan o scan por nombre…" aria-label="Buscar clan">
+          <button id="scans-search-clear" class="scans-search-clear" type="button" aria-label="Limpiar búsqueda" hidden>
+            <img src="/assets/icons/svg/actions/clear.svg" alt="" width="14" height="14">
+          </button>
+        </div>
+
+        <div class="scans-tabs" id="scans-tabs" role="tablist">
+          <button type="button" class="scans-tab active" data-filter="all" role="tab" aria-selected="true">
+            <span>Todos</span>
+          </button>
+          <button type="button" class="scans-tab" data-filter="active" role="tab" aria-selected="false">
+            <span>Más Activos</span>
+          </button>
+          <button type="button" class="scans-tab" data-filter="works" role="tab" aria-selected="false">
+            <span>Top Obras</span>
+          </button>
+          <button type="button" class="scans-tab" data-filter="recruiting" role="tab" aria-selected="false">
+            <span class="scans-tab-dot"></span>
+            <span>Reclutando</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Cuadrícula de Scans -->
+      <section class="scans-grid-wrapper">
+        <div id="scans-grid" class="scans-grid" data-skeleton="scans" data-skeleton-count="6" aria-live="polite"></div>
+
+        <div id="scans-empty" class="scans-empty" hidden>
+          <img src="/assets/icons/svg/content/info.svg" alt="" width="32" height="32">
+          <h3>No se encontraron clanes</h3>
+          <p>Prueba buscando con otro término o seleccionando otra pestaña.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal de Detalle de Clan -->
+  <dialog id="clan-modal" class="clan-modal" aria-labelledby="clan-modal-title">
+    <div class="clan-modal-dialog">
+      <div class="clan-modal-header" id="clan-modal-header">
+        <button id="clan-modal-close" class="clan-modal-close" type="button" aria-label="Cerrar modal">
+          <img src="/assets/icons/svg/actions/x.svg" alt="" width="16" height="16">
+        </button>
+        <div class="clan-modal-banner-wrap" id="modal-banner-wrap">
+          <img id="modal-clan-banner" class="clan-modal-banner" src="" alt="">
+          <div class="clan-modal-banner-scrim"></div>
+        </div>
+        <div class="clan-modal-identity">
+          <img id="modal-clan-logo" class="clan-modal-logo" src="" alt="">
+          <div class="clan-modal-names">
+            <div class="clan-modal-title-row">
+              <h2 id="clan-modal-title" class="clan-modal-title"></h2>
+              <span class="clan-badge-verified" title="Clan Verificado">
+                <img src="/assets/icons/svg/gamification/verified.svg" alt="" width="14" height="14">
+              </span>
+            </div>
+            <p id="modal-clan-desc" class="clan-modal-desc"></p>
+          </div>
+        </div>
+
+        <!-- Barra de Acciones del Modal (Discord, Web) -->
+        <div class="clan-modal-socials" id="modal-clan-socials">
+          <!-- Inyectado dinámicamente -->
+        </div>
+
+        <!-- Pestañas del Modal -->
+        <div class="clan-modal-tabs" id="modal-tabs">
+          <button type="button" class="clan-modal-tab active" data-tab="works">
+            <img src="/assets/icons/svg/content/book.svg" alt="" width="14" height="14">
+            <span>Obras Traducidas</span>
+            <span class="clan-modal-tab-badge" id="modal-tab-works-count"></span>
+          </button>
+          <button type="button" class="clan-modal-tab" data-tab="members">
+            <img src="/assets/icons/svg/user/user.svg" alt="" width="14" height="14">
+            <span>Miembros del Clan</span>
+            <span class="clan-modal-tab-badge" id="modal-tab-members-count"></span>
+          </button>
+          <button type="button" class="clan-modal-tab" data-tab="recruiting">
+            <img src="/assets/icons/svg/gamification/bolt.svg" alt="" width="14" height="14">
+            <span>Reclutamiento</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenido de Pestañas del Modal -->
+      <div class="clan-modal-body">
+        <!-- Pestaña Obras -->
+        <div class="clan-modal-pane active" id="pane-works">
+          <div class="clan-works-grid" id="modal-works-grid">
+            <!-- Inyectado dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Pestaña Miembros -->
+        <div class="clan-modal-pane" id="pane-members">
+          <div class="clan-members-list" id="modal-members-list">
+            <!-- Inyectado dinámicamente con roles reales de la BD -->
+          </div>
+        </div>
+
+        <!-- Pestaña Reclutamiento -->
+        <div class="clan-modal-pane" id="pane-recruiting">
+          <div class="clan-recruiting-view" id="modal-recruiting-view">
+            <!-- Inyectado dinámicamente con roles disponibles de la BD -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script type="module" src="/js/components/components-loader.js"></script>
+  <script type="module" src="/js/pages/scans.js"></script>
+</body>
+</html>
