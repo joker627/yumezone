@@ -76,4 +76,3 @@ async def resolve_connection(conn: Optional[aiomysql.Connection] = None) -> Asyn
         async with pool.acquire() as pool_conn:
             yield pool_conn
 
-

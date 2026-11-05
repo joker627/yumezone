@@ -903,11 +903,11 @@ function renderCommentMainMarkup(c) {
                     </button>
                     ${isOwn ? `
                     <button type="button" class="comment-action-btn edit-btn" data-action="edit" title="Editar comentario">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <img src="/assets/icons/svg/actions/edit.svg" width="12" height="12" alt="" aria-hidden="true">
                         <span>Editar</span>
                     </button>
                     <button type="button" class="comment-action-btn delete-btn" data-action="delete" title="Eliminar comentario">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <img src="/assets/icons/svg/actions/trash.svg" width="12" height="12" alt="" aria-hidden="true">
                         <span>Eliminar</span>
                     </button>
                     ` : ''}
@@ -976,11 +976,11 @@ function renderCommentReplyMarkup(r) {
                 </button>
                 ${isOwn ? `
                 <button type="button" class="comment-action-btn edit-btn" data-action="edit" title="Editar respuesta">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <img src="/assets/icons/svg/actions/edit.svg" width="11" height="11" alt="" aria-hidden="true">
                     <span>Editar</span>
                 </button>
                 <button type="button" class="comment-action-btn delete-btn" data-action="delete" title="Eliminar respuesta">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <img src="/assets/icons/svg/actions/trash.svg" width="11" height="11" alt="" aria-hidden="true">
                     <span>Eliminar</span>
                 </button>
                 ` : ''}

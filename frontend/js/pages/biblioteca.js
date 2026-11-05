@@ -1,5 +1,5 @@
 import { apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
-import { safeUrl, IMG_FALLBACK } from '../shared/ui-utils.js';
+import { safeUrl, IMG_FALLBACK, makeWorkUrl, makeReaderUrl } from '../shared/ui-utils.js';
 import { renderLibrarySkeletons } from '../components/skeletons.js';
 
 const loadingSection = document.getElementById('library-loading');
@@ -49,16 +49,6 @@ function normalizeStatus(rawStatus) {
 
 let libraryItems = [];
 let activeFilter = 'ALL';
-
-function makeWorkUrl(work) {
-    if (!work.slug) return null;
-    return `/pages/obra.html?slug=${encodeURIComponent(work.slug)}`;
-}
-
-function makeReaderUrl(work) {
-    if (!work.slug || !work.first_chapter_id) return null;
-    return `/pages/leer.html?obra=${encodeURIComponent(work.slug)}&chapter_id=${work.first_chapter_id}`;
-}
 
 function setFeedback(text, isError = false) {
     feedback.textContent = text;

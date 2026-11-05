@@ -13,7 +13,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     avatar_url VARCHAR(255),
     banner_url VARCHAR(500) NULL,
-    anillo_url VARCHAR(500) NULL,
+    avatar_frame_url VARCHAR(500) NULL,
     active_title VARCHAR(100) NULL,
     country VARCHAR(10) NULL DEFAULT 'CO',
     bio TEXT,
@@ -374,49 +374,6 @@ CREATE TABLE IF NOT EXISTS user_daily_missions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Chat en vivo de la comunidad
-CREATE TABLE IF NOT EXISTS chats (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_chats_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Reacciones a mensajes del chat
-CREATE TABLE IF NOT EXISTS chat_reactions (
-    message_id INT NOT NULL,
-    user_id INT NOT NULL,
-    reaction VARCHAR(16) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (message_id, user_id, reaction),
-    FOREIGN KEY (message_id) REFERENCES chats(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_chat_reactions_msg (message_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Purga automática diaria: conserva solamente los mensajes de las últimas 24 horas.
--- Requiere que MySQL tenga event_scheduler = ON.
-CREATE EVENT IF NOT EXISTS purge_expired_chats
-ON SCHEDULE EVERY 1 HOUR
-DO DELETE FROM chats
-WHERE created_at < (CURRENT_TIMESTAMP - INTERVAL 24 HOUR);
-
--- Medallas del sistema
-CREATE TABLE IF NOT EXISTS badges (
-    id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    tier VARCHAR(50) NOT NULL DEFAULT 'Bronce',
-    icon VARCHAR(50) NOT NULL DEFAULT 'award',
-    description TEXT,
-    condition_type VARCHAR(50) NOT NULL,
-    condition_value INT NOT NULL DEFAULT 1,
-    sort_order INT NOT NULL DEFAULT 0,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Catálogo de la tienda (banners, cosméticos, etc.)
 CREATE TABLE IF NOT EXISTS shop_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -528,7 +485,7 @@ CREATE TABLE comment_reactions (
 CREATE TABLE content_reports (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     reporter_user_id INT NOT NULL,
-    entity_type ENUM('COMMENT', 'CHAT', 'WORK', 'CHAPTER', 'USER') NOT NULL,
+    entity_type ENUM('COMMENT', 'WORK', 'CHAPTER', 'USER') NOT NULL,
     entity_id BIGINT NOT NULL,
     reason VARCHAR(100) NOT NULL,
     details TEXT NULL,
@@ -622,10 +579,10 @@ CREATE INDEX idx_stats_favorites ON work_statistics (favorites_count);
 CREATE INDEX idx_chapters_status_published ON chapters (status, published_at);
 
 CREATE INDEX idx_library_user_status_added ON user_library (user_id, status, added_at);
+CREATE INDEX idx_user_library_work_status ON user_library (work_id, status, rating);
 CREATE INDEX idx_scan_members_user_group ON scan_group_members (user_id, group_id);
 CREATE INDEX idx_announcements_active_created ON announcements (is_active, created_at);
 CREATE INDEX idx_comments_parent_created ON comments (parent_id, created_at);
-CREATE INDEX idx_chat_reactions_msg_reaction ON chat_reactions (message_id, reaction);
 
 -- ==========================================
 -- 11. TRIGGERS DE RENDIMIENTO (OPTIMIZACIÓN)

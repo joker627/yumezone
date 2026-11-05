@@ -974,68 +974,6 @@
   color: #94a3b8;
 }
 
-/* grid medallas */
-.profile-badges-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
-}
-
-.badge-tile {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: border-color 0.2s ease;
-}
-
-.badge-tile.is-locked {
-  opacity: 0.45;
-  filter: grayscale(1);
-}
-
-.badge-tile.is-unlocked {
-  background: rgba(0, 191, 166, 0.06);
-  border-color: rgba(0, 191, 166, 0.24);
-}
-
-.badge-tile__icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.badge-tile__info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.badge-tile__name {
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: #f8fafc;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.badge-tile__progress {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* estados vacíos y privados */
 .profile-empty-state,
 .profile-private-card {

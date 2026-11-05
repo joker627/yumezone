@@ -362,21 +362,6 @@ class LibraryRepository:
                 "read_count": read_count,
             }
 
-    async def get_chapter_page_count(self, work_id: int, chapter_id: int) -> Optional[int]:
-        async with self._cursor(aiomysql.DictCursor) as (conn, cur):
-            await cur.execute(
-                """
-                SELECT COUNT(ci.id) AS total_pages
-                FROM chapters AS c
-                LEFT JOIN chapter_images AS ci ON ci.chapter_id = c.id
-                WHERE c.id = %s AND c.work_id = %s
-                GROUP BY c.id
-                """,
-                (chapter_id, work_id),
-            )
-            row = await cur.fetchone()
-            return int(row["total_pages"]) if row is not None else None
-
     async def set_work_rating(self, user_id: int, work_id: int, rating: float) -> dict:
         async with self._cursor() as (conn, cur):
             await cur.execute(

@@ -31,13 +31,10 @@ TRUNCATE TABLE user_coin_transactions;
 TRUNCATE TABLE user_daily_missions;
 TRUNCATE TABLE user_inventory;
 TRUNCATE TABLE shop_items;
-TRUNCATE TABLE badges;
 TRUNCATE TABLE user_roles;
 TRUNCATE TABLE role_permissions;
 TRUNCATE TABLE permissions;
 TRUNCATE TABLE roles;
-TRUNCATE TABLE chat_reactions;
-TRUNCATE TABLE chats;
 TRUNCATE TABLE comment_reactions;
 TRUNCATE TABLE comments;
 TRUNCATE TABLE content_reports;
@@ -49,7 +46,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ==========================================
 -- 1. USUARIOS
 -- ==========================================
-INSERT IGNORE INTO users (id, user_code, username, email, password, avatar_url, banner_url, anillo_url, country, bio, platform_role, status, coins, xp, streak_days) VALUES
+INSERT IGNORE INTO users (id, user_code, username, email, password, avatar_url, banner_url, avatar_frame_url, country, bio, platform_role, status, coins, xp, streak_days) VALUES
 (1, '3F1EBC225197C5CB', 'YumeMaster', 'manuel7xs@gmail.com', '$argon2id$v=19$m=65536,t=3,p=4$oqDEHluADePJ1vRyFtXhRg$HLQ0nz8Q/mUt5BBdvQo0We0tkKDmWuKBv6qnPkNoG4k', 'https://s1.cdnlxd.xyz/avatars/gqjoqnqwzqr3z42t_1787169934547.webp?v=1787169934793', '/assets/images/shop/banner1.webp', '/assets/images/shop/anillo1.webp', 'CO', 'Administrador principal de YumeZone.', 'SUPERADMIN', 'ACTIVE', 3000, 45000, 14),
 (2, 'SCN001', 'GhostMaster', 'ghost@yumezone.com', '$2b$12$hash_fake_ghost', 'https://i.pravatar.cc/150?u=ghost', '/assets/images/shop/banner2.webp', '/assets/images/shop/anillo2.webp', 'MX', 'Líder de GhostScans. MOD del chat.', 'SUPERADMIN', 'ACTIVE', 800, 40000, 3),
 (3, 'USR001', 'KiritoFan', 'kirito@test.com', '$2b$12$hash_fake_user1', 'https://i.pravatar.cc/150?u=kirito', NULL, NULL, 'ES', 'Fan del cultivo espectral', 'USER', 'ACTIVE', 350, 17000, 7),
@@ -527,7 +524,6 @@ INSERT IGNORE INTO chapter_images (chapter_id, image_url, order_number) VALUES
 (3,'',15),
 (3,'',16),
 (3,'',17),
-(3,'',18),
 -- Martial Peak cap 3600: 16 páginas
 (7,'',1),
 (7,'',2),
@@ -725,19 +721,6 @@ INSERT IGNORE INTO notifications (user_id, type, payload, read_at) VALUES
 (1, 'system', '{"title": "Tu cuenta ha sido verificada exitosamente como SuperAdmin."}', NOW() - INTERVAL 1 DAY);
 
 -- ==========================================
--- 15. MEDALLAS (BADGES)
--- ==========================================
-INSERT IGNORE INTO badges (id, name, tier, icon, description, condition_type, condition_value, sort_order) VALUES
-('chapters_1', 'Primer Paso', 'Bronce', 'book', 'Leer tu primer capítulo en la plataforma YumeZone', 'chapters', 1, 1),
-('streak_3d', 'Constancia Diaria', 'Bronce', 'fire', 'Mantener una racha activa de lectura de al menos 3 días', 'streak', 3, 2),
-('streak_7d', 'Fuego Semanal', 'Plata', 'fire', 'Leer diariamente durante 7 días continuos', 'streak', 7, 3),
-('chapters_25', 'Lector Dedicado', 'Plata', 'book', 'Completar la lectura de al menos 25 capítulos', 'chapters', 25, 4),
-('chapters_100', 'Devorador de Capítulos', 'Oro', 'book', 'Superar los 100 capítulos leídos en YumeZone', 'chapters', 100, 5),
-('library_5', 'Coleccionista', 'Jade', 'library', 'Guardar al menos 5 obras en tu biblioteca personal', 'following', 5, 6),
-('critic', 'Voz Activa', 'Azul', 'comment', 'Participar con al menos 3 comentarios en la comunidad', 'comments', 3, 7),
-('verified', 'Insignia Oficial Staff / Scan', 'Especial', 'verified', 'Verificación reservada a Staff oficial o miembros de Scan groups', 'staff_scan', 1, 8);
-
--- ==========================================
 -- 16. TIENDA DE ARTÍCULOS (SHOP_ITEMS)
 -- ==========================================
 INSERT IGNORE INTO shop_items (id, category, name, description, price_coins, preview_url, required_level, rarity) VALUES
@@ -802,29 +785,11 @@ INSERT IGNORE INTO comment_reactions (comment_id, user_id, reaction, created_at)
 (3, 1, 'LIKE', NOW() - INTERVAL 5 MINUTE);
 
 -- ==========================================
--- 19. CHAT EN VIVO DE LA COMUNIDAD (CHATS)
--- ==========================================
-INSERT IGNORE INTO chats (id, user_id, content, created_at) VALUES
-(1, 1, '¡Bienvenidos a YumeZone! Que disfruten los nuevos capítulos ', NOW() - INTERVAL 15 MINUTE),
-(2, 2, 'El nuevo capítulo de Solo Leveling estuvo increíble ', NOW() - INTERVAL 10 MINUTE),
-(3, 3, '¿Alguien sabe cuándo sale la actualización de Nano Machine? ', NOW() - INTERVAL 5 MINUTE);
-
--- ==========================================
--- 20. REACCIONES DEL CHAT (CHAT_REACTIONS)
--- ==========================================
-INSERT IGNORE INTO chat_reactions (message_id, user_id, reaction) VALUES
-(1, 2, '❤️'),
-(1, 3, '🔥'),
-(2, 1, '🔥'),
-(2, 3, '👍'),
-(3, 1, '❤️');
-
--- ==========================================
--- 21. REPORTES DE CONTENIDO (CONTENT_REPORTS)
+-- 19. REPORTES DE CONTENIDO (CONTENT_REPORTS)
 -- ==========================================
 INSERT IGNORE INTO content_reports (id, reporter_user_id, entity_type, entity_id, reason, details, status, reviewed_by, reviewed_at, created_at) VALUES
 (1, 3, 'COMMENT', 3, 'Spam o publicidad encubierta', 'Pregunta reiterada en múltiples capítulos sin aportar al debate.', 'OPEN', NULL, NULL, NOW() - INTERVAL 2 HOUR),
-(2, 4, 'CHAT', 2, 'Lenguaje inapropiado o spoiler', 'Comentario revelando giros de la trama sin etiqueta de advertencia.', 'REVIEWING', 2, NOW() - INTERVAL 30 MINUTE, NOW() - INTERVAL 1 HOUR),
+(2, 4, 'COMMENT', 2, 'Lenguaje inapropiado o spoiler', 'Comentario revelando giros de la trama sin etiqueta de advertencia.', 'REVIEWING', 2, NOW() - INTERVAL 30 MINUTE, NOW() - INTERVAL 1 HOUR),
 (3, 5, 'WORK', 1, 'Error en metadatos o sinopsis', 'El autor de la obra tenía un error tipográfico en la traducción.', 'RESOLVED', 1, NOW() - INTERVAL 1 DAY, NOW() - INTERVAL 2 DAY);
 
 -- ==========================================

@@ -37,7 +37,7 @@ async function copyToClipboard(text) {
 // template header
 export function getHeaderTemplate() {
   return `
-    <nav id="navigation" class="header" aria-label="NavegaciÃ³n principal">
+    <nav id="navigation" class="header" aria-label="Navegación principal">
       <a id="brand" class="header-brand" href="/index.html">
         <img id="logo" class="header-logo" src="/assets/icons/logo.png" alt="YumeZone" width="32" height="32">
         <span class="header-brand-name">Yume<span>Zone</span></span>
@@ -46,31 +46,31 @@ export function getHeaderTemplate() {
       <div id="navigation-content" class="header-content">
         <div id="navigation-links" class="header-links">
           <a id="home-link" class="header-link" href="/index.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <img class="header-link-icon" src="/assets/icons/svg/navigation/home.svg" alt="" aria-hidden="true">
             <span>Inicio</span>
           </a>
           <a id="explore-link" class="header-link" href="/pages/catalogo.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
-            <span>CatÃ¡logo</span>
+            <img class="header-link-icon" src="/assets/icons/svg/content/grid.svg" alt="" aria-hidden="true">
+            <span>Catálogo</span>
           </a>
           <a id="novedades-link" class="header-link" href="/pages/novedades.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4"></path><path d="m4.93 4.93 2.83 2.83"></path><path d="M2 12h4"></path><path d="m4.93 19.07 2.83-2.83"></path><path d="M12 22v-4"></path><path d="m19.07 19.07-2.83-2.83"></path><path d="M22 12h-4"></path><path d="m19.07 4.93-2.83 2.83"></path></svg>
-            <span>Actualizaciones</span>
+            <img class="header-link-icon" src="/assets/icons/svg/navigation/launches.svg" alt="" aria-hidden="true">
+            <span>Lanzamientos</span>
           </a>
           <a id="eventos-link" class="header-link" href="/pages/eventos.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
+            <img class="header-link-icon" src="/assets/icons/svg/navigation/calendar.svg" alt="" aria-hidden="true">
             <span>Eventos</span>
           </a>
           <a id="ranking-link" class="header-link" href="/pages/ranking.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+            <img class="header-link-icon" src="/assets/icons/svg/navigation/ranking.svg" alt="" aria-hidden="true">
             <span>Ranking</span>
           </a>
           <a id="scans-link" class="header-link" href="/pages/scans.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <img class="header-link-icon" src="/assets/icons/svg/user/users.svg" alt="" aria-hidden="true">
             <span>Scans</span>
           </a>
           <a id="sistema-link" class="header-link" href="/pages/sistema.html">
-            <svg class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg>
+            <img class="header-link-icon" src="/assets/icons/svg/navigation/system.svg" alt="" aria-hidden="true">
             <span>Sistema</span>
           </a>
         </div>
@@ -93,7 +93,7 @@ export function getHeaderTemplate() {
               <img class="header-icon" src="/assets/icons/svg/actions/search.svg" alt="" aria-hidden="true">
             </button>
             <button id="search-clear" class="header-search-clear" type="button"
-              aria-label="Limpiar bÃºsqueda" title="Limpiar bÃºsqueda" hidden>
+              aria-label="Limpiar búsqueda" title="Limpiar búsqueda" hidden>
               <img src="/assets/icons/svg/actions/clear.svg" alt="" aria-hidden="true">
             </button>
           </form>
@@ -103,7 +103,7 @@ export function getHeaderTemplate() {
       </div>
 
       <button id="menu-toggle" class="header-menu-toggle" type="button"
-        aria-label="Abrir menÃº" aria-expanded="false" aria-controls="navigation-content">
+        aria-label="Abrir menú" aria-expanded="false" aria-controls="navigation-content">
         <img class="header-icon" src="/assets/icons/svg/navigation/menu.svg" alt="" aria-hidden="true">
       </button>
 
@@ -127,7 +127,7 @@ export function getHeaderTemplate() {
               <div class="header-notifications-header">
                 <h3>Notificaciones</h3>
                 <div class="header-notifications-actions">
-                  <button type="button" id="notifications-read-all" class="header-notifications-readall" hidden>Marcar todo leÃ­do</button>
+                  <button type="button" id="notifications-read-all" class="header-notifications-readall" hidden>Marcar todo leído</button>
                   <button type="button" id="notifications-clear-all" class="header-notifications-clearall" hidden>Limpiar</button>
                 </div>
               </div>
@@ -140,7 +140,7 @@ export function getHeaderTemplate() {
 
         <div id="header-profile" class="header-profile" hidden>
           <button id="profile-toggle" class="header-profile-toggle" type="button"
-            aria-label="Abrir menÃº de perfil" aria-expanded="false" aria-controls="profile-menu">
+            aria-label="Abrir menú de perfil" aria-expanded="false" aria-controls="profile-menu">
             <div class="header-avatar-ring">
               <span id="profile-initials" class="header-profile-initials" aria-hidden="true">Y</span>
               <img id="profile-avatar" class="header-profile-avatar" alt="" hidden>
@@ -149,7 +149,7 @@ export function getHeaderTemplate() {
             </div>
           </button>
           <div id="profile-menu" class="header-profile-menu" role="menu"
-            aria-label="MenÃº de perfil" hidden>
+            aria-label="Menú de perfil" hidden>
             <div class="header-profile-card">
               <div class="header-profile-card-top">
                 <div class="header-profile-avatar-thumb">
@@ -187,7 +187,7 @@ export function getHeaderTemplate() {
               </div>
             </div>
 
-            <!-- Progreso y GamificaciÃ³n -->
+            <!-- Progreso y Gamificación -->
             <div class="header-profile-gamification">
               <div class="header-stats-dd-head">
                 <div class="header-stats-dd-level-badge" id="stats-dd-level-badge"><span class="is-loading is-loading--sm"></span></div>
@@ -228,7 +228,7 @@ export function getHeaderTemplate() {
             <div class="header-profile-links">
               <a href="/pages/usuario.html" id="header-public-profile-link" class="header-profile-link" role="menuitem">
                 <img src="/assets/icons/svg/user/user.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <span>Mi perfil pÃºblico</span>
+                <span>Mi perfil público</span>
               </a>
               <a href="/pages/scans.html" class="header-profile-link" role="menuitem">
                 <img src="/assets/icons/svg/user/users.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
@@ -250,7 +250,7 @@ export function getHeaderTemplate() {
 
             <button id="logout-button" class="header-profile-logout" type="button" role="menuitem">
               <img src="/assets/icons/svg/user/logout.svg" alt="" aria-hidden="true">
-              <span>Cerrar sesiÃ³n</span>
+              <span>Cerrar sesión</span>
             </button>
           </div>
         </div>
@@ -365,7 +365,7 @@ export function renderSiteHeader(container) {
     success: '/assets/icons/svg/actions/check.svg',
   };
 
-  // menÃº mÃ³vil
+  // menú móvil
   function isMenuOpen() {
     return navigationContent.classList.contains('header-content-open');
   }
@@ -375,7 +375,7 @@ export function renderSiteHeader(container) {
     navigationContent.classList.add('header-content-open');
     menuBackdrop.classList.add('header-menu-backdrop-visible');
     menuToggle.setAttribute('aria-expanded', 'true');
-    menuToggle.setAttribute('aria-label', 'Cerrar menÃº');
+    menuToggle.setAttribute('aria-label', 'Cerrar menú');
     const img = menuToggle.querySelector('img');
     if (img) img.src = ICONS.close;
     document.body.classList.add('menu-open');
@@ -386,7 +386,7 @@ export function renderSiteHeader(container) {
     navigationContent.classList.remove('header-content-open');
     menuBackdrop.classList.remove('header-menu-backdrop-visible');
     menuToggle.setAttribute('aria-expanded', 'false');
-    menuToggle.setAttribute('aria-label', 'Abrir menÃº');
+    menuToggle.setAttribute('aria-label', 'Abrir menú');
     const img = menuToggle.querySelector('img');
     if (img) img.src = ICONS.menu;
     document.body.classList.remove('menu-open');
@@ -554,7 +554,7 @@ export function renderSiteHeader(container) {
       return;
     }
     if (query.length < 2 && !query.startsWith('@')) {
-      setSuggestionStatus('Escribe un carÃ¡cter mÃ¡s para buscar.');
+      setSuggestionStatus('Escribe un carácter más para buscar.');
       return;
     }
 
@@ -571,7 +571,7 @@ export function renderSiteHeader(container) {
         if (requestId !== searchRequestId || query !== searchInput.value.trim()) return;
 
         if (!Array.isArray(items) || !items.length) {
-          setSuggestionStatus(query.startsWith('@') ? 'No se encontraron usuarios.' : 'No encontramos resultados con esa bÃºsqueda.');
+          setSuggestionStatus(query.startsWith('@') ? 'No se encontraron usuarios.' : 'No encontramos resultados con esa búsqueda.');
           return;
         }
 
@@ -681,7 +681,7 @@ export function renderSiteHeader(container) {
         <div class="header-notifications-empty-icon" aria-hidden="true">
           <img src="/assets/icons/svg/user/bell.svg" width="22" height="22" alt="">
         </div>
-        <p class="header-notifications-empty-title">Â¡EstÃ¡s al dÃ­a!</p>
+        <p class="header-notifications-empty-title">¡Estás al día!</p>
         <p class="header-notifications-empty-desc">No tienes notificaciones pendientes.</p>
       </div>
     `;
@@ -714,7 +714,7 @@ export function renderSiteHeader(container) {
 
       notificationsList.innerHTML = '';
       items.forEach(item => {
-        const title = item.title || 'NotificaciÃ³n';
+        const title = item.title || 'Notificación';
         const desc = item.description || '';
         const timeAgo = item.time_ago || formatTimeAgo(item.created_at);
         const targetUrl = item.target_url || null;
@@ -735,10 +735,10 @@ export function renderSiteHeader(container) {
             ${desc ? `<span class="header-notification-desc">${escapeHTML(desc)}</span>` : ''}
             <span class="header-notification-time">
               <span>${escapeHTML(timeAgo)}</span>
-              ${targetUrl ? `<span class="header-notification-link-tag">Â· Ver â†’</span>` : ''}
+              ${targetUrl ? `<span class="header-notification-link-tag">· Ver →</span>` : ''}
             </span>
           </div>
-          <button type="button" class="header-notification-dismiss" title="Descartar notificaciÃ³n" aria-label="Descartar notificaciÃ³n">
+          <button type="button" class="header-notification-dismiss" title="Descartar notificación" aria-label="Descartar notificación">
             <img src="/assets/icons/svg/actions/x.svg" width="14" height="14" alt="" aria-hidden="true">
           </button>
         `;
@@ -821,7 +821,7 @@ export function renderSiteHeader(container) {
     try {
       await apiRequest('/notifications/read-all', { method: 'PATCH' });
     } catch (error) {
-      console.warn('Error al marcar todas las notificaciones como leÃ­das:', error);
+      console.warn('Error al marcar todas las notificaciones como leídas:', error);
     }
   }
 
@@ -877,7 +877,7 @@ export function renderSiteHeader(container) {
     }
     profileEmail.textContent = user.email || '';
     profileRole.textContent = user.platform_role || 'USER';
-    profileToggle.setAttribute('aria-label', `Perfil de ${name}. Abrir menÃº`);
+    profileToggle.setAttribute('aria-label', `Perfil de ${name}. Abrir menú`);
     profileInitials.textContent = Array.from(name.trim())[0]?.toLocaleUpperCase() || 'Y';
     if (profileCardInitials) {
       profileCardInitials.textContent = Array.from(name.trim())[0]?.toLocaleUpperCase() || 'Y';
@@ -904,13 +904,13 @@ export function renderSiteHeader(container) {
     if (headerStreak) headerStreak.textContent = `${streak}d`;
     if (headerLevel) headerLevel.textContent = `Nv. ${lvl.level}`;
     if (headerStatPill) {
-      headerStatPill.title = `Nivel ${lvl.level} Â· Racha: ${streak}d Â· Clic para ver estadÃ­sticas`;
+      headerStatPill.title = `Nivel ${lvl.level} · Racha: ${streak}d · Clic para ver estadísticas`;
     }
 
     // anillo xp
     if (avatarRing) {
       avatarRing.style.setProperty('--avatar-xp-pct', `${lvl.percentage}%`);
-      avatarRing.title = `Nivel ${lvl.level} (${lvl.percentage}% XP) Â· ${lvl.current_level_xp}/1000 XP`;
+      avatarRing.title = `Nivel ${lvl.level} (${lvl.percentage}% XP) · ${lvl.current_level_xp}/1000 XP`;
     }
 
     // dropdown progreso
@@ -922,7 +922,7 @@ export function renderSiteHeader(container) {
       statsDdXpRemaining.textContent = `Faltan ${lvl.remaining_xp} XP para Nivel ${lvl.level + 1}`;
     }
     if (statsDdStreakVal) {
-      statsDdStreakVal.textContent = `${streak} ${streak === 1 ? 'dÃ­a' : 'dÃ­as'}`;
+      statsDdStreakVal.textContent = `${streak} ${streak === 1 ? 'día' : 'días'}`;
     }
     if (statsDdCoinsVal) {
       statsDdCoinsVal.textContent = `${coins.toLocaleString()} YC`;
@@ -1171,7 +1171,7 @@ export function renderSiteHeader(container) {
     copyToClipboard(textToCopy).then(() => {
       copyProfileId.setAttribute('aria-label', `${isUserMode ? 'Usuario' : 'ID'} copiado`);
       copyProfileId.classList.add('copied');
-      if (copyBtnText) copyBtnText.textContent = 'Â¡Copiado!';
+      if (copyBtnText) copyBtnText.textContent = '¡Copiado!';
       window.setTimeout(() => {
         copyProfileId.setAttribute('aria-label', 'Copiar al portapapeles');
         copyProfileId.classList.remove('copied');
@@ -1191,7 +1191,7 @@ export function renderSiteHeader(container) {
     clearAccessToken();
     profileUser = null;
     showGuestActions();
-    flashToast('SesiÃ³n cerrada', 'info');
+    flashToast('Sesión cerrada', 'info');
     window.location.assign('/index.html');
   }
 

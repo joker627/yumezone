@@ -26,7 +26,7 @@ class CommentRepository:
                     f"""
                     SELECT c.id, c.work_id, c.chapter_id, c.parent_id, c.reply_to_username, c.content, c.contains_spoiler,
                            c.created_at, c.updated_at, u.id AS user_id, u.username, u.avatar_url,
-                           u.anillo_url, u.anillo_url AS avatar_frame_url,
+                           u.avatar_frame_url, u.avatar_frame_url AS anillo_url,
                            COALESCE(SUM(CASE WHEN cr.reaction = 'LIKE' THEN 1 ELSE 0 END), 0) AS likes,
                            COALESCE(SUM(CASE WHEN cr.reaction = 'DISLIKE' THEN 1 ELSE 0 END), 0) AS dislikes
                            {user_select}

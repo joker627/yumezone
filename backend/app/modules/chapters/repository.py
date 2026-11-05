@@ -232,30 +232,22 @@ class ChapterRepository:
                                 SELECT 1 FROM user_read_chapters urc
                                 JOIN chapters c ON c.id = urc.chapter_id
                                 WHERE urc.user_id = %s AND urc.work_id = %s AND c.chapter_number > %s
-                            ) AS has_higher_read
+                            ) AS has_higher_read,
+                            (
+                                SELECT CASE WHEN rh.chapter_id = %s THEN rh.last_page_read ELSE 1 END
+                                FROM reading_history rh
+                                WHERE rh.user_id = %s AND rh.work_id = %s
+                                LIMIT 1
+                            ) AS last_page_read
                         """,
-                        (user_id, resolved_chapter_id, user_id, resolved_work_id, user_id, resolved_work_id, chapter_row["chapter_number"]),
+                        (user_id, resolved_chapter_id, user_id, resolved_work_id, user_id, resolved_work_id, chapter_row["chapter_number"], resolved_chapter_id, user_id, resolved_work_id),
                     )
                     state_row = await cur.fetchone()
                     if state_row:
                         user_state["is_read"] = bool(state_row["is_read"])
                         user_state["in_library"] = bool(state_row["in_library"])
                         user_state["has_higher_chapter_read"] = bool(state_row["has_higher_read"])
-
-                    await cur.execute(
-                        """
-                        SELECT chapter_id, last_page_read
-                        FROM reading_history
-                        WHERE user_id = %s AND work_id = %s
-                        LIMIT 1
-                        """,
-                        (user_id, resolved_work_id),
-                    )
-                    hist_row = await cur.fetchone()
-                    if hist_row and hist_row["chapter_id"] == resolved_chapter_id:
-                        user_state["last_page_read"] = hist_row["last_page_read"] or 1
-                    else:
-                        user_state["last_page_read"] = 1
+                        user_state["last_page_read"] = state_row["last_page_read"] or 1
 
                     # Si el capítulo ya fue completado o superado, la relectura arranca en página 1
                     if user_state["is_read"] or user_state["has_higher_chapter_read"]:
@@ -580,14 +572,6 @@ class ChapterImageRepository:
                 )
                 rows = await cur.fetchall()
                 return [ChapterImage(**row) for row in rows]
-
-    # contar imagenes asociadas al capitulo
-    async def count_chapter_images(self, chapter_id: int) -> int:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute("SELECT COUNT(*) FROM chapter_images WHERE chapter_id = %s", (chapter_id,))
-                row = await cur.fetchone()
-                return row[0] if row else 0
 
     # registrar lote de imagenes del capitulo
     async def create_chapter_images(self, images: List[ChapterImage]) -> List[ChapterImage]:

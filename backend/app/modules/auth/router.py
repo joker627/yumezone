@@ -10,7 +10,7 @@ from app.core.dependencies import (
     get_optional_current_user,
     invalidate_user_session,
 )
-from app.core.rate_limit import enforce_rate_limit
+from app.core.redis import enforce_rate_limit
 from app.utils import get_client_ip
 from app.modules.auth.repository import AuthRepository
 from app.modules.auth.schemas import (

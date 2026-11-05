@@ -270,30 +270,13 @@ class ScanGroupRepository:
                         sg.report_methods,
                         sg.status,
                         sg.created_at,
-                        COALESCE(w_count.works_count, 0) AS works_count,
-                        COALESCE(c_count.chapters_count, 0) AS chapters_count,
-                        COALESCE(m_count.members_count, 0) AS members_count,
+                        (SELECT COUNT(*) FROM works WHERE scan_group_id = sg.id) AS works_count,
+                        (SELECT COUNT(*) FROM chapters WHERE scan_group_id = sg.id) AS chapters_count,
+                        (SELECT COUNT(*) FROM scan_group_members WHERE group_id = sg.id) AS members_count,
                         u.username AS owner_username,
                         u.avatar_url AS owner_avatar_url
                     FROM scan_groups sg
                     LEFT JOIN users u ON sg.owner_user_id = u.id
-                    LEFT JOIN (
-                        SELECT scan_group_id, COUNT(*) AS works_count
-                        FROM works
-                        WHERE scan_group_id IS NOT NULL
-                        GROUP BY scan_group_id
-                    ) w_count ON sg.id = w_count.scan_group_id
-                    LEFT JOIN (
-                        SELECT scan_group_id, COUNT(*) AS chapters_count
-                        FROM chapters
-                        WHERE scan_group_id IS NOT NULL
-                        GROUP BY scan_group_id
-                    ) c_count ON sg.id = c_count.scan_group_id
-                    LEFT JOIN (
-                        SELECT group_id, COUNT(*) AS members_count
-                        FROM scan_group_members
-                        GROUP BY group_id
-                    ) m_count ON sg.id = m_count.group_id
                     WHERE sg.slug = %s AND sg.status = 'ACTIVE'
                 """
                 await cur.execute(query, (slug,))

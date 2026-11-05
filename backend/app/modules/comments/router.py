@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.core.database import get_db_connection
 from app.core.dependencies import get_current_active_user, get_optional_current_user
-from app.core.rate_limit import enforce_rate_limit
+from app.core.redis import enforce_rate_limit
 from app.modules.comments.repository import CommentRepository
 from app.modules.comments.schemas import (
     CommentCreate,
