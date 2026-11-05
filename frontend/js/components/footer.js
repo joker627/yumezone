@@ -40,6 +40,8 @@ export function getFooterTemplate() {
             <li><a href="/pages/novedades.html">Últimos Estrenos</a></li>
             <li><a href="/pages/ranking.html">Top Ranking</a></li>
             <li><a href="/pages/scans.html" class="${isScans ? 'active' : ''}">Clanes & Scans</a></li>
+            <li><a href="/pages/eventos.html">Eventos de Temporada</a></li>
+            <li><a href="/pages/sistema.html">Sistema & Actualizaciones</a></li>
           </ul>
         </div>
 

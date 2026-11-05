@@ -12,7 +12,7 @@
   <meta name="author" content="YumeZone">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  
+
   <!-- Open Graph / Facebook / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="YumeZone">
@@ -23,7 +23,7 @@
     content="Descubre y lee mangas, manhwas y manhuas con capítulos actualizados a diario en alta definición, visor webtoon y comunidad activa.">
   <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png">
   <meta property="og:image:alt" content="Logotipo de YumeZone">
-  
+
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://yumezone.page/">
@@ -32,7 +32,7 @@
     content="Descubre y lee mangas, manhwas y manhuas con capítulos actualizados a diario en alta definición.">
   <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png">
   <meta name="twitter:image:alt" content="Logotipo de YumeZone">
-  
+
   <link rel="canonical" href="https://yumezone.page/">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
@@ -42,7 +42,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="/manifest.json">
   <title>YumeZone | Leer Mangas, Manhwas y Manhuas Online en Español</title>
-  
+
   <!-- Schema.org JSON-LD Structured Data for Google Rich Results -->
   <script type="application/ld+json">
   {
@@ -84,7 +84,6 @@
   <link rel="stylesheet" href="/css/components/header.css">
   <link rel="stylesheet" href="/css/components/notice.css">
   <link rel="stylesheet" href="/css/components/hero.css">
-  <link rel="stylesheet" href="/css/components/chat-picker.css">
   <link rel="stylesheet" href="/css/components/home-sections.css">
   <link rel="stylesheet" href="/css/components/footer.css">
 </head>
@@ -138,12 +137,13 @@
                   <p class="hs-subtitle">Capítulos sincronizados en tiempo real por los grupos oficiales</p>
                 </div>
               </div>
+              <div class="hs-head-right">
+                <a class="hs-link" href="/pages/novedades.html">Ver todos los lanzamientos <img
+                    src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
+              </div>
             </div>
-            <div class="launch-grid" id="slot-launch" data-skeleton="home-launch" data-skeleton-count="6" data-skeleton-cols="2"></div>
-            <div class="hs-foot">
-              <span id="launch-count" class="hs-foot-count"></span>
-              <a class="hs-link" href="/pages/novedades.html">Ver todos los estrenos del día <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
-            </div>
+            <div class="launch-grid" id="slot-launch" data-skeleton="home-launch" data-skeleton-count="6"
+              data-skeleton-cols="2"></div>
           </section>
 
           <!-- Top Ranking -->
@@ -167,10 +167,12 @@
                   <button class="hs-tab" type="button" role="tab" data-period="monthly">Mensual</button>
                   <button class="hs-tab" type="button" role="tab" data-period="weekly">Semanal</button>
                 </div>
-                <a class="hs-link hs-link--ml" href="/pages/ranking.html">Ver Top 100 <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
+                <a class="hs-link hs-link--ml" href="/pages/ranking.html">Ver Top 100 <img
+                    src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
               </div>
             </div>
-            <div class="rank-grid" id="slot-rank" data-skeleton="home-rank" data-skeleton-count="6" data-skeleton-cols="3"></div>
+            <div class="rank-grid" id="slot-rank" data-skeleton="home-rank" data-skeleton-count="6"
+              data-skeleton-cols="3"></div>
           </section>
 
           <!-- Populares Esta Semana -->
@@ -195,10 +197,12 @@
                   <button class="hs-tab" type="button" role="tab" data-format="Manga">Manga</button>
                   <button class="hs-tab" type="button" role="tab" data-format="Manhua">Manhua</button>
                 </div>
-                <a class="hs-link hs-link--ml" href="/pages/catalogo.html?order=popular">Ver Catálogo <img src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
+                <a class="hs-link hs-link--ml" href="/pages/catalogo.html?order=popular">Ver Catálogo <img
+                    src="/assets/icons/svg/navigation/arrow-right.svg" alt="" aria-hidden="true"></a>
               </div>
             </div>
-            <div class="popular-grid" id="slot-popular" data-skeleton="home-popular" data-skeleton-count="4" data-skeleton-cols="4"></div>
+            <div class="popular-grid" id="slot-popular" data-skeleton="home-popular" data-skeleton-count="4"
+              data-skeleton-cols="4"></div>
           </section>
 
           <!-- Comunidad & Redes Oficiales -->
@@ -213,13 +217,15 @@
                     <h2 id="hs-social-title" class="hs-title">Canales & Redes Oficiales</h2>
                     <span class="hs-badge hs-badge--live"><span class="hs-dot"></span> OFICIAL</span>
                   </div>
-                  <p class="hs-subtitle">Únete a nuestros canales oficiales para enterarte de nuevos capítulos, sorteos y debates</p>
+                  <p class="hs-subtitle">Únete a nuestros canales oficiales para enterarte de nuevos capítulos, sorteos
+                    y debates</p>
                 </div>
               </div>
             </div>
             <div class="social-cards-grid">
               <!-- Discord -->
-              <a href="https://discord.gg/" target="_blank" rel="noopener noreferrer" class="social-card social-card--discord">
+              <a href="https://discord.gg/" target="_blank" rel="noopener noreferrer"
+                class="social-card social-card--discord">
                 <div class="social-card--glow"></div>
                 <div class="social-card--bg-icon" aria-hidden="true">
                   <img src="/assets/icons/svg/social/discord.svg" alt="">
@@ -234,7 +240,8 @@
                 </div>
                 <div class="social-card--body">
                   <h3 class="social-card--title">Discord</h3>
-                  <p class="social-card--desc">Charla con otros lectores, debate teorías sin spoilers, participa en eventos semanales y obtén roles exclusivos.</p>
+                  <p class="social-card--desc">Charla con otros lectores, debate teorías sin spoilers, participa en
+                    eventos semanales y obtén roles exclusivos.</p>
                 </div>
                 <div class="social-card--footer">
                   <span class="social-card--cta">
@@ -246,7 +253,8 @@
               </a>
 
               <!-- Telegram -->
-              <a href="https://t.me/" target="_blank" rel="noopener noreferrer" class="social-card social-card--telegram">
+              <a href="https://t.me/" target="_blank" rel="noopener noreferrer"
+                class="social-card social-card--telegram">
                 <div class="social-card--glow"></div>
                 <div class="social-card--bg-icon" aria-hidden="true">
                   <img src="/assets/icons/svg/social/telegram.svg" alt="">
@@ -261,7 +269,8 @@
                 </div>
                 <div class="social-card--body">
                   <h3 class="social-card--title">Telegram</h3>
-                  <p class="social-card--desc">Alertas instantáneas en tiempo real cada vez que un nuevo capítulo sale al aire, directo en tu móvil sin spam.</p>
+                  <p class="social-card--desc">Alertas instantáneas en tiempo real cada vez que un nuevo capítulo sale
+                    al aire, directo en tu móvil sin spam.</p>
                 </div>
                 <div class="social-card--footer">
                   <span class="social-card--cta">
@@ -273,7 +282,8 @@
               </a>
 
               <!-- Facebook -->
-              <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer" class="social-card social-card--facebook">
+              <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer"
+                class="social-card social-card--facebook">
                 <div class="social-card--glow"></div>
                 <div class="social-card--bg-icon" aria-hidden="true">
                   <img src="/assets/icons/svg/social/facebook.svg" alt="">
@@ -288,7 +298,8 @@
                 </div>
                 <div class="social-card--body">
                   <h3 class="social-card--title">Facebook</h3>
-                  <p class="social-card--desc">Novedades del mundo del manga, recomendaciones destacadas, reels exclusivos y memes de la comunidad.</p>
+                  <p class="social-card--desc">Novedades del mundo del manga, recomendaciones destacadas, reels
+                    exclusivos y memes de la comunidad.</p>
                 </div>
                 <div class="social-card--footer">
                   <span class="social-card--cta">
@@ -316,7 +327,8 @@
                 <h2 id="aside-anuncios-title" class="aside-card--title">Tablón de Anuncios</h2>
               </div>
               <div class="anuncio-nav-controls" id="anuncio-nav-controls" hidden>
-                <span class="anuncio-counter" id="anuncio-counter"><span class="is-loading is-loading--xs"></span></span>
+                <span class="anuncio-counter" id="anuncio-counter"><span
+                    class="is-loading is-loading--xs"></span></span>
               </div>
             </div>
             <div class="aside-card--body anuncio-body">
@@ -337,56 +349,28 @@
                 <h2 id="aside-mision-title" class="aside-card--title">Misiones Diarias</h2>
               </div>
               <div class="mision-head--badges">
-                <span class="mision-level-badge" id="mision-level-badge"><span class="is-loading is-loading--xs"></span></span>
+                <span class="mision-level-badge" id="mision-level-badge"><span
+                    class="is-loading is-loading--xs"></span></span>
                 <span class="mision-xp-pill" id="mision-xp"><span class="is-loading is-loading--xs"></span></span>
               </div>
             </div>
-            <div class="aside-card--body" id="slot-mision" data-skeleton="home-mision" data-skeleton-count="1" data-skeleton-cols="1"></div>
+            <div class="aside-card--body" id="slot-mision" data-skeleton="home-mision" data-skeleton-count="1"
+              data-skeleton-cols="1"></div>
           </section>
 
-          <!-- Chat en Vivo de la Comunidad -->
-          <section class="aside-card aside-card--chat" aria-labelledby="aside-chat-title" id="section-chat">
-            <div class="aside-card--head">
-              <div class="aside-card--head-left">
-                <div class="aside-card--icon aside-card--icon--teal">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                </div>
-                <div class="chat-title-group">
-                  <h2 id="aside-chat-title" class="aside-card--title">Chat en Vivo</h2>
-                  <div class="chat-online-pill" id="chat-online-badge" title="Lectores en línea">
-                    <span class="hs-dot"></span>
-                    <span id="chat-online-count"><span class="is-loading is-loading--sm"></span></span>
-                  </div>
-                </div>
-              </div>
+          <!-- Chat de Discord (WidgetBot) -->
+          <section class="aside-card aside-card--discord-chat" id="section-chat" aria-label="Comunidad Discord">
+            <div class="aside-discord-widget-wrap">
+              <widgetbot
+                server="1567715508558504117"
+                title="Discord Chat en Vivo"
+                width="100%"
+                height="100%"
+                allow="clipboard-write; fullscreen"
+                loading="lazy">
+              </widgetbot>
+              <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed" async defer></script>
             </div>
-
-            <!-- Feed de mensajes -->
-            <div class="chat-messages" id="slot-chat" data-skeleton="home-chat" data-skeleton-count="4" data-skeleton-cols="1" role="log" aria-live="polite"></div>
-
-            <!-- Popover flotante modular para Emojis y GIFs -->
-            <div class="chat-picker-popover" id="chat-picker-popover" hidden>
-              <div class="chat-picker-header">
-                <span class="chat-picker-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                  </svg>
-                  GIFs de Anime
-                </span>
-                <button type="button" class="chat-picker-close" id="chat-picker-close" aria-label="Cerrar selector">&times;</button>
-              </div>
-              <div class="chat-picker-panel is-active" id="chat-panel-gifs">
-                <div class="chat-gif-search-wrap">
-                  <input type="text" class="chat-gif-search-input" id="chat-gif-search" placeholder="Buscar GIFs (ej: anime, luffy, dance)..." autocomplete="off" />
-                </div>
-                <div class="chat-gif-grid" id="chat-gif-grid" data-skeleton="gifs" data-skeleton-count="12"></div>
-              </div>
-            </div>
-
-            <!-- Barra de composición -->
-            <div class="chat-input-row" id="chat-input-row"></div>
           </section>
 
         </aside>
@@ -411,7 +395,8 @@
               <img class="hero-icon" alt="" aria-hidden="true" data-home-hero-badge-icon>
               <span data-home-hero-badge-text></span>
             </span>
-            <span class="hero-rating" title="Calificar esta obra" data-home-hero-rating-badge role="button" tabindex="0">
+            <span class="hero-rating" title="Calificar esta obra" data-home-hero-rating-badge role="button"
+              tabindex="0">
               <img class="hero-icon" src="assets/icons/svg/gamification/star.svg" alt="" aria-hidden="true">
               <span data-home-hero-rating></span>
               <span class="hero-rating-count">(<span data-home-hero-rating-count></span>)</span>
@@ -442,8 +427,7 @@
               <img class="hero-icon" src="assets/icons/svg/actions/play.svg" alt="" aria-hidden="true">
               <span data-home-hero-read-text>Leer</span>
             </a>
-            <a href="#" class="hero-cta hero-cta-view" data-home-hero-detail-link
-              aria-label="Ver detalles de la obra">
+            <a href="#" class="hero-cta hero-cta-view" data-home-hero-detail-link aria-label="Ver detalles de la obra">
               <img class="hero-icon" src="assets/icons/svg/actions/eye.svg" alt="" aria-hidden="true">
               <span>Detalles</span>
             </a>

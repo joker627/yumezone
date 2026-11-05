@@ -119,23 +119,6 @@ export function renderHomeSkeletons(type, count = 4) {
           <span class="is-loading is-loading--block is-loading--w60"></span>
         </div>
       </div>`;
-    } else if (type === 'chat') {
-      html += `
-      <div class="chat-msg is-skeleton" aria-hidden="true">
-        <div class="chat-msg--avatar">
-          <div class="chat-msg--avatar-inner yz-skeleton" style="width: 32px; height: 32px; border-radius: 50%;"></div>
-        </div>
-        <div class="chat-msg--body">
-          <div class="chat-msg--header">
-            <span class="chat-msg--name"><span class="is-loading is-loading--sm"></span></span>
-            <span class="chat-msg--level"><span class="is-loading is-loading--xs"></span></span>
-            <span class="chat-msg--time"><span class="is-loading is-loading--xs"></span></span>
-          </div>
-          <div class="chat-msg--text">
-            <span class="is-loading is-loading--block is-loading--w90"></span>
-          </div>
-        </div>
-      </div>`;
     } else if (type === 'mision') {
       html += `
       <div class="mision-card is-skeleton" aria-hidden="true">
@@ -227,19 +210,6 @@ export function renderProfileInventorySkeletons(count = 3) {
   `).join('');
 }
 
-// medallas del perfil (.badge-tile)
-export function renderBadgeSkeletons(count = 4) {
-  return Array.from({ length: count }, () => `
-    <div class="badge-tile is-skeleton" aria-hidden="true">
-      <div class="badge-tile__icon yz-skeleton"></div>
-      <div class="badge-tile__info">
-        <strong class="badge-tile__name"><span class="is-loading is-loading--md"></span></strong>
-        <span class="badge-tile__progress"><span class="is-loading is-loading--sm"></span></span>
-      </div>
-    </div>
-  `).join('');
-}
-
 // historial de monedas (.coin-tx-row)
 export function renderCoinTxSkeletons(count = 5) {
   return Array.from({ length: count }, () => `
@@ -250,13 +220,6 @@ export function renderCoinTxSkeletons(count = 5) {
       </div>
       <div class="coin-tx-row__amount"><span class="is-loading is-loading--sm"></span></div>
     </div>
-  `).join('');
-}
-
-// grilla de gifs del chat (.chat-gif-item)
-export function renderGifSkeletons(count = 12) {
-  return Array.from({ length: count }, () => `
-    <div class="chat-gif-item is-skeleton yz-skeleton" aria-hidden="true"></div>
   `).join('');
 }
 
@@ -490,13 +453,10 @@ const SKELETON_RENDERERS = {
   'home-popular': (count, cols) => renderHomeSkeletons('popular', count || 4, cols || 4),
   'home-anuncio': (count, cols) => renderHomeSkeletons('anuncio', count || 1, cols || 1),
   'home-mision': (count, cols) => renderHomeSkeletons('mision', count || 1, cols || 1),
-  'home-chat': (count, cols) => renderHomeSkeletons('chat', count || 4, cols || 1),
   cards: (count) => renderSkeletonCards(count || 6),
   'profile-works': (count) => renderProfileWorkSkeletons(count || 6),
   'profile-inventory': (count) => renderProfileInventorySkeletons(count || 3),
-  badges: (count) => renderBadgeSkeletons(count || 4),
   'coin-tx': (count) => renderCoinTxSkeletons(count || 5),
-  gifs: (count) => renderGifSkeletons(count || 12),
   ranking: (count) => renderRankingSkeletons(count || 8),
   novedades: (count) => renderNovedadesSkeletons(count || 8),
   library: (count) => renderLibrarySkeletons(count || 6),

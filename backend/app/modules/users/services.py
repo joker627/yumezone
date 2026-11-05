@@ -88,55 +88,14 @@ class UserService:
         db_ranks = await self.repo.get_cultivation_ranks()
         lvl_info = calculate_level_info(xp, ranks=db_ranks)
 
-        streak = user_data.get("streak_days") or 0
-        chapters = stats.get("total_chapters_read") or 0
-        following = stats.get("favorites_count") or 0
-        comments = stats.get("total_comments") or 0
-        role = (user_data.get("platform_role") or "USER").upper()
-        has_scan = bool(user_data.get("scan_group"))
-
-        db_badges = await self.repo.get_all_badges()
-        badges = []
-        for b in db_badges:
-            cond_type = b.get("condition_type")
-            cond_val = b.get("condition_value", 1)
-            unlocked = False
-            progress_str = "Bloqueado"
-
-            if cond_type == "chapters":
-                unlocked = chapters >= cond_val
-                progress_str = f"{min(chapters, cond_val)}/{cond_val} caps"
-            elif cond_type == "streak":
-                unlocked = streak >= cond_val
-                progress_str = f"{min(streak, cond_val)}/{cond_val} días"
-            elif cond_type == "following":
-                unlocked = following >= cond_val
-                progress_str = f"{min(following, cond_val)}/{cond_val} obras"
-            elif cond_type == "comments":
-                unlocked = comments >= cond_val
-                progress_str = f"{min(comments, cond_val)}/{cond_val} comentarios"
-            elif cond_type == "staff_scan":
-                unlocked = (role in ("ADMIN", "SUPERADMIN")) or has_scan
-                progress_str = "Verificado Oficial" if unlocked else "Requiere Staff o Scan"
-
-            badges.append({
-                "id": b["id"],
-                "name": b["name"],
-                "tier": b["tier"],
-                "icon": b["icon"],
-                "description": b["description"],
-                "unlocked": unlocked,
-                "progress": progress_str
-            })
-
         return UserProfileResponse(
             id=user_data["id"],
             user_code=user_data["user_code"],
             username=user_data["username"],
             avatar_url=user_data["avatar_url"],
             banner_url=user_data.get("banner_url"),
-            anillo_url=user_data.get("anillo_url") or user_data.get("avatar_frame_url"),
-            avatar_frame_url=user_data.get("anillo_url") or user_data.get("avatar_frame_url"),
+            anillo_url=user_data.get("avatar_frame_url") or user_data.get("anillo_url"),
+            avatar_frame_url=user_data.get("avatar_frame_url") or user_data.get("anillo_url"),
             active_title=user_data.get("active_title"),
             country=user_data.get("country") or "CO",
             is_owner=is_owner,
@@ -153,7 +112,7 @@ class UserService:
             level_info=lvl_info,
             favorite_works=favorite_works,
             inventory_items=inventory_items,
-            badges=badges
+            badges=[]
         )
 
     async def update_profile(self, user_id: int, data: UserUpdate) -> bool:

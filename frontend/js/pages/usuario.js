@@ -376,9 +376,8 @@ function renderProfile(user) {
 
   renderLibraryShowcaseTab(currentLibraryTab);
 
-  // sidebar: colección cosmética y medallas
+  // sidebar: colección cosmética
   renderInventoryShowcase(user.inventory_items || [], user.is_owner);
-  renderBadgesShowcase(user.badges || [], document.getElementById('badges-showcase-container'));
 }
 
 function renderLibraryShowcaseTab(statusFilter) {
@@ -575,31 +574,6 @@ function renderInventoryShowcase(items, isOwner = false) {
   }
 }
 
-function renderBadgesShowcase(badges, container) {
-  if (!container) return;
-
-  const unlockedCount = badges.filter((b) => b.unlocked).length;
-  const counterEl = document.getElementById('badges-unlocked-count');
-  if (counterEl) counterEl.textContent = `${unlockedCount} / ${badges.length}`;
-
-  if (!badges.length) {
-    container.innerHTML = `<p class="profile-muted-note">No hay logros disponibles.</p>`;
-    return;
-  }
-
-  container.innerHTML = badges.map((b) => `
-    <div class="badge-tile ${b.unlocked ? `is-unlocked tier-${b.tier || 'bronze'}` : 'is-locked'}" title="${escapeHtml(b.description)} (${escapeHtml(b.progress)})">
-      <div class="badge-tile__icon">
-        <img src="${resolveIconPath(b.icon)}" class="icon-svg icon-sm" alt="${escapeHtml(b.name)}" />
-      </div>
-      <div class="badge-tile__info">
-        <strong class="badge-tile__name">${escapeHtml(b.name)}</strong>
-        <span class="badge-tile__progress">${escapeHtml(b.progress)}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
 function renderNotFound() {
   const main = document.querySelector('.profile-container');
   if (!main) return;
@@ -629,7 +603,7 @@ function buildCosmeticPresets() {
     const currentTitle = currentProfileData?.active_title || '';
     const autoRankTitle = currentProfileData?.level_info?.current_title || 'Iniciado del Cultivo';
     const invTitles = ownerInventory
-      .filter((i) => (i.category === 'TITLE' || i.category === 'BADGE') && i.name)
+      .filter((i) => i.category === 'TITLE' && i.name)
       .map((i) => i.name);
 
     const uniqueTitles = [...new Set(invTitles)];
@@ -860,6 +834,7 @@ function setupModalEvents() {
         bio: document.getElementById('edit-bio')?.value.trim() || '',
         avatar_url: document.getElementById('edit-avatar')?.value.trim() || null,
         banner_url: document.getElementById('edit-banner')?.value.trim() || null,
+        avatar_frame_url: document.getElementById('edit-anillo')?.value.trim() || null,
         anillo_url: document.getElementById('edit-anillo')?.value.trim() || null,
         is_private: Boolean(document.getElementById('edit-private')?.checked)
       };

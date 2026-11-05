@@ -8,13 +8,17 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Allow: /index.html
 Allow: /pages/catalogo.html
-Allow: /pages/obra.html
-Allow: /pages/leer.html
+Allow: /pages/novedades.html
 Allow: /pages/ranking.html
 Allow: /pages/scans.html
-Allow: /pages/novedades.html
-
+Allow: /pages/eventos.html
 Allow: /pages/tienda.html
+Allow: /pages/sistema.html
+Allow: /pages/obra.html
+Allow: /pages/leer.html
+Allow: /pages/dmca.html
+Allow: /pages/terminos.html
+Allow: /pages/privacidad.html
 Allow: /pages/usuario.html
 Allow: /assets/
 Allow: /css/

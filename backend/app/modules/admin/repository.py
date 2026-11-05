@@ -226,12 +226,12 @@ class AdminRepository:
             await cur.execute("SELECT * FROM content_reports WHERE id = %s", (report_id,))
             return await cur.fetchone()
 
-    async def update_report_status(self, report_id: int, status: str, reviewer_id: int) -> None:
+    async def update_report(self, report_id: int, status: str, reviewer_id: int) -> None:
         async with self._cursor() as (conn, cur):
             await cur.execute(
                 """
                 UPDATE content_reports
-                SET status = %s, reviewed_by = %s, updated_at = CURRENT_TIMESTAMP
+                SET status = %s, reviewed_by = %s, reviewed_at = CURRENT_TIMESTAMP
                 WHERE id = %s
                 """,
                 (status, reviewer_id, report_id),

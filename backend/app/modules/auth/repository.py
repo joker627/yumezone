@@ -105,15 +105,6 @@ class AuthRepository:
                     await conn.commit()
         return user
 
-    # eliminar usuario
-    async def delete_user(self, user_id: int) -> bool:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
-                if self.conn is None:
-                    await conn.commit()
-        return True
-
     # validar y actualizar racha diaria
     async def update_streak(self, user_id: int) -> Dict[str, Any]:
 
@@ -151,15 +142,15 @@ class AuthRepository:
                 if last_date is None:
                     streak = 1
                     event = "started"
-                    message = "¡Comenzaste tu racha diaria! Día 1 completado 🔥"
+                    message = "¡Comenzaste tu racha diaria! Día 1 completado "
                     notification_payload = to_json_safe({
-                        "title": "¡Racha iniciada! 🔥",
+                        "title": "¡Racha iniciada! ",
                         "message": "Has comenzado tu racha de lectura. ¡Inicia sesión cada día para aumentarla!",
                         "url": "/pages/usuario.html"
                     })
                 elif diff_days == 0:
                     event = "same_day"
-                    message = f"¡Tu racha de {streak} días ya está asegurada por hoy! 🔥"
+                    message = f"¡Tu racha de {streak} días ya está asegurada por hoy! "
                     return {
                         "streak_days": streak,
                         "last_streak_date": last_date,
@@ -170,9 +161,9 @@ class AuthRepository:
                 elif diff_days == 1:
                     streak += 1
                     event = "increased"
-                    message = f"¡Racha aumentada! Llevas {streak} días consecutivos de lectura 🔥"
+                    message = f"¡Racha aumentada! Llevas {streak} días consecutivos de lectura "
                     notification_payload = to_json_safe({
-                        "title": "¡Racha aumentada! 🔥",
+                        "title": "¡Racha aumentada! ",
                         "message": f"¡Increíble constancia! Has alcanzado {streak} días consecutivos de lectura.",
                         "url": "/pages/usuario.html"
                     })
@@ -180,17 +171,17 @@ class AuthRepository:
                     streak = 1
                     if previous_streak > 1:
                         event = "lost"
-                        message = f"¡Has perdido tu racha de {previous_streak} días! Tu racha se ha reiniciado a 1 día 💔"
+                        message = f"¡Has perdido tu racha de {previous_streak} días! Tu racha se ha reiniciado a 1 día "
                         notification_payload = to_json_safe({
-                            "title": "¡Racha perdida! 💔",
+                            "title": "¡Racha perdida! ",
                             "message": f"No iniciaste sesión ayer y perdiste tu racha de {previous_streak} días. ¡No te rindas y empieza de nuevo hoy!",
                             "url": "/pages/usuario.html"
                         })
                     else:
                         event = "started"
-                        message = "¡Racha diaria activada! Día 1 completado 🔥"
+                        message = "¡Racha diaria activada! Día 1 completado "
                         notification_payload = to_json_safe({
-                            "title": "¡Racha diaria activada! 🔥",
+                            "title": "¡Racha diaria activada! ",
                             "message": "Has validado tu racha diaria de lectura. ¡Vuelve mañana para continuarla!",
                             "url": "/pages/usuario.html"
                         })

@@ -147,10 +147,10 @@ class ShopRepository:
                 if category == "BANNER":
                     await cur.execute("UPDATE users SET banner_url = %s WHERE id = %s", (preview_url, user_id))
                 elif category == "FRAME":
-                    await cur.execute("UPDATE users SET anillo_url = %s WHERE id = %s", (preview_url, user_id))
+                    await cur.execute("UPDATE users SET avatar_frame_url = %s WHERE id = %s", (preview_url, user_id))
                 elif category == "AVATAR":
                     await cur.execute("UPDATE users SET avatar_url = %s WHERE id = %s", (preview_url, user_id))
-                elif category in ("TITLE", "BADGE"):
+                elif category == "TITLE":
                     await cur.execute("UPDATE users SET active_title = %s WHERE id = %s", (name, user_id))
 
                 if self.conn is None:
@@ -172,10 +172,10 @@ class ShopRepository:
                 if cat_upper == "BANNER":
                     await cur.execute("UPDATE users SET banner_url = NULL WHERE id = %s", (user_id,))
                 elif cat_upper == "FRAME":
-                    await cur.execute("UPDATE users SET anillo_url = NULL WHERE id = %s", (user_id,))
+                    await cur.execute("UPDATE users SET avatar_frame_url = NULL WHERE id = %s", (user_id,))
                 elif cat_upper == "AVATAR":
                     await cur.execute("UPDATE users SET avatar_url = NULL WHERE id = %s", (user_id,))
-                elif cat_upper in ("TITLE", "BADGE"):
+                elif cat_upper == "TITLE":
                     await cur.execute("UPDATE users SET active_title = NULL WHERE id = %s", (user_id,))
 
                 if self.conn is None:

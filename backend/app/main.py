@@ -15,7 +15,6 @@ from app.modules.admin.router import router as admin_router
 from app.modules.announcements.router import router as announcements_router
 from app.modules.auth.router import router as auth_router
 from app.modules.chapters.router import router as chapter_router
-from app.modules.chat.router import router as chat_router
 from app.modules.comments.router import router as comments_router
 from app.modules.hero.router import router as hero_router
 from app.modules.home.router import router as home_router
@@ -83,7 +82,6 @@ ROUTERS = [
     uploads_router,
     users_router,
     shop_router,
-    chat_router,
     announcements_router,
 ]
 

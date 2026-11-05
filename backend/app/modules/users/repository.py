@@ -26,7 +26,8 @@ class UserRepository:
                 # 1. Perfil base
                 await cur.execute(
                     f"""
-                    SELECT id, user_code, username, avatar_url, banner_url, anillo_url, anillo_url AS avatar_frame_url, 
+                    SELECT id, user_code, username, avatar_url, banner_url, 
+                           avatar_frame_url, avatar_frame_url AS anillo_url, 
                            active_title, country, bio, is_private, platform_role, coins, xp, streak_days, 
                            last_streak_date, created_at, status
                     FROM users
@@ -56,17 +57,25 @@ class UserRepository:
                 )
                 user["scan_group"] = await cur.fetchone()
 
-                # 3. Estadísticas clave de lectura y biblioteca
+                # 3. Estadísticas clave de lectura y biblioteca (agregación en 1 pasada sobre user_library)
                 await cur.execute(
                     """
                     SELECT
                         (SELECT COUNT(*) FROM user_read_chapters WHERE user_id = %s) AS total_chapters_read,
-                        (SELECT COUNT(*) FROM user_library WHERE user_id = %s AND status = 'COMPLETED') AS completed_works,
-                        (SELECT COUNT(*) FROM user_library WHERE user_id = %s AND status IN ('READING', 'COMPLETED', 'ON_HOLD', 'PLAN_TO_READ')) AS favorites_count,
-                        (SELECT COUNT(*) FROM user_library WHERE user_id = %s AND status = 'PLAN_TO_READ') AS pending_works,
-                        (SELECT COUNT(*) FROM comments WHERE user_id = %s) AS total_comments
+                        (SELECT COUNT(*) FROM comments WHERE user_id = %s) AS total_comments,
+                        COALESCE(ul.completed_works, 0) AS completed_works,
+                        COALESCE(ul.favorites_count, 0) AS favorites_count,
+                        COALESCE(ul.pending_works, 0) AS pending_works
+                    FROM (
+                        SELECT
+                            SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_works,
+                            SUM(CASE WHEN status IN ('READING', 'COMPLETED', 'ON_HOLD', 'PLAN_TO_READ') THEN 1 ELSE 0 END) AS favorites_count,
+                            SUM(CASE WHEN status = 'PLAN_TO_READ' THEN 1 ELSE 0 END) AS pending_works
+                        FROM user_library
+                        WHERE user_id = %s
+                    ) AS ul
                     """,
-                    (uid, uid, uid, uid, uid)
+                    (uid, uid, uid)
                 )
                 user["stats"] = await cur.fetchone() or {
                     "total_chapters_read": 0,
@@ -76,7 +85,7 @@ class UserRepository:
                     "total_comments": 0,
                 }
 
-                # 4. Vitrina de Biblioteca por estado (Me gusta, Completadas, Pendientes) con progreso para Reanudar
+                # 4. Vitrina de Biblioteca por estado con progreso para Reanudar
                 await cur.execute(
                     """
                     SELECT 
@@ -109,42 +118,38 @@ class UserRepository:
                     FROM user_inventory ui
                     JOIN shop_items si ON si.id = ui.item_id
                     WHERE ui.user_id = %s
-                    ORDER BY ui.is_equipped DESC, ui.acquired_at DESC
+                    ORDER BY ui.is_equipped DESC, si.required_level ASC, si.id ASC
                     """,
                     (uid,)
                 )
-                inv_rows = await cur.fetchall() or []
-                for r in inv_rows:
-                    r["is_equipped"] = bool(r["is_equipped"])
-                user["inventory_items"] = inv_rows
+                user["inventory_items"] = await cur.fetchall() or []
 
                 return user
 
-    # actualizar datos de usuario (validando propiedad de cosméticos en user_inventory)
+    # actualizar perfil de usuario (con validacion de propiedad en inventario)
     async def update_user(self, user_id: int, data: dict) -> bool:
-        if not data:
-            return True
-
-        clean_data = dict(data)
-        if "avatar_frame_url" in clean_data:
-            if "anillo_url" not in clean_data:
-                clean_data["anillo_url"] = clean_data["avatar_frame_url"]
-            clean_data.pop("avatar_frame_url", None)
-
-        allowed_columns = {
-            "username", "bio", "avatar_url", "banner_url",
-            "anillo_url", "active_title", "country", "is_private"
-        }
-        filtered_data = {k: v for k, v in clean_data.items() if k in allowed_columns}
+        allowed_fields = {"username", "bio", "avatar_url", "banner_url", "anillo_url", "avatar_frame_url", "active_title", "country", "is_private"}
+        filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
         if not filtered_data:
-            return True
+            return False
 
         async with resolve_connection(self.conn) as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
-                # Validar que los cosméticos (banner_url, anillo_url, active_title) estén comprados en user_inventory
+                # Validar unicidad si cambia username
+                if "username" in filtered_data:
+                    new_uname = (filtered_data["username"] or "").strip()
+                    if not new_uname:
+                        filtered_data.pop("username", None)
+                    else:
+                        await cur.execute("SELECT id FROM users WHERE username = %s AND id != %s", (new_uname, user_id))
+                        if await cur.fetchone():
+                            raise ValueError("El nombre de usuario ya está en uso por otra cuenta")
+                        filtered_data["username"] = new_uname
+
+                # Obtener inventario del usuario para validar items que intenta equipar
                 await cur.execute(
                     """
-                    SELECT si.id AS item_id, UPPER(si.category) AS category, si.name, si.preview_url
+                    SELECT si.id AS item_id, UPPER(si.category) AS category, si.preview_url, si.name
                     FROM user_inventory ui
                     JOIN shop_items si ON si.id = ui.item_id
                     WHERE ui.user_id = %s
@@ -154,7 +159,7 @@ class UserRepository:
                 owned_items = await cur.fetchall() or []
                 owned_banners = {r["preview_url"]: r["item_id"] for r in owned_items if r["category"] == "BANNER" and r.get("preview_url")}
                 owned_frames = {r["preview_url"]: r["item_id"] for r in owned_items if r["category"] == "FRAME" and r.get("preview_url")}
-                owned_titles = {r["name"]: r["item_id"] for r in owned_items if r["category"] in ("TITLE", "BADGE") and r.get("name")}
+                owned_titles = {r["name"]: r["item_id"] for r in owned_items if r["category"] == "TITLE" and r.get("name")}
 
                 if "banner_url" in filtered_data:
                     b_val = (filtered_data["banner_url"] or "").strip() or None
@@ -177,12 +182,14 @@ class UserRepository:
                                 (user_id, owned_banners[b_val])
                             )
 
-                if "anillo_url" in filtered_data:
-                    f_val = (filtered_data["anillo_url"] or "").strip() or None
+                # Unificar anillo_url y avatar_frame_url al nombre canónico de columna avatar_frame_url
+                frame_input = filtered_data.pop("avatar_frame_url", None) or filtered_data.pop("anillo_url", None)
+                if frame_input is not None or "avatar_frame_url" in data or "anillo_url" in data:
+                    f_val = (frame_input or "").strip() or None
                     if f_val and f_val not in owned_frames:
-                        filtered_data.pop("anillo_url", None)
+                        pass
                     else:
-                        filtered_data["anillo_url"] = f_val
+                        filtered_data["avatar_frame_url"] = f_val
                         await cur.execute(
                             """
                             UPDATE user_inventory ui
@@ -209,7 +216,7 @@ class UserRepository:
                             UPDATE user_inventory ui
                             JOIN shop_items si ON si.id = ui.item_id
                             SET ui.is_equipped = FALSE
-                            WHERE ui.user_id = %s AND UPPER(si.category) IN ('TITLE', 'BADGE')
+                            WHERE ui.user_id = %s AND UPPER(si.category) = 'TITLE'
                             """,
                             (user_id,)
                         )
@@ -243,27 +250,16 @@ class UserRepository:
                 search_term = f"%{query}%"
                 await cur.execute(
                     """
-                    SELECT id, user_code, username, avatar_url, xp, platform_role
+                    SELECT id, user_code, username, avatar_url, avatar_frame_url, avatar_frame_url AS anillo_url, 
+                           active_title, platform_role, xp
                     FROM users
-                    WHERE (username LIKE %s OR user_code LIKE %s) AND status != 'DELETED'
+                    WHERE (username LIKE %s OR user_code LIKE %s)
+                      AND status = 'ACTIVE'
+                      AND is_private = FALSE
                     ORDER BY xp DESC
                     LIMIT %s
                     """,
                     (search_term, search_term, limit)
-                )
-                return await cur.fetchall() or []
-
-    # obtener todas las medallas activas
-    async def get_all_badges(self) -> List[dict]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(
-                    """
-                    SELECT id, name, tier, icon, description, condition_type, condition_value, sort_order
-                    FROM badges
-                    WHERE is_active = TRUE
-                    ORDER BY sort_order ASC
-                    """
                 )
                 return await cur.fetchall() or []
 

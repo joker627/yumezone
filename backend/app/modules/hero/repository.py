@@ -234,11 +234,3 @@ class HeroRepository:
             async with conn.cursor(aiomysql.DictCursor) as cur:
                 await cur.execute(query, values)
                 return await cur.fetchall()
-
-    async def _fetch_one(
-        self, query: str, values: tuple[Any, ...]
-    ) -> Optional[Dict[str, Any]]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(query, values)
-                return await cur.fetchone()
