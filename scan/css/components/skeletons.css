@@ -1,0 +1,90 @@
+
+.scan-skeleton,
+.is-loading,
+.is-skeleton .scan-skeleton,
+.is-skeleton .is-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 35%,
+    rgba(92, 226, 192, 0.09) 50%,
+    rgba(255, 255, 255, 0.08) 65%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: scanSkeletonWave 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes scanSkeletonWave {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Placeholders Inline y Bloque */
+.is-loading {
+  display: inline-block;
+  min-width: 3.5ch;
+  height: 1em;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.is-loading--xs { min-width: 2.5ch; height: 0.85em; }
+.is-loading--sm { min-width: 6ch; height: 1em; }
+.is-loading--md { min-width: 11ch; height: 1.25em; }
+.is-loading--lg { min-width: 18ch; height: 1.8em; }
+.is-loading--block { display: block; width: 100%; }
+.is-loading--circle { border-radius: 50% !important; }
+.is-loading--pill { min-width: 7ch; height: 1.6em; border-radius: 9999px; }
+
+/* Anchos utilitarios */
+.is-loading--w40 { width: 40% !important; }
+.is-loading--w50 { width: 50% !important; }
+.is-loading--w60 { width: 60% !important; }
+.is-loading--w70 { width: 70% !important; }
+.is-loading--w80 { width: 80% !important; }
+.is-loading--w90 { width: 90% !important; }
+.is-loading--w100 { width: 100% !important; }
+
+/* Empty States compartidos */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background: #151821;
+  border: 1px dashed rgba(60, 74, 69, 0.5);
+  border-radius: 14px;
+  margin: 1rem 0;
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #1d2027;
+  border: 1px solid rgba(60, 74, 69, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #86948e;
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e0e2ec;
+  margin: 0 0 0.4rem;
+}
+
+.empty-state-desc {
+  font-size: 0.825rem;
+  color: #86948e;
+  max-width: 440px;
+  line-height: 1.45;
+  margin: 0 0 1.25rem;
+}

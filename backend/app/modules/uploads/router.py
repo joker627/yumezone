@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.core.dependencies import get_current_active_user
 from app.modules.uploads.services import UploadService
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
 router = APIRouter(prefix="/uploads", tags=["Uploads"])
 

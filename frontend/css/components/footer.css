@@ -2,8 +2,8 @@
 
 .site-footer {
   position: relative;
-  background: linear-gradient(180deg, var(--neutral-950) 0%, #07090e 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #070a11;
+  border-top: 1px solid #1e293b;
   color: var(--neutral-400);
   padding: 4rem 1.25rem 2rem;
   margin-top: auto;
@@ -21,20 +21,11 @@
   right: 15%;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--teal-400), transparent);
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 .site-footer--glow {
-  position: absolute;
-  top: -150px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 300px;
-  background: radial-gradient(ellipse, rgba(57, 198, 165, 0.08) 0%, transparent 70%);
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .footer-container {
@@ -107,8 +98,8 @@
   width: 38px;
   height: 38px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #111724;
+  border: 1px solid #1e293b;
   color: var(--neutral-300);
   transition: all 220ms ease;
   text-decoration: none;
@@ -200,8 +191,8 @@
 
 /* caja de descargo legal / dmca */
 .footer-legal-box {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #111724;
+  border: 1px solid #1e293b;
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
   margin-bottom: 2.5rem;

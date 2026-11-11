@@ -1,10 +1,7 @@
-/* ============================================================
-   YumeZone - Blog del Sistema & Hilo de Actualizaciones CSS
-   ============================================================ */
 
 .sis-page {
   min-height: calc(100vh - var(--header-height, 4rem));
-  background: radial-gradient(circle at 50% 0%, rgba(57, 198, 165, 0.05) 0%, transparent 60%), #090d14;
+  background: var(--bg-page, #0a0e17);
   color: var(--neutral-200);
   padding: 3rem 1rem 6rem;
 }
@@ -13,8 +10,6 @@
   max-width: 64rem;
   margin: 0 auto;
 }
-
-/* ---------- Cabecera del Blog ---------- */
 .sis-hero {
   margin-bottom: 2.5rem;
 }
@@ -66,8 +61,8 @@
 .sis-status-item {
   padding: 0.95rem 1.1rem;
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
 }
 
 .sis-status-item dt {
@@ -117,16 +112,12 @@
   background: rgba(251, 191, 36, 0.08);
   border-color: rgba(251, 191, 36, 0.28);
 }
-
-/* ---------- Layout Principal con Panel de Navegación ---------- */
 .sis-layout {
   display: grid;
   grid-template-columns: 11.5rem minmax(0, 1fr);
   gap: 2.75rem;
   align-items: start;
 }
-
-/* ---------- Panel Lateral de Versiones ---------- */
 .sis-index {
   position: sticky;
   top: calc(var(--header-height, 4rem) + 1.25rem);
@@ -209,8 +200,6 @@
   border-radius: 2px;
   background: var(--teal-400);
 }
-
-/* ---------- Hilo Continuo (The Thread) ---------- */
 .sis-feed {
   --sis-thread-x: 0.5rem;
   --sis-pad: 2.25rem;
@@ -265,13 +254,13 @@
   scroll-margin-top: calc(var(--header-height, 4rem) + 1.25rem);
   padding: 1.45rem 1.6rem;
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   transition: transform 180ms ease, border-color 180ms ease;
 }
 
 .sis-item:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: var(--border-card-hover, #2d3d56);
   transform: translateY(-1px);
 }
 
@@ -485,8 +474,6 @@
   font-size: 0.78rem;
   color: var(--neutral-500);
 }
-
-/* ---------- Responsive ---------- */
 @media (max-width: 860px) {
   .sis-layout {
     grid-template-columns: minmax(0, 1fr);

@@ -16,7 +16,7 @@ from app.core.security import (
 from app.core.config import get_settings
 from app.modules.auth.repository import AuthRepository
 from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate
-from app.modules.users.models import CurrentUser, User
+from app.modules.users.schemas import CurrentUser, User
 
 settings = get_settings()
 

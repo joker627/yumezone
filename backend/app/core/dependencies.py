@@ -1,16 +1,13 @@
 import json
 from typing import Optional
-
-import aiomysql
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.redis import get_redis_client
 from app.core.security import decode_access_token
 from app.modules.auth.repository import AuthRepository
 from app.modules.scans.repository import ScanGroupRepository
-from app.modules.users.models import CurrentUser
-
+from app.modules.users.schemas import CurrentUser
 
 security = HTTPBearer(auto_error=False)
 
@@ -26,7 +23,6 @@ def is_platform_admin(user: CurrentUser) -> bool:
     return user.platform_role.upper() in PLATFORM_ADMIN_ROLES
 
 
-# Debe llamarse tras cambiar rol, estado o datos de perfil para que no se sirva una sesión vieja
 async def invalidate_user_session(email: Optional[str]) -> None:
     redis = get_redis_client()
     if not redis or not email:
@@ -37,13 +33,15 @@ async def invalidate_user_session(email: Optional[str]) -> None:
         pass
 
 
-def _extract_token(request: Request, credentials: Optional[HTTPAuthorizationCredentials]) -> Optional[str]:
+def _extract_token(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials],
+) -> Optional[str]:
     if credentials:
         return credentials.credentials
     return request.cookies.get("access_token")
 
 
-# Sesión
 async def get_current_user(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -82,7 +80,11 @@ async def get_current_user(
 
     if redis:
         try:
-            await redis.set(cache_key, current_user.model_dump_json(), ex=USER_SESSION_CACHE_TTL)
+            await redis.set(
+                cache_key,
+                current_user.model_dump_json(),
+                ex=USER_SESSION_CACHE_TTL,
+            )
         except Exception:
             pass
 
@@ -105,7 +107,9 @@ async def get_current_active_user(
     current_user: CurrentUser = Depends(get_current_user),
 ) -> CurrentUser:
     if current_user.status.upper() != "ACTIVE":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuario inactivo")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Usuario inactivo"
+        )
     return current_user
 
 
@@ -120,11 +124,10 @@ async def get_current_admin_user(
     return current_user
 
 
-# Permisos de subida
 async def verify_upload_permission(
     user: CurrentUser,
     scan_group_id: Optional[int] = None,
-    conn: Optional[aiomysql.Connection] = None,
+    conn: Optional[AsyncSession] = None,
 ) -> bool:
     if is_platform_admin(user):
         return True
@@ -138,7 +141,10 @@ async def verify_upload_permission(
     member = await scan_repo.get_member(scan_group_id, user.id)
 
     if not member:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No perteneces a este grupo scan.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No perteneces a este grupo scan.",
+        )
 
     if member.can_upload:
         return True
@@ -149,3 +155,54 @@ async def verify_upload_permission(
     )
 
 
+async def verify_scan_member_permission(
+    user: CurrentUser,
+    scan_group_id: Optional[int] = None,
+    conn: Optional[AsyncSession] = None,
+) -> bool:
+    if is_platform_admin(user):
+        return True
+    if not scan_group_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Debes pertenecer a un grupo scan para realizar esta acción.",
+        )
+
+    scan_repo = ScanGroupRepository(conn)
+    member = await scan_repo.get_member(scan_group_id, user.id)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No perteneces a este grupo scan.",
+        )
+    return True
+
+
+async def verify_scan_manage_permission(
+    user: CurrentUser,
+    scan_group_id: Optional[int] = None,
+    conn: Optional[AsyncSession] = None,
+) -> bool:
+    if is_platform_admin(user):
+        return True
+    if not scan_group_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Debes especificar el grupo scan responsable de la obra.",
+        )
+
+    scan_repo = ScanGroupRepository(conn)
+    member = await scan_repo.get_member(scan_group_id, user.id)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No perteneces a este grupo scan.",
+        )
+
+    if str(member.role or "").upper() == "LEADER" or member.can_upload:
+        return True
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="No tienes permisos de gestión o subida en este grupo scan.",
+    )

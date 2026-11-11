@@ -1,18 +1,42 @@
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_optional_current_user
+from app.core.database import get_db_session
 from app.modules.home.repository import HomeRepository
-from app.modules.home.schemas import ClaimMissionPayload
+from app.modules.home.schemas import ClaimMissionPayload, HeroResponse
 from app.modules.home.services import HomeService
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
 router = APIRouter(prefix="/home", tags=["Inicio"])
+hero_router = APIRouter(prefix="/hero", tags=["Hero"])
+announcements_router = APIRouter(prefix="/announcements", tags=["Anuncios"])
 
 
-def get_home_service() -> HomeService:
-    repo = HomeRepository()
+def get_home_service(conn: AsyncSession = Depends(get_db_session)) -> HomeService:
+    repo = HomeRepository(conn)
     return HomeService(repo)
+
+
+@announcements_router.get("/")
+@announcements_router.get("")
+async def get_announcements(
+    type: Optional[str] = None,
+    service: HomeService = Depends(get_home_service),
+):
+    items = await service.get_announcements(filter_type=type)
+    return {"results": items, "count": len(items)}
+
+
+# Endpoints del carrusel Hero integrados (/api/v1/hero)
+@hero_router.get("/", response_model=HeroResponse)
+async def get_hero(
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
+    service: HomeService = Depends(get_home_service),
+) -> HeroResponse:
+    return await service.get_hero(current_user.id if current_user else None)
+
 
 
 # feed consolidado del home

@@ -1,3 +1,4 @@
+import hashlib
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
 
@@ -11,9 +12,10 @@ from app.modules.admin.schemas import (
     SettingUpdate,
     UserRoleUpdate,
     UserStatusUpdate,
+    ViewLogCreate,
     WorkAdminUpdate,
 )
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
 
 class AdminService:
@@ -232,3 +234,66 @@ class AdminService:
             after=payload.model_dump(),
         )
         return {"group_id": group_id, "user_id": target_user_id, "role": payload.role}
+
+    # ==========================================
+    # GESTIÓN DE MISIONES DINÁMICAS Y EVENTOS (ADMIN)
+    # ==========================================
+    async def list_missions(self) -> List[Dict[str, Any]]:
+        return await self.repo.list_missions()
+
+    async def create_mission(self, data: Dict[str, Any], current_user: CurrentUser) -> Dict[str, Any]:
+        created = await self.repo.create_mission(data)
+        await self.repo.log_audit(
+            actor_id=current_user.id,
+            action="mission.create",
+            entity_type="daily_mission",
+            entity_id=str(created["id"]) if created else None,
+            after=data,
+        )
+        return created
+
+    async def update_mission(self, mission_id: int, updates: Dict[str, Any], current_user: CurrentUser) -> Dict[str, Any]:
+        updated = await self.repo.update_mission(mission_id, updates)
+        if not updated:
+            raise HTTPException(status_code=404, detail="Misión no encontrada")
+        await self.repo.log_audit(
+            actor_id=current_user.id,
+            action="mission.update",
+            entity_type="daily_mission",
+            entity_id=str(mission_id),
+            after=updates,
+        )
+        return updated
+
+    async def delete_mission(self, mission_id: int, current_user: CurrentUser) -> Dict[str, Any]:
+        deleted = await self.repo.delete_mission(mission_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Misión no encontrada")
+        await self.repo.log_audit(
+            actor_id=current_user.id,
+            action="mission.delete",
+            entity_type="daily_mission",
+            entity_id=str(mission_id),
+        )
+        return {"id": mission_id, "message": "Misión eliminada correctamente"}
+
+    # Métricas y registro de visitas
+    async def log_view(
+        self,
+        data: ViewLogCreate,
+        client_ip: Optional[str],
+        current_user: Optional[CurrentUser],
+    ) -> None:
+        if not await self.repo.has_valid_target(data.work_id, data.chapter_id):
+            raise HTTPException(status_code=404, detail="Obra o capítulo no encontrado")
+
+        hashed_ip = None
+        if client_ip:
+            hashed_ip = hashlib.sha256(client_ip.encode()).hexdigest()
+
+        user_id = current_user.id if current_user else None
+        await self.repo.log_view(data.work_id, data.chapter_id, user_id, hashed_ip)
+
+    async def compute_statistics(self) -> None:
+        await self.repo.compute_statistics()
+

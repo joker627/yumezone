@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090d14">
-  <meta name="description" content="Directorio de clanes y equipos de traducción en YumeZone. Conoce a los scans detrás de tus mangas y manhwas favoritos, apoya su trabajo o únete a sus filas.">
-  <meta name="keywords" content="scans manga, clanes manhwa, equipos traduccion manga, scanlators español, yumescans, ghostscans, yumezone">
+  <meta name="description" content="Directorio y perfiles de scans de traducción en YumeZone. Explora los equipos que dan vida a tus mangas, manhwas y manhuas favoritos en español, conoce sus obras o únete a un scan.">
+  <meta name="keywords" content="scans manga, scans manhwa, equipos traduccion manga, scanlators español, yumescans, ghostscans, yumezone">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 
@@ -13,15 +13,15 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="YumeZone">
   <meta property="og:url" content="https://yumezone.page/pages/scans.html">
-  <meta property="og:title" content="Clanes & Scans de Traducción | YumeZone">
-  <meta property="og:description" content="Conoce a los equipos de traducción detrás de tus series favoritas. Explora sus obras o únete a su clan.">
+  <meta property="og:title" content="Scans de Traducción | YumeZone">
+  <meta property="og:description" content="Descubre a los equipos que dan vida a tus mangas, manhwas y manhuas favoritos en español. Explora sus catálogos, conoce a sus miembros o únete a un scan.">
   <meta property="og:image" content="https://yumezone.page/assets/icons/logo.png">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://yumezone.page/pages/scans.html">
-  <meta name="twitter:title" content="Clanes & Scans de Traducción | YumeZone">
-  <meta name="twitter:description" content="Conoce a los equipos de traducción detrás de tus series favoritas. Explora sus obras o únete a su clan.">
+  <meta name="twitter:title" content="Scans de Traducción | YumeZone">
+  <meta name="twitter:description" content="Descubre a los equipos que dan vida a tus mangas, manhwas y manhuas favoritos en español. Explora sus catálogos, conoce a sus miembros o únete a un scan.">
   <meta name="twitter:image" content="https://yumezone.page/assets/icons/logo.png">
 
   <link rel="canonical" href="https://yumezone.page/pages/scans.html">
@@ -32,37 +32,38 @@
   <meta name="apple-mobile-web-app-title" content="YumeZone">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="/manifest.json">
-  <title>Clanes & Scans de Traducción | YumeZone</title>
+  <title>Scans de Traducción | YumeZone</title>
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components/header.css">
   <link rel="stylesheet" href="/css/components/footer.css">
-  <link rel="stylesheet" href="/css/pages/scans.css">
+  <link rel="stylesheet" href="/css/components/toast.css">
+  <link rel="stylesheet" href="/css/pages/scans.css?v=2.0">
 </head>
 <body>
   <header id="header"></header>
 
   <main id="app" class="scans-page">
-    <div class="scans-container">
+    <div id="scans-directory-view" class="scans-container">
 
       <!-- Hero Header -->
       <section class="scans-hero">
         <div class="scans-hero-badge">
           <span class="scans-hero-dot"></span>
-          <span>GREMIOS DE TRADUCCIÓN</span>
+          <span>EQUIPOS DE TRADUCCIÓN</span>
         </div>
-        <h1 class="scans-hero-title">Clanes & Scans de Traducción</h1>
+        <h1 class="scans-hero-title">Scans de Traducción</h1>
         <p class="scans-hero-subtitle">
           Descubre a los equipos que dan vida a tus mangas, manhwas y manhuas favoritos en español.
-          Explora sus catálogos, conoce a sus miembros o postúlate para unirte a su clan.
+          Explora sus catálogos, conoce a sus miembros o únete a un scan.
         </p>
 
         <!-- Stats Globales -->
         <div class="scans-global-stats" id="scans-global-stats">
           <div class="scans-stat-card">
-            <span class="scans-stat-val" id="stat-clans-count"><span class="is-loading is-loading--sm"></span></span>
-            <span class="scans-stat-lbl">Clanes Activos</span>
+            <span class="scans-stat-val" id="stat-scans-count"><span class="is-loading is-loading--sm"></span></span>
+            <span class="scans-stat-lbl">Scans Activos</span>
           </div>
           <div class="scans-stat-card">
             <span class="scans-stat-val" id="stat-works-count"><span class="is-loading is-loading--sm"></span></span>
@@ -75,9 +76,9 @@
         </div>
       </section>
 
-      <!-- Sección Mi Clan (Condicional si el usuario pertenece a uno) -->
-      <section id="my-clan-section" class="my-clan-section" hidden>
-        <div class="my-clan-card" id="my-clan-card">
+      <!-- Sección Mi Scan (Condicional si el usuario pertenece a un scan) -->
+      <section id="my-scan-section" class="my-clan-section" hidden>
+        <div class="my-clan-card" id="my-scan-card">
           <!-- Renderizado dinámicamente -->
         </div>
       </section>
@@ -86,7 +87,7 @@
       <section class="scans-filter-bar">
         <div class="scans-search-wrap">
           <img src="/assets/icons/svg/actions/search.svg" class="scans-search-icon" alt="" aria-hidden="true" width="16" height="16">
-          <input type="text" id="scans-search-input" class="scans-search-input" placeholder="Buscar clan o scan por nombre…" aria-label="Buscar clan">
+          <input type="text" id="scans-search-input" class="scans-search-input" placeholder="Buscar scan por nombre o líder…" aria-label="Buscar scan">
           <button id="scans-search-clear" class="scans-search-clear" type="button" aria-label="Limpiar búsqueda" hidden>
             <img src="/assets/icons/svg/actions/clear.svg" alt="" width="14" height="14">
           </button>
@@ -115,91 +116,278 @@
 
         <div id="scans-empty" class="scans-empty" hidden>
           <img src="/assets/icons/svg/content/info.svg" alt="" width="32" height="32">
-          <h3>No se encontraron clanes</h3>
+          <h3>No se encontraron scans</h3>
           <p>Prueba buscando con otro término o seleccionando otra pestaña.</p>
         </div>
       </section>
 
     </div>
-  </main>
 
-  <!-- Modal de Detalle de Clan -->
-  <dialog id="clan-modal" class="clan-modal" aria-labelledby="clan-modal-title">
-    <div class="clan-modal-dialog">
-      <div class="clan-modal-header" id="clan-modal-header">
-        <button id="clan-modal-close" class="clan-modal-close" type="button" aria-label="Cerrar modal">
-          <img src="/assets/icons/svg/actions/x.svg" alt="" width="16" height="16">
-        </button>
-        <div class="clan-modal-banner-wrap" id="modal-banner-wrap">
-          <img id="modal-clan-banner" class="clan-modal-banner" src="" alt="">
-          <div class="clan-modal-banner-scrim"></div>
+    <div id="scan-profile-view" class="scan-profile-view" hidden>
+
+      <!-- 1. HERO PANORÁMICO DEL SCAN -->
+      <section class="sp-hero" id="sp-hero">
+        <div class="sp-banner" id="sp-banner-bg">
+          <img id="sp-banner-img" class="sp-banner__img" src="" alt="" hidden>
+          <div class="sp-banner__overlay"></div>
         </div>
-        <div class="clan-modal-identity">
-          <img id="modal-clan-logo" class="clan-modal-logo" src="" alt="">
-          <div class="clan-modal-names">
-            <div class="clan-modal-title-row">
-              <h2 id="clan-modal-title" class="clan-modal-title"></h2>
-              <span class="clan-badge-verified" title="Clan Verificado">
-                <img src="/assets/icons/svg/gamification/verified.svg" alt="" width="14" height="14">
-              </span>
+
+        <div class="scans-container sp-hero__inner">
+          <!-- Barra Superior de Navegación dentro del Perfil -->
+          <div class="sp-top-nav">
+            <button type="button" id="sp-back-btn" class="sp-nav-pill sp-nav-pill--back">
+              <img src="/assets/icons/svg/navigation/arrow-left.svg" width="15" height="15" alt="" onerror="this.style.display='none'">
+              <span>← Volver al Directorio de Scans</span>
+            </button>
+
+            <div class="sp-top-nav__right">
+              <button type="button" id="sp-share-btn" class="sp-nav-pill" title="Copiar enlace del perfil del scan">
+                <img src="/assets/icons/svg/actions/copy.svg" width="14" height="14" alt="">
+                <span>Compartir Scan</span>
+              </button>
             </div>
-            <p id="modal-clan-desc" class="clan-modal-desc"></p>
+          </div>
+
+          <!-- Bloque Principal de Identidad + Rango de Videojuego -->
+          <div class="sp-identity-grid">
+            <!-- Emblema del Scan con Nivel -->
+            <div class="sp-emblem-col">
+              <div class="sp-emblem-box">
+                <img id="sp-logo" src="/assets/icons/logo.png" alt="Logo del Scan" class="sp-emblem-img">
+                <span class="sp-level-chip" id="sp-level-chip" title="Nivel del Scan">NV. 1</span>
+              </div>
+            </div>
+
+            <!-- Datos Principales, Insignias y Botones de Acción -->
+            <div class="sp-info-col">
+              <div class="sp-title-row">
+                <h1 id="sp-name" class="sp-title">Cargando Scan...</h1>
+                <span class="sp-verified-badge" title="Scan Oficial Verificado">
+                  <img src="/assets/icons/svg/gamification/verified.svg" width="18" height="18" alt="Verificado">
+                </span>
+                <span id="sp-rank-pill" class="sp-rank-pill">RANGO A</span>
+                <span id="sp-status-pill" class="sp-status-pill">ACTIVO</span>
+              </div>
+
+              <div class="sp-meta-row">
+                <span class="sp-meta-item" id="sp-leader-meta">
+                  <img src="/assets/icons/svg/user/user.svg" width="13" height="13" alt="">
+                  <span>Líder: <strong id="sp-owner-name">---</strong></span>
+                </span>
+                <span class="sp-meta-sep">•</span>
+                <span class="sp-meta-item" id="sp-created-meta">Fundado recientemente</span>
+                <span class="sp-meta-sep">•</span>
+                <span class="sp-meta-item" id="sp-slug-meta">@scan</span>
+              </div>
+
+              <p id="sp-desc" class="sp-description">Cargando información del equipo de traducción...</p>
+
+              <!-- Barra de Acciones Interactivas (Unirse, Salir, Taller de Scan, Redes) -->
+              <div class="sp-action-bar" id="sp-action-bar">
+                <!-- Se inyecta dinámicamente según si el usuario es visitante, miembro o líder -->
+              </div>
+            </div>
+
+            <!-- Tarjeta Estilo Videojuego: Prestigio & Nivel del Scan -->
+            <div class="sp-prestige-col">
+              <div class="sp-prestige-card">
+                <div class="sp-prestige-card__head">
+                  <div>
+                    <span class="sp-prestige-card__eyebrow">PRESTIGIO DEL SCAN</span>
+                    <strong class="sp-prestige-card__rank" id="sp-prestige-title">Scan Élite</strong>
+                  </div>
+                  <span class="sp-prestige-card__xp" id="sp-prestige-xp">0 PTS</span>
+                </div>
+                <div class="sp-prestige-bar" title="Progreso hacia el siguiente rango de Scan">
+                  <div class="sp-prestige-bar__fill" id="sp-prestige-fill" style="width: 0%;"></div>
+                </div>
+                <div class="sp-prestige-card__foot" id="sp-prestige-hint">
+                  Publicando capítulos y obras para subir de nivel
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <!-- Barra de Acciones del Modal (Discord, Web) -->
-        <div class="clan-modal-socials" id="modal-clan-socials">
-          <!-- Inyectado dinámicamente -->
-        </div>
+      <!-- 2. CONTENEDOR PRINCIPAL DEL PERFIL -->
+      <div class="scans-container sp-body-container">
 
-        <!-- Pestañas del Modal -->
-        <div class="clan-modal-tabs" id="modal-tabs">
-          <button type="button" class="clan-modal-tab active" data-tab="works">
-            <img src="/assets/icons/svg/content/book.svg" alt="" width="14" height="14">
-            <span>Obras Traducidas</span>
-            <span class="clan-modal-tab-badge" id="modal-tab-works-count"></span>
-          </button>
-          <button type="button" class="clan-modal-tab" data-tab="members">
-            <img src="/assets/icons/svg/user/user.svg" alt="" width="14" height="14">
-            <span>Miembros del Clan</span>
-            <span class="clan-modal-tab-badge" id="modal-tab-members-count"></span>
-          </button>
-          <button type="button" class="clan-modal-tab" data-tab="recruiting">
-            <img src="/assets/icons/svg/gamification/bolt.svg" alt="" width="14" height="14">
-            <span>Reclutamiento</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Contenido de Pestañas del Modal -->
-      <div class="clan-modal-body">
-        <!-- Pestaña Obras -->
-        <div class="clan-modal-pane active" id="pane-works">
-          <div class="clan-works-grid" id="modal-works-grid">
-            <!-- Inyectado dinámicamente -->
+        <!-- Tira de 5 Estadísticas Clave del Scan -->
+        <section class="sp-metrics-strip">
+          <div class="sp-metric-box">
+            <div class="sp-metric-box__icon sp-metric-box__icon--teal">
+              <img src="/assets/icons/svg/content/book.svg" width="18" height="18" alt="">
+            </div>
+            <div class="sp-metric-box__data">
+              <strong id="sp-stat-works" class="sp-metric-box__val">0</strong>
+              <span class="sp-metric-box__lbl">Obras Traducidas</span>
+            </div>
           </div>
-        </div>
 
-        <!-- Pestaña Miembros -->
-        <div class="clan-modal-pane" id="pane-members">
-          <div class="clan-members-list" id="modal-members-list">
-            <!-- Inyectado dinámicamente con roles reales de la BD -->
+          <div class="sp-metric-box">
+            <div class="sp-metric-box__icon sp-metric-box__icon--blue">
+              <img src="/assets/icons/svg/content/grid.svg" width="18" height="18" alt="">
+            </div>
+            <div class="sp-metric-box__data">
+              <strong id="sp-stat-chapters" class="sp-metric-box__val">0</strong>
+              <span class="sp-metric-box__lbl">Capítulos Publicados</span>
+            </div>
           </div>
-        </div>
 
-        <!-- Pestaña Reclutamiento -->
-        <div class="clan-modal-pane" id="pane-recruiting">
-          <div class="clan-recruiting-view" id="modal-recruiting-view">
-            <!-- Inyectado dinámicamente con roles disponibles de la BD -->
+          <div class="sp-metric-box">
+            <div class="sp-metric-box__icon sp-metric-box__icon--purple">
+              <img src="/assets/icons/svg/user/users.svg" width="18" height="18" alt="">
+            </div>
+            <div class="sp-metric-box__data">
+              <strong id="sp-stat-members" class="sp-metric-box__val">0</strong>
+              <span class="sp-metric-box__lbl">Integrantes del Scan</span>
+            </div>
           </div>
+
+          <div class="sp-metric-box">
+            <div class="sp-metric-box__icon sp-metric-box__icon--gold">
+              <img src="/assets/icons/svg/gamification/star.svg" width="18" height="18" alt="">
+            </div>
+            <div class="sp-metric-box__data">
+              <strong id="sp-stat-rating" class="sp-metric-box__val">0.0</strong>
+              <span class="sp-metric-box__lbl">Valoración Media</span>
+            </div>
+          </div>
+
+          <div class="sp-metric-box">
+            <div class="sp-metric-box__icon sp-metric-box__icon--coral">
+              <img src="/assets/icons/svg/gamification/fire.svg" width="18" height="18" alt="">
+            </div>
+            <div class="sp-metric-box__data">
+              <strong id="sp-stat-views" class="sp-metric-box__val">0</strong>
+              <span class="sp-metric-box__lbl">Lecturas Totales</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Cuadrícula de 2 Columnas: Contenido por Pestañas + Panel Lateral -->
+        <div class="sp-layout-grid">
+
+          <!-- COLUMNA PRINCIPAL -->
+          <div class="sp-main-col">
+            <section class="sp-panel">
+              <!-- Barra de Pestañas del Perfil -->
+              <div class="sp-tabs-header">
+                <div class="sp-tabs" role="tablist">
+                  <button type="button" class="sp-tab active" data-sp-tab="works" role="tab" aria-selected="true">
+                    <img src="/assets/icons/svg/content/book.svg" width="15" height="15" alt="">
+                    <span>Catálogo de Obras</span>
+                    <span class="sp-tab-count" id="sp-tab-works-count">0</span>
+                  </button>
+                  <button type="button" class="sp-tab" data-sp-tab="members" role="tab" aria-selected="false">
+                    <img src="/assets/icons/svg/user/users.svg" width="15" height="15" alt="">
+                    <span>Miembros & Rango</span>
+                    <span class="sp-tab-count" id="sp-tab-members-count">0</span>
+                  </button>
+                  <button type="button" class="sp-tab" data-sp-tab="patronage" role="tab" aria-selected="false">
+                    <img src="/assets/icons/svg/gamification/coin.svg" width="15" height="15" alt="">
+                    <span>Mecenazgo & Metas</span>
+                  </button>
+                  <button type="button" class="sp-tab" data-sp-tab="join" role="tab" aria-selected="false">
+                    <img src="/assets/icons/svg/gamification/bolt.svg" width="15" height="15" alt="">
+                    <span id="sp-tab-join-label">Reclutamiento</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- PESTAÑA 1: CATÁLOGO DE OBRAS DEL SCAN -->
+              <div class="sp-tab-pane active" id="sp-pane-works">
+                <div class="sp-works-toolbar">
+                  <div class="sp-works-search">
+                    <img src="/assets/icons/svg/actions/search.svg" width="14" height="14" alt="">
+                    <input type="text" id="sp-works-filter-input" placeholder="Filtrar obras de este scan por título o formato…">
+                  </div>
+                  <select id="sp-works-sort-select" class="sp-works-sort" aria-label="Ordenar obras">
+                    <option value="recent">Más recientes</option>
+                    <option value="chapters">Más capítulos</option>
+                    <option value="score">Mejor valoradas</option>
+                    <option value="views">Más leídas</option>
+                  </select>
+                </div>
+
+                <div class="sp-works-grid" id="sp-works-grid"></div>
+              </div>
+
+              <!-- PESTAÑA 2: PLANTILLA DE MIEMBROS & JERARQUÍA PÚBLICA -->
+              <div class="sp-tab-pane" id="sp-pane-members">
+                <div class="sp-members-grid" id="sp-members-grid"></div>
+              </div>
+
+              <!-- PESTAÑA 3: MECENAZGO, METAS DE CRISTALES Y TOP MECENAS -->
+              <div class="sp-tab-pane" id="sp-pane-patronage">
+                <div id="sp-patronage-content" class="sp-join-content">
+                  <!-- Se inyecta dinámicamente con metas activas, top mecenas y formulario de aporte 50:1 -->
+                </div>
+              </div>
+
+              <!-- PESTAÑA 4: RECLUTAMIENTO / MEMBRESÍA -->
+              <div class="sp-tab-pane" id="sp-pane-join">
+                <div id="sp-join-content" class="sp-join-content">
+                  <!-- Se inyecta dinámicamente con información de reclutamiento vía Discord o gestión de salida -->
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- COLUMNA LATERAL (FICHA DE ESTADO DEL SCAN) -->
+          <aside class="sp-side-col">
+
+            <!-- WIDGET 1: Estado del Usuario en este Scan -->
+            <section class="sp-side-card" id="sp-user-status-card">
+              <header class="sp-side-card__header">
+                <h3 class="sp-side-card__title">
+                  <img src="/assets/icons/svg/gamification/award.svg" width="15" height="15" alt="">
+                  <span>Tu Estado en el Scan</span>
+                </h3>
+              </header>
+              <div id="sp-user-status-body" class="sp-side-card__body">
+                <!-- Inyectado dinámicamente -->
+              </div>
+            </section>
+
+            <!-- WIDGET 2: Distribución de Roles del Equipo -->
+            <section class="sp-side-card">
+              <header class="sp-side-card__header">
+                <h3 class="sp-side-card__title">
+                  <img src="/assets/icons/svg/user/users.svg" width="15" height="15" alt="">
+                  <span>Composición del Equipo</span>
+                </h3>
+              </header>
+              <div id="sp-roles-breakdown" class="sp-roles-breakdown">
+                <!-- Inyectado dinámicamente -->
+              </div>
+            </section>
+
+            <!-- WIDGET 3: Enlaces Oficiales & Comunidad -->
+            <section class="sp-side-card">
+              <header class="sp-side-card__header">
+                <h3 class="sp-side-card__title">
+                  <img src="/assets/icons/svg/navigation/trending.svg" width="15" height="15" alt="">
+                  <span>Canales del Scan</span>
+                </h3>
+              </header>
+              <div id="sp-side-socials" class="sp-side-socials">
+                <!-- Inyectado dinámicamente -->
+              </div>
+            </section>
+
+          </aside>
+
         </div>
       </div>
     </div>
-  </dialog>
+
+  </main>
 
   <footer id="site-footer" class="site-footer"></footer>
 
   <script type="module" src="/js/components/components-loader.js"></script>
-  <script type="module" src="/js/pages/scans.js"></script>
+  <script type="module" src="/js/pages/scans.js?v=2.0"></script>
 </body>
 </html>

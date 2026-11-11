@@ -1,187 +1,292 @@
-from typing import Optional, List, Dict, Any
-import aiomysql
-from app.core.database import resolve_connection
+from typing import Any, Dict, List, Optional
+from sqlalchemy import and_, case, select, text, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import resolve_session
+from app.modules.shop.models import (
+    ShopItemORM,
+    UserCoinTransactionORM,
+    UserInventoryORM,
+)
+from app.modules.users.models import UserORM
 
 
 class ShopRepository:
-    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+    def __init__(self, conn: Optional[AsyncSession] = None):
         self.conn = conn
 
-    # listar items disponibles en la tienda
     async def get_items(self, user_id: Optional[int] = None) -> List[Dict[str, Any]]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                if user_id:
-                    await cur.execute("""
-                        SELECT 
-                            si.id, si.category, si.name, si.description, 
-                            si.price_coins, si.preview_url, si.required_level, si.rarity,
-                            CASE WHEN ui.id IS NOT NULL THEN 1 ELSE 0 END AS is_owned,
-                            CASE WHEN ui.is_equipped = 1 THEN 1 ELSE 0 END AS is_equipped
-                        FROM shop_items si
-                        LEFT JOIN user_inventory ui ON ui.item_id = si.id AND ui.user_id = %s
-                        WHERE si.is_active = TRUE
-                        ORDER BY si.required_level ASC, si.price_coins ASC
-                    """, (user_id,))
-                else:
-                    await cur.execute("""
-                        SELECT 
-                            si.id, si.category, si.name, si.description, 
-                            si.price_coins, si.preview_url, si.required_level, si.rarity,
-                            0 AS is_owned,
-                            0 AS is_equipped
-                        FROM shop_items si
-                        WHERE si.is_active = TRUE
-                        ORDER BY si.required_level ASC, si.price_coins ASC
-                    """)
-                results = await cur.fetchall() or []
-                for r in results:
-                    r["is_owned"] = bool(r["is_owned"])
-                    r["is_equipped"] = bool(r["is_equipped"])
-                return results
-
-    # obtener item por id
-    async def get_item_by_id(self, item_id: int) -> Optional[Dict[str, Any]]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute("SELECT * FROM shop_items WHERE id = %s AND is_active = TRUE", (item_id,))
-                return await cur.fetchone()
-
-    # obtener inventario del usuario
-    async def get_inventory(self, user_id: int) -> List[Dict[str, Any]]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute("""
-                    SELECT 
-                        si.id AS item_id, si.category, si.name, si.description,
-                        si.preview_url, si.rarity, ui.is_equipped, ui.acquired_at
-                    FROM user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    WHERE ui.user_id = %s
-                    ORDER BY ui.acquired_at DESC
-                """, (user_id,))
-                results = await cur.fetchall() or []
-                for r in results:
-                    r["is_equipped"] = bool(r["is_equipped"])
-                return results
-
-    # comprar item y registrar transaccion
-    async def buy_item(self, user_id: int, item_id: int) -> int:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute("SELECT * FROM shop_items WHERE id = %s AND is_active = TRUE", (item_id,))
-                item = await cur.fetchone()
-                if not item:
-                    raise ValueError("El item no existe o no está disponible.")
-
-                await cur.execute("SELECT id FROM user_inventory WHERE user_id = %s AND item_id = %s", (user_id, item_id))
-                if await cur.fetchone():
-                    raise ValueError("Ya posees este objeto en tu inventario.")
-
-                await cur.execute("SELECT coins, xp FROM users WHERE id = %s FOR UPDATE", (user_id,))
-                user = await cur.fetchone()
-                if not user:
-                    raise ValueError("Usuario no encontrado.")
-
-                user_level = (user["xp"] // 1000) + 1
-                if user_level < item["required_level"]:
-                    raise ValueError(f"Requiere Nivel {item['required_level']} de lector (tu nivel actual: {user_level}).")
-
-                price = item["price_coins"]
-                if user["coins"] < price:
-                    raise ValueError(f"Monedas insuficientes. Cuesta {price} monedas y tienes {user['coins']}.")
-
-                new_coins = user["coins"] - price
-                await cur.execute(
-                    "UPDATE users SET coins = coins - %s WHERE id = %s AND coins >= %s",
-                    (price, user_id, price),
+        async with resolve_session(self.conn) as session:
+            if user_id:
+                stmt = (
+                    select(
+                        ShopItemORM.id,
+                        ShopItemORM.category,
+                        ShopItemORM.name,
+                        ShopItemORM.description,
+                        ShopItemORM.price_coins,
+                        ShopItemORM.preview_url,
+                        ShopItemORM.required_level,
+                        ShopItemORM.rarity,
+                        case((UserInventoryORM.id.is_not(None), True), else_=False).label(
+                            "is_owned"
+                        ),
+                        case((UserInventoryORM.is_equipped.is_(True), True), else_=False).label(
+                            "is_equipped"
+                        ),
+                    )
+                    .outerjoin(
+                        UserInventoryORM,
+                        and_(
+                            UserInventoryORM.item_id == ShopItemORM.id,
+                            UserInventoryORM.user_id == user_id,
+                        ),
+                    )
+                    .where(ShopItemORM.is_active.is_(True))
+                    .order_by(
+                        ShopItemORM.required_level.asc(),
+                        ShopItemORM.price_coins.asc(),
+                    )
                 )
-                if cur.rowcount == 0:
-                    raise ValueError("No se pudieron descontar las monedas.")
+            else:
+                stmt = (
+                    select(
+                        ShopItemORM.id,
+                        ShopItemORM.category,
+                        ShopItemORM.name,
+                        ShopItemORM.description,
+                        ShopItemORM.price_coins,
+                        ShopItemORM.preview_url,
+                        ShopItemORM.required_level,
+                        ShopItemORM.rarity,
+                    )
+                    .where(ShopItemORM.is_active.is_(True))
+                    .order_by(
+                        ShopItemORM.required_level.asc(),
+                        ShopItemORM.price_coins.asc(),
+                    )
+                )
+            res = await session.execute(stmt)
+            results = []
+            for row in res.mappings().all():
+                d = dict(row)
+                d["is_owned"] = bool(d.get("is_owned", False))
+                d["is_equipped"] = bool(d.get("is_equipped", False))
+                results.append(d)
+            return results
 
-                await cur.execute("""
-                    INSERT INTO user_inventory (user_id, item_id, is_equipped)
-                    VALUES (%s, %s, FALSE)
-                """, (user_id, item_id))
+    async def get_item_by_id(self, item_id: int) -> Optional[Dict[str, Any]]:
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                select(ShopItemORM).where(
+                    ShopItemORM.id == item_id, ShopItemORM.is_active.is_(True)
+                )
+            )
+            item = res.scalar_one_or_none()
+            return item.to_dict() if item else None
 
-                await cur.execute("""
-                    INSERT INTO user_coin_transactions (user_id, amount, balance_after, type, description, reference_id)
-                    VALUES (%s, %s, %s, 'SHOP_PURCHASE', %s, %s)
-                """, (user_id, -price, new_coins, f"Compra en tienda: {item['name']}", item_id))
+    async def get_inventory(self, user_id: int) -> List[Dict[str, Any]]:
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                select(
+                    ShopItemORM.id.label("item_id"),
+                    ShopItemORM.category,
+                    ShopItemORM.name,
+                    ShopItemORM.description,
+                    ShopItemORM.preview_url,
+                    ShopItemORM.rarity,
+                    UserInventoryORM.is_equipped,
+                    UserInventoryORM.acquired_at,
+                )
+                .join(ShopItemORM, ShopItemORM.id == UserInventoryORM.item_id)
+                .where(UserInventoryORM.user_id == user_id)
+                .order_by(UserInventoryORM.acquired_at.desc())
+            )
+            results = []
+            for row in res.mappings().all():
+                d = dict(row)
+                d["is_equipped"] = bool(d.get("is_equipped", False))
+                results.append(d)
+            return results
 
-                if self.conn is None:
-                    await conn.commit()
+    async def buy_item(self, user_id: int, item_id: int) -> int:
+        async with resolve_session(self.conn) as session:
+            item_res = await session.execute(
+                select(ShopItemORM).where(
+                    ShopItemORM.id == item_id, ShopItemORM.is_active.is_(True)
+                )
+            )
+            item = item_res.scalar_one_or_none()
+            if not item:
+                raise ValueError("El item no existe o no está disponible.")
 
-                return new_coins
+            owned_res = await session.execute(
+                select(UserInventoryORM.id).where(
+                    UserInventoryORM.user_id == user_id,
+                    UserInventoryORM.item_id == item_id,
+                )
+            )
+            if owned_res.scalar_one_or_none() is not None:
+                raise ValueError("Ya posees este objeto en tu inventario.")
 
-    # equipar item cosmético
+            user_res = await session.execute(
+                select(UserORM).where(UserORM.id == user_id).with_for_update()
+            )
+            user = user_res.scalar_one_or_none()
+            if not user:
+                raise ValueError("Usuario no encontrado.")
+
+            user_level = ((user.xp or 0) // 1000) + 1
+            if user_level < item.required_level:
+                raise ValueError(
+                    f"Requiere Nivel {item.required_level} de lector (tu nivel actual: {user_level})."
+                )
+
+            price = item.price_coins
+            if (user.coins or 0) < price:
+                raise ValueError(
+                    f"Monedas insuficientes. Cuesta {price} monedas y tienes {user.coins}."
+                )
+
+            new_coins = user.coins - price
+            user.coins = new_coins
+
+            session.add(
+                UserInventoryORM(
+                    user_id=user_id,
+                    item_id=item_id,
+                    is_equipped=False,
+                )
+            )
+            session.add(
+                UserCoinTransactionORM(
+                    user_id=user_id,
+                    amount=-price,
+                    balance_after=new_coins,
+                    type="SHOP_PURCHASE",
+                    description=f"Compra en tienda: {item.name}",
+                    reference_id=item_id,
+                )
+            )
+
+            await session.commit()
+            return new_coins
+
     async def equip_item(self, user_id: int, item_id: int) -> Dict[str, Any]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute("""
-                    SELECT ui.id, si.category, si.name, si.preview_url 
-                    FROM user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    WHERE ui.user_id = %s AND ui.item_id = %s
-                """, (user_id, item_id))
-                inv_row = await cur.fetchone()
-                if not inv_row:
-                    raise ValueError("No posees este item en tu inventario.")
+        async with resolve_session(self.conn) as session:
+            inv_res = await session.execute(
+                select(
+                    UserInventoryORM.id,
+                    ShopItemORM.category,
+                    ShopItemORM.name,
+                    ShopItemORM.preview_url,
+                )
+                .join(ShopItemORM, ShopItemORM.id == UserInventoryORM.item_id)
+                .where(
+                    UserInventoryORM.user_id == user_id,
+                    UserInventoryORM.item_id == item_id,
+                )
+            )
+            inv_row = inv_res.mappings().first()
+            if not inv_row:
+                raise ValueError("No posees este item en tu inventario.")
 
-                category = (inv_row["category"] or "").upper()
-                name = inv_row["name"]
-                preview_url = inv_row["preview_url"]
+            category = (inv_row["category"] or "").upper()
+            name = inv_row["name"]
+            preview_url = inv_row["preview_url"]
 
-                await cur.execute("""
+            await session.execute(
+                text(
+                    """
                     UPDATE user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    SET ui.is_equipped = FALSE
-                    WHERE ui.user_id = %s AND UPPER(si.category) = %s
-                """, (user_id, category))
+                    SET is_equipped = FALSE
+                    FROM shop_items si
+                    WHERE ui.item_id = si.id
+                      AND ui.user_id = :uid
+                      AND UPPER(si.category) = :cat
+                    """
+                ),
+                {"uid": user_id, "cat": category},
+            )
 
-                await cur.execute("""
-                    UPDATE user_inventory SET is_equipped = TRUE
-                    WHERE user_id = %s AND item_id = %s
-                """, (user_id, item_id))
+            await session.execute(
+                update(UserInventoryORM)
+                .where(
+                    UserInventoryORM.user_id == user_id,
+                    UserInventoryORM.item_id == item_id,
+                )
+                .values(is_equipped=True)
+            )
 
-                if category == "BANNER":
-                    await cur.execute("UPDATE users SET banner_url = %s WHERE id = %s", (preview_url, user_id))
-                elif category == "FRAME":
-                    await cur.execute("UPDATE users SET avatar_frame_url = %s WHERE id = %s", (preview_url, user_id))
-                elif category == "AVATAR":
-                    await cur.execute("UPDATE users SET avatar_url = %s WHERE id = %s", (preview_url, user_id))
-                elif category == "TITLE":
-                    await cur.execute("UPDATE users SET active_title = %s WHERE id = %s", (name, user_id))
+            if category == "BANNER":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(banner_url=preview_url)
+                )
+            elif category == "FRAME":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(avatar_frame_url=preview_url)
+                )
+            elif category == "AVATAR":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(avatar_url=preview_url)
+                )
+            elif category == "TITLE":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(active_title=name)
+                )
 
-                if self.conn is None:
-                    await conn.commit()
+            await session.commit()
+            return {"preview_url": preview_url, "category": category}
 
-                return {"preview_url": preview_url, "category": category}
-
-    # desequipar item cosmético
     async def unequip_item(self, user_id: int, category: str = "BANNER") -> None:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                cat_upper = (category or "BANNER").upper()
-                await cur.execute("""
+        async with resolve_session(self.conn) as session:
+            cat_upper = (category or "BANNER").upper()
+            await session.execute(
+                text(
+                    """
                     UPDATE user_inventory ui
-                    JOIN shop_items si ON si.id = ui.item_id
-                    SET ui.is_equipped = FALSE
-                    WHERE ui.user_id = %s AND UPPER(si.category) = %s
-                """, (user_id, cat_upper))
-                if cat_upper == "BANNER":
-                    await cur.execute("UPDATE users SET banner_url = NULL WHERE id = %s", (user_id,))
-                elif cat_upper == "FRAME":
-                    await cur.execute("UPDATE users SET avatar_frame_url = NULL WHERE id = %s", (user_id,))
-                elif cat_upper == "AVATAR":
-                    await cur.execute("UPDATE users SET avatar_url = NULL WHERE id = %s", (user_id,))
-                elif cat_upper == "TITLE":
-                    await cur.execute("UPDATE users SET active_title = NULL WHERE id = %s", (user_id,))
+                    SET is_equipped = FALSE
+                    FROM shop_items si
+                    WHERE ui.item_id = si.id
+                      AND ui.user_id = :uid
+                      AND UPPER(si.category) = :cat
+                    """
+                ),
+                {"uid": user_id, "cat": cat_upper},
+            )
+            if cat_upper == "BANNER":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(banner_url=None)
+                )
+            elif cat_upper == "FRAME":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(avatar_frame_url=None)
+                )
+            elif cat_upper == "AVATAR":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(avatar_url=None)
+                )
+            elif cat_upper == "TITLE":
+                await session.execute(
+                    update(UserORM)
+                    .where(UserORM.id == user_id)
+                    .values(active_title=None)
+                )
 
-                if self.conn is None:
-                    await conn.commit()
+            await session.commit()
 
-    # desequipar banner
     async def unequip_banner(self, user_id: int) -> None:
         await self.unequip_item(user_id, "BANNER")
-

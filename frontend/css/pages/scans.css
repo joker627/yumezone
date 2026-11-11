@@ -1,22 +1,17 @@
-/* scans */
-
 .scans-page {
   min-height: 100vh;
-  padding-top: 4.8rem;
+  padding-top: 4.5rem;
   padding-bottom: 4rem;
-  background-color: var(--neutral-950, #090d14);
-  background-image:
-    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(57, 198, 165, 0.12) 0%, transparent 70%),
-    radial-gradient(circle at 10% 30%, rgba(244, 63, 94, 0.04) 0%, transparent 40%);
-  background-attachment: fixed;
+  background-color: var(--bg-page, #0a0e17);
 }
 
 .scans-container {
-  width: min(78rem, calc(100% - 2.5rem));
+  width: min(80rem, calc(100% - 2.5rem));
   margin-inline: auto;
 }
 
-/* hero section */
+/* Directorio de scans */
+
 .scans-hero {
   text-align: center;
   padding: 2.2rem 1rem 1.8rem;
@@ -48,7 +43,7 @@
 }
 
 .scans-hero-title {
-  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-size: clamp(1.85rem, 4vw, 2.8rem);
   font-weight: 900;
   line-height: 1.15;
   color: #ffffff;
@@ -79,17 +74,15 @@
   flex-direction: column;
   align-items: center;
   padding: 0.85rem 0.65rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-lg, 12px);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .scans-stat-val {
   font-size: 1.45rem;
   font-weight: 900;
-  color: var(--teal-300, #5eead4);
+  color: var(--teal-400, #2dd4bf);
   line-height: 1;
   margin-bottom: 0.3rem;
 }
@@ -102,7 +95,7 @@
   color: var(--neutral-400, #94a3b8);
 }
 
-/* mi clan */
+/* Tarjeta destacada "Tu Scan Actual" */
 .my-clan-section {
   margin-bottom: 2.2rem;
 }
@@ -114,10 +107,10 @@
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.4rem;
-  background: linear-gradient(135deg, rgba(20, 26, 38, 0.95) 0%, rgba(13, 17, 25, 0.92) 100%);
-  border: 1px solid rgba(57, 198, 165, 0.35);
+  background: linear-gradient(135deg, #161f30 0%, #111724 100%);
+  border: 1px solid rgba(45, 212, 191, 0.45);
   border-radius: var(--radius-xl, 16px);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(57, 198, 165, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 @media (min-width: 640px) {
@@ -136,8 +129,8 @@
 }
 
 .my-clan-logo {
-  width: 3.8rem;
-  height: 3.8rem;
+  width: 3.9rem;
+  height: 3.9rem;
   border-radius: var(--radius-lg, 12px);
   object-fit: cover;
   border: 2px solid var(--teal-400, #2dd4bf);
@@ -177,31 +170,12 @@
 
 .my-clan-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
-.my-clan-btn-dash {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.25rem;
-  background: linear-gradient(135deg, var(--teal-400, #2dd4bf), #0d9488);
-  color: #06231c;
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-decoration: none;
-  border-radius: var(--radius-md, 8px);
-  box-shadow: 0 4px 16px rgba(45, 212, 191, 0.35);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.my-clan-btn-dash:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(45, 212, 191, 0.5);
-}
-
-/* filtros scans */
+/* Filtros del Directorio */
 .scans-filter-bar {
   display: flex;
   flex-direction: column;
@@ -236,8 +210,8 @@
   width: 100%;
   height: 2.6rem;
   padding: 0 2.2rem 0 2.6rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-full, 9999px);
   color: #ffffff;
   font-size: 0.88rem;
@@ -246,9 +220,8 @@
 }
 
 .scans-search-input:focus {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--bg-card-elevated, #161f30);
   border-color: var(--teal-400, #2dd4bf);
-  box-shadow: 0 0 14px rgba(45, 212, 191, 0.2);
 }
 
 .scans-search-input::placeholder {
@@ -279,8 +252,8 @@
   gap: 0.4rem;
   overflow-x: auto;
   padding: 4px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-full, 9999px);
 }
 
@@ -318,7 +291,7 @@
   background: #10b981;
 }
 
-/* grid scans */
+/* Cuadrícula de Tarjetas de Scan */
 .scans-grid-wrapper {
   margin-bottom: 3rem;
 }
@@ -326,7 +299,7 @@
 .scans-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1.35rem;
 }
 
 @media (min-width: 640px) {
@@ -341,33 +314,30 @@
   }
 }
 
-/* tarjeta scan */
 .scan-card {
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: rgba(15, 20, 29, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-xl, 16px);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
 .scan-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(57, 198, 165, 0.45);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.6), 0 0 24px rgba(57, 198, 165, 0.12);
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
 }
 
-/* banner superior */
 .scan-card-banner-wrap {
   position: relative;
-  height: 5.5rem;
+  height: 6rem;
   width: 100%;
   overflow: hidden;
-  background: var(--neutral-900, #0f172a);
+  background: linear-gradient(135deg, #0d1624 0%, #16243a 100%);
 }
 
 .scan-card-banner {
@@ -378,39 +348,54 @@
 }
 
 .scan-card:hover .scan-card-banner {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .scan-card-banner-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(15, 20, 29, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(10, 14, 23, 0.15) 0%, #111724 100%);
 }
 
-/* logo superpuesto */
+.scan-card-rank-tag {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  z-index: 2;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(9, 13, 20, 0.8);
+  border: 1px solid rgba(94, 234, 212, 0.4);
+  color: #5eead4;
+  backdrop-filter: blur(8px);
+}
+
 .scan-card-logo-wrap {
   position: absolute;
-  top: 3.5rem;
+  top: 3.7rem;
   left: 1.25rem;
   z-index: 2;
 }
 
 .scan-card-logo {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.7rem;
+  height: 3.7rem;
   border-radius: var(--radius-lg, 12px);
   object-fit: cover;
-  border: 2px solid rgba(57, 198, 165, 0.7);
+  border: 2px solid rgba(57, 198, 165, 0.75);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
   background: #090d14;
 }
 
-/* contenido de la tarjeta */
 .scan-card-content {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 2.2rem 1.25rem 1.25rem;
+  padding: 2.15rem 1.25rem 1.25rem;
 }
 
 .scan-card-header-row {
@@ -439,40 +424,11 @@
   align-items: center;
 }
 
-.scan-card-badge-verified img {
-  width: 15px;
-  height: 15px;
-}
-
-.scan-card-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-full, 9999px);
-  font-size: 0.68rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.scan-card-status-badge.is-recruiting {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
-}
-
-.scan-card-status-badge.is-active {
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  color: #38bdf8;
-}
-
 .scan-card-desc {
   font-size: 0.82rem;
   line-height: 1.5;
   color: var(--neutral-400, #94a3b8);
-  margin: 0 0 1.1rem;
+  margin: 0 0 0.85rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -480,14 +436,31 @@
   min-height: 2.45rem;
 }
 
-/* métricas del clan */
+.scan-card-owner {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.76rem;
+}
+
+.scan-card-owner-label {
+  color: var(--neutral-500, #64748b);
+  font-weight: 600;
+}
+
+.scan-card-owner-name {
+  color: var(--teal-300, #5eead4);
+  font-weight: 700;
+}
+
 .scan-card-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
   padding: 0.65rem 0.5rem;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-card-elevated, #161f30);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-md, 8px);
   margin-bottom: 1.1rem;
 }
@@ -508,10 +481,6 @@
   color: #ffffff;
 }
 
-.scan-metric-val img {
-  opacity: 0.85;
-}
-
 .scan-metric-lbl {
   font-size: 0.65rem;
   font-weight: 700;
@@ -519,7 +488,6 @@
   text-transform: uppercase;
 }
 
-/* acciones de la tarjeta */
 .scan-card-footer {
   margin-top: auto;
   display: flex;
@@ -533,28 +501,31 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  height: 2.4rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  height: 2.45rem;
+  padding: 0 0.95rem;
+  background: rgba(57, 198, 165, 0.1);
+  border: 1px solid rgba(57, 198, 165, 0.28);
   border-radius: var(--radius-md, 8px);
-  color: #ffffff;
+  color: var(--teal-300, #5eead4);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
   transition: all 160ms ease;
 }
 
 .scan-btn-view:hover {
-  background: rgba(57, 198, 165, 0.18);
-  border-color: rgba(57, 198, 165, 0.45);
-  color: var(--teal-300, #5eead4);
+  background: var(--teal-400, #2dd4bf);
+  border-color: var(--teal-400, #2dd4bf);
+  color: #06231c;
+  box-shadow: 0 4px 14px rgba(45, 212, 191, 0.3);
 }
 
 .scan-btn-discord {
   display: grid;
   place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 2.45rem;
+  height: 2.45rem;
   background: rgba(88, 101, 242, 0.12);
   border: 1px solid rgba(88, 101, 242, 0.3);
   border-radius: var(--radius-md, 8px);
@@ -571,24 +542,9 @@
   transform: translateY(-2px);
 }
 
-/* skeletons */
-.scan-card-skeleton {
-  height: 21rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-xl, 16px);
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
-}
-
-/* estado vacio */
 .scans-empty {
   text-align: center;
-  padding: 4rem 1.5rem;
+  padding: 3.5rem 1.5rem;
   color: var(--neutral-400, #94a3b8);
 }
 
@@ -604,291 +560,703 @@
   margin: 0;
 }
 
-/* modal scan */
-.clan-modal {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  max-width: min(52rem, calc(100vw - 2rem));
-  width: 100%;
-  margin: auto;
-  border-radius: var(--radius-xl, 20px);
-  overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 32px rgba(57, 198, 165, 0.15);
+/* Vista de perfil completo de scan */
+
+.scan-profile-view {
+  animation: spFadeIn 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.clan-modal::backdrop {
-  background: rgba(4, 6, 10, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+@keyframes spFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.clan-modal-dialog {
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100dvh - 3rem);
-  background: rgba(14, 18, 27, 0.98);
-  border: 1px solid rgba(57, 198, 165, 0.35);
-  border-radius: var(--radius-xl, 20px);
-  overflow: hidden;
-}
-
-/* header del modal */
-.clan-modal-header {
+/* Hero Panorámico del Scan */
+.sp-hero {
   position: relative;
-  background: rgba(11, 14, 21, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: -0.7rem;
+  padding-bottom: 2.2rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-card, #1e293b);
 }
 
-.clan-modal-close {
+.sp-banner {
   position: absolute;
-  top: 0.9rem;
-  right: 0.9rem;
-  z-index: 10;
-  display: grid;
-  place-items: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 160ms ease;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.14), transparent 52%),
+    linear-gradient(180deg, #111827 0%, #0a0e17 100%);
 }
 
-.clan-modal-close:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: #ef4444;
-}
-
-.clan-modal-banner-wrap {
-  position: relative;
-  height: 8rem;
-  width: 100%;
-  background: #090d14;
-}
-
-.clan-modal-banner {
+.sp-banner__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.35;
 }
 
-.clan-modal-banner-scrim {
+.sp-banner__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(14, 18, 27, 0.95) 100%);
+  background:
+    linear-gradient(180deg, rgba(10, 14, 23, 0.35) 0%, rgba(10, 14, 23, 0.85) 65%, #0a0e17 100%);
 }
 
-.clan-modal-identity {
+.sp-hero__inner {
   position: relative;
-  display: flex;
-  gap: 1.25rem;
-  padding: 0 1.5rem;
-  margin-top: -2.8rem;
   z-index: 2;
+  padding-top: 1.25rem;
 }
 
-.clan-modal-logo {
-  width: 4.8rem;
-  height: 4.8rem;
-  border-radius: var(--radius-xl, 16px);
-  object-fit: cover;
-  border: 2px solid var(--teal-400, #2dd4bf);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
-  background: #090d14;
-  flex-shrink: 0;
-}
-
-.clan-modal-names {
-  flex: 1;
-  padding-top: 2.8rem;
-}
-
-.clan-modal-title-row {
+/* Barra superior del perfil */
+.sp-top-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
 }
 
-.clan-modal-title {
-  font-size: 1.4rem;
-  font-weight: 900;
-  color: #ffffff;
-  margin: 0;
-}
-
-.clan-modal-desc {
-  font-size: 0.85rem;
-  color: var(--neutral-400, #94a3b8);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.clan-modal-socials {
+.sp-top-nav__right {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.85rem 1.5rem 0.5rem;
+  gap: 0.6rem;
 }
 
-.clan-social-btn {
+.sp-nav-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-md, 8px);
-  font-size: 0.78rem;
+  padding: 0.48rem 0.95rem;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-full, 9999px);
+  color: #e2e8f0;
+  font-size: 0.8rem;
   font-weight: 700;
-  text-decoration: none;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
   transition: all 160ms ease;
 }
 
-.clan-social-btn--discord {
-  background: rgba(88, 101, 242, 0.15);
-  border: 1px solid rgba(88, 101, 242, 0.4);
-  color: #b0beff;
+.sp-nav-pill:hover {
+  background: rgba(45, 212, 191, 0.16);
+  border-color: rgba(45, 212, 191, 0.5);
+  color: #5eead4;
+  transform: translateY(-1px);
 }
 
-.clan-social-btn--discord:hover {
-  background: rgba(88, 101, 242, 0.28);
-  border-color: #5865F2;
+/* Grid de Identidad del Scan */
+.sp-identity-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
 }
 
-.clan-social-btn--web {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+@media (min-width: 960px) {
+  .sp-identity-grid {
+    grid-template-columns: auto 1fr 290px;
+    gap: 1.75rem;
+  }
+}
+
+.sp-emblem-col {
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 960px) {
+  .sp-emblem-col {
+    justify-content: flex-start;
+  }
+}
+
+.sp-emblem-box {
+  position: relative;
+  width: 7.2rem;
+  height: 7.2rem;
+  border-radius: 22px;
+  padding: 3px;
+  background: linear-gradient(135deg, #2dd4bf 0%, #f59e0b 100%);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65);
+}
+
+.sp-emblem-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 19px;
+  object-fit: cover;
+  background: #090d14;
+}
+
+.sp-level-chip {
+  position: absolute;
+  bottom: -0.55rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.2rem 0.65rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #090d14;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  border-radius: 9999px;
+  border: 2px solid #090d14;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.sp-info-col {
+  min-width: 0;
+}
+
+.sp-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.sp-title {
+  font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.sp-verified-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sp-rank-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+}
+
+.sp-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.38);
+  color: #34d399;
+}
+
+.sp-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+  color: var(--neutral-400, #94a3b8);
+  margin-bottom: 0.75rem;
+}
+
+.sp-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sp-meta-item strong {
   color: #e2e8f0;
 }
 
-.clan-social-btn--web:hover {
-  background: rgba(255, 255, 255, 0.1);
+.sp-meta-sep {
+  opacity: 0.45;
 }
 
-/* pestañas del modal */
-.clan-modal-tabs {
+.sp-description {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--neutral-300, #cbd5e1);
+  margin: 0 0 1.1rem;
+  max-width: 46rem;
+}
+
+/* Barra de Acciones en el Hero del Scan */
+.sp-action-bar {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 1.5rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
-.clan-modal-tab {
+.sp-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  color: var(--neutral-400, #94a3b8);
-  font-size: 0.84rem;
-  font-weight: 700;
+  justify-content: center;
+  gap: 0.48rem;
+  padding: 0.62rem 1.15rem;
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.83rem;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 160ms ease;
+  transition: all 170ms ease;
 }
 
-.clan-modal-tab:hover {
+.sp-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sp-btn--primary {
+  background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);
+  color: #041f19;
+  box-shadow: 0 6px 20px rgba(45, 212, 191, 0.32);
+}
+
+.sp-btn--primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(45, 212, 191, 0.48);
+}
+
+.sp-btn--gold {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  color: #0b0d12;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.28);
+}
+
+.sp-btn--gold:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.42);
+}
+
+.sp-btn--secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f1f5f9;
+}
+
+.sp-btn--secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.sp-btn--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.sp-btn--danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: #ef4444;
   color: #ffffff;
 }
 
-.clan-modal-tab.active {
-  color: var(--teal-300, #5eead4);
-  border-bottom-color: var(--teal-400, #2dd4bf);
+.sp-btn--discord {
+  background: rgba(88, 101, 242, 0.16);
+  border-color: rgba(88, 101, 242, 0.42);
+  color: #c7d2fe;
 }
 
-.clan-modal-tab-badge {
-  padding: 0.15rem 0.45rem;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-full, 9999px);
-  font-size: 0.7rem;
+.sp-btn--discord:hover {
+  background: rgba(88, 101, 242, 0.3);
+  border-color: #5865F2;
+  color: #ffffff;
+}
+
+/* Tarjeta de Prestigio Estilo Videojuego */
+.sp-prestige-card {
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-card, #111724);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.sp-prestige-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.sp-prestige-card__eyebrow {
+  display: block;
+  font-size: 0.65rem;
   font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--teal-400, #2dd4bf);
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
 }
 
-/* cuerpo modal */
-.clan-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(57, 198, 165, 0.35) transparent;
+.sp-prestige-card__rank {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #ffffff;
 }
 
-.clan-modal-body::-webkit-scrollbar {
-  width: 5px;
+.sp-prestige-card__xp {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  white-space: nowrap;
 }
 
-.clan-modal-body::-webkit-scrollbar-button {
+.sp-prestige-bar {
+  width: 100%;
+  height: 0.52rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 0.55rem;
+}
+
+.sp-prestige-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2dd4bf 0%, #fbbf24 100%);
+  border-radius: 9999px;
+  transition: width 400ms ease;
+}
+
+.sp-prestige-card__foot {
+  font-size: 0.74rem;
+  color: var(--neutral-400, #94a3b8);
+}
+
+/* Métricas y layout de 2 columnas */
+
+.sp-body-container {
+  padding-top: 1.5rem;
+}
+
+.sp-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .sp-metrics-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .sp-metrics-strip {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.sp-metric-box {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.95rem 1.1rem;
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
+  border-radius: var(--radius-lg, 14px);
+}
+
+.sp-metric-box__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.sp-metric-box__icon--teal {
+  background: rgba(45, 212, 191, 0.14);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.sp-metric-box__icon--blue {
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.sp-metric-box__icon--purple {
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.sp-metric-box__icon--gold {
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.sp-metric-box__icon--coral {
+  background: rgba(244, 63, 94, 0.14);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.sp-metric-box__data {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-metric-box__val {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.sp-metric-box__lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--neutral-400, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 0.15rem;
+}
+
+/* Grid Principal + Sidebar */
+.sp-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .sp-layout-grid {
+    grid-template-columns: 1fr 330px;
+  }
+}
+
+.sp-panel {
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
+  border-radius: var(--radius-xl, 18px);
+  overflow: hidden;
+}
+
+.sp-tabs-header {
+  padding: 0.85rem 1.25rem;
+  background: #0d121d;
+  border-bottom: 1px solid var(--border-card, #1e293b);
+}
+
+.sp-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+}
+
+.sp-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 10px);
+  color: var(--neutral-400, #94a3b8);
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 160ms ease;
+}
+
+.sp-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sp-tab.active {
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.4);
+  color: var(--teal-300, #5eead4);
+}
+
+.sp-tab-count {
+  padding: 0.1rem 0.45rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  color: #ffffff;
+}
+
+.sp-tab-pane {
   display: none;
+  padding: 1.35rem;
 }
 
-.clan-modal-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: var(--radius-full, 9999px);
-}
-
-.clan-modal-pane {
-  display: none;
-}
-
-.clan-modal-pane.active {
+.sp-tab-pane.active {
   display: block;
 }
 
-/* obras scan */
-.clan-works-grid {
+/* Barra de filtro de obras dentro del perfil */
+.sp-works-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .sp-works-toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.sp-works-search {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.sp-works-search img {
+  position: absolute;
+  left: 0.85rem;
+  opacity: 0.6;
+}
+
+.sp-works-search input {
+  width: 100%;
+  height: 2.4rem;
+  padding: 0 0.9rem 0 2.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md, 10px);
+  color: #ffffff;
+  font-size: 0.83rem;
+  outline: none;
+}
+
+.sp-works-search input:focus {
+  border-color: var(--teal-400, #2dd4bf);
+}
+
+.sp-works-sort {
+  height: 2.4rem;
+  padding: 0 0.85rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md, 10px);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  outline: none;
+}
+
+/* Grid de Obras del Scan */
+.sp-works-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
 @media (min-width: 640px) {
-  .clan-works-grid {
+  .sp-works-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .sp-works-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 .clan-work-card {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card-elevated, #161f30);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
   text-decoration: none;
-  transition: transform 180ms ease, border-color 180ms ease;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .clan-work-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(57, 198, 165, 0.4);
+  transform: translateY(-4px);
+  border-color: rgba(45, 212, 191, 0.45);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
 }
 
 .clan-work-cover-wrap {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 2 / 3;
+  width: 100%;
   overflow: hidden;
-  background: var(--neutral-900, #0f172a);
+  background: #090d14;
 }
 
 .clan-work-cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 260ms ease;
+}
+
+.clan-work-card:hover .clan-work-cover {
+  transform: scale(1.05);
+}
+
+.clan-work-badge-format {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.16rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(9, 13, 20, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  font-size: 0.63rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .clan-work-info {
-  padding: 0.65rem 0.75rem;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .clan-work-title {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.86rem;
+  font-weight: 800;
   color: #ffffff;
-  margin: 0 0 0.35rem;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -903,22 +1271,67 @@
 }
 
 .clan-work-score {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #facc15;
+  color: #fbbf24;
   font-weight: 800;
 }
 
-/* lista de miembros */
-.clan-members-list {
+/* Gestión rápida e Incorporación de Miembros */
+.sp-manager-box {
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  background: rgba(45, 212, 191, 0.06);
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.sp-manager-box__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.sp-manager-box__head strong {
+  font-size: 0.88rem;
+  color: #5eead4;
+}
+
+.sp-manager-box__head span {
+  font-size: 0.76rem;
+  color: var(--neutral-400, #94a3b8);
+}
+
+.sp-input,
+.sp-select {
+  height: 2.45rem;
+  padding: 0 0.85rem;
+  background: rgba(9, 13, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md, 8px);
+  color: #ffffff;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.sp-input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.sp-input:focus,
+.sp-select:focus {
+  border-color: var(--teal-400, #2dd4bf);
+}
+
+/* Grid de Miembros del Scan */
+.sp-members-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 @media (min-width: 640px) {
-  .clan-members-list {
+  .sp-members-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -926,145 +1339,275 @@
 .clan-member-card {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.85rem;
   padding: 0.85rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-card-elevated, #161f30);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-lg, 12px);
+  text-decoration: none;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
 }
 
-.clan-member-avatar {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1.5px solid rgba(57, 198, 165, 0.4);
+.clan-member-card:hover {
+  background: var(--bg-card-hover, #1b263b);
+  border-color: rgba(45, 212, 191, 0.4);
+  transform: translateY(-2px);
 }
 
-.clan-member-details {
+.clan-member-card__left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  text-decoration: none;
   flex: 1;
 }
 
+.clan-member-avatar-wrap {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+}
+
+.clan-member-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.clan-member-frame {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.clan-member-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
 .clan-member-name {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .clan-member-role {
-  display: inline-block;
-  padding: 0.15rem 0.55rem;
-  border-radius: var(--radius-full, 9999px);
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.16rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .role-leader {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
 }
 
 .role-co_leader {
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(168, 85, 247, 0.45);
   color: #c084fc;
 }
 
-.role-uploader {
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+.role-translator {
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.45);
   color: #38bdf8;
 }
 
 .role-editor {
-  background: rgba(236, 72, 153, 0.15);
-  border: 1px solid rgba(236, 72, 153, 0.4);
-  color: #f472b6;
+  background: rgba(244, 63, 94, 0.16);
+  border: 1px solid rgba(244, 63, 94, 0.45);
+  color: #fb7185;
 }
 
-.role-translator {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+.role-uploader {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.45);
   color: #34d399;
 }
 
-/* vista de reclutamiento */
-.clan-recruiting-view {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 0.5rem 0;
+/* Pestaña 3: Unirse al Scan / Selección de Roles Interactiva */
+.sp-join-banner {
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #152434 0%, #111724 100%);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: var(--radius-lg, 14px);
+  margin-bottom: 1.25rem;
 }
 
-.clan-recruiting-banner {
-  padding: 1.25rem 1.5rem;
-  background: rgba(57, 198, 165, 0.08);
-  border: 1px solid rgba(57, 198, 165, 0.25);
-  border-radius: var(--radius-lg, 12px);
-}
-
-.clan-recruiting-banner h3 {
+.sp-join-banner h3 {
   font-size: 1.1rem;
   font-weight: 900;
-  color: var(--teal-200, #99f6e4);
-  margin: 0 0 0.4rem;
+  color: #ffffff;
+  margin: 0 0 0.35rem;
 }
 
-.clan-recruiting-banner p {
-  font-size: 0.85rem;
+.sp-join-banner p {
+  font-size: 0.84rem;
   color: var(--neutral-300, #cbd5e1);
   margin: 0;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
-.clan-roles-grid {
+.sp-roles-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
 }
 
-.clan-role-item {
+@media (min-width: 640px) {
+  .sp-roles-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.sp-role-join-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem;
+  background: var(--bg-card-elevated, #161f30);
+  border: 1px solid var(--border-card, #1e293b);
+  border-radius: var(--radius-lg, 14px);
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.sp-role-join-card:hover {
+  border-color: rgba(45, 212, 191, 0.45);
+  transform: translateY(-2px);
+}
+
+.sp-role-join-card__desc {
+  font-size: 0.8rem;
+  color: var(--neutral-400, #94a3b8);
+  line-height: 1.5;
+  margin: 0.6rem 0 0;
+}
+
+/* Confirmación Inline para Salir o Cambiar de Scan */
+.sp-confirm-inline {
+  margin-top: 1rem;
+  padding: 1rem 1.15rem;
+  background: rgba(239, 68, 68, 0.09);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-lg, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sp-confirm-inline p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #fecaca;
+  line-height: 1.45;
+}
+
+.sp-confirm-inline__actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-lg, 12px);
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.clan-role-item-icon {
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: var(--radius-md, 8px);
-  background: rgba(57, 198, 165, 0.15);
-  border: 1px solid rgba(57, 198, 165, 0.3);
-  display: grid;
-  place-items: center;
-  color: var(--teal-300, #5eead4);
-  flex-shrink: 0;
+/* Columna lateral */
+
+.sp-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
 
-.clan-role-item-title {
+.sp-side-card {
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
+  border-radius: var(--radius-xl, 16px);
+  padding: 1.15rem 1.25rem;
+}
+
+.sp-side-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border-card, #1e293b);
+}
+
+.sp-side-card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 0.88rem;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 0.2rem;
-}
-
-.clan-role-item-desc {
-  font-size: 0.72rem;
-  color: var(--neutral-400, #94a3b8);
   margin: 0;
 }
 
-.clan-recruiting-cta {
+.sp-side-card__body {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--neutral-300, #cbd5e1);
+}
+
+.sp-roles-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sp-role-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sp-role-stat-row__top {
+  display: flex;
   align-items: center;
-  gap: 0.85rem;
-  padding-top: 1rem;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.sp-role-stat-row__bar {
+  width: 100%;
+  height: 0.38rem;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.sp-role-stat-row__fill {
+  height: 100%;
+  background: var(--teal-400, #2dd4bf);
+  border-radius: 9999px;
+}
+
+.sp-side-socials {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080a0f">
+  <title>Acceso Scan Studio | YumeZone</title>
+  
+  <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+  
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components/toast.css">
+  <link rel="stylesheet" href="../css/pages/login.css">
+</head>
+<body class="login-page-wrapper">
+
+  <!-- Luces Ambientales -->
+  <div class="login-glow-top"></div>
+  <div class="login-glow-bottom"></div>
+
+  <div class="login-card-container">
+    <div class="login-header-block">
+      <div class="login-logo-box">
+        <img src="../assets/icons/logo.png" alt="Logo YumeZone" width="32" height="32">
+      </div>
+      <h1 class="login-title">Yume<span>Scan</span> Studio</h1>
+      <p class="login-subtitle">Portal de Grupos de Traducción, Scans & Editores</p>
+    </div>
+
+    <div class="login-card">
+      <form id="scan-login-form" class="login-form">
+        <div id="error-alert" class="login-error-alert hidden" role="alert"></div>
+
+        <div class="login-field">
+          <label for="scan-email" class="login-label">Correo de la Cuenta de Scan</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">
+              <img src="../assets/icons/svg/user.svg" alt="" aria-hidden="true" width="16" height="16">
+            </span>
+            <input id="scan-email" type="email" required autocomplete="username" class="login-input" placeholder="lider@scanlation.com">
+          </div>
+        </div>
+
+        <div class="login-field">
+          <label for="scan-password" class="login-label">Contraseña</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">
+              <img src="../assets/icons/svg/lock.svg" alt="" aria-hidden="true" width="16" height="16">
+            </span>
+            <input id="scan-password" type="password" required autocomplete="current-password" class="login-input" placeholder="••••••••••••">
+            <button type="button" id="toggle-pwd" class="login-toggle-pwd" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
+              <img src="../assets/icons/svg/eye.svg" alt="" aria-hidden="true" width="16" height="16">
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit" class="btn-login-submit">
+          <span class="btn-login-text">Ingresar al Taller de Scan</span>
+          <img src="../assets/icons/svg/arrow-right.svg" alt="" width="16" height="16" aria-hidden="true">
+        </button>
+      </form>
+
+      <div class="login-card-footer">
+        <span>Acceso Colaborador / Scan</span>
+        <a href="../index.html" class="login-footer-link">← Volver al Hub</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/pages/login.js"></script>
+</body>
+</html>

@@ -1,60 +1,91 @@
 # 📚 YumeZone Backend
 
-Este es el núcleo de YumeZone, construido con **FastAPI** y **Raw SQL (aiomysql)** siguiendo los principios de **Domain-Driven Design (DDD)** (Diseño Orientado al Dominio).
-
-Nuestra arquitectura modular está diseñada para ser extremadamente rápida, escalable y prevenir "códigos espagueti". Cada módulo funciona como un "mini-proyecto" independiente.
+Núcleo de **YumeZone**, construido con **FastAPI**, **SQLAlchemy 2.0 Async** y **PostgreSQL (`asyncpg`)** siguiendo una arquitectura **Vertical Slice (Modular Monolith)**.
 
 ---
 
-## 🏛️ El Mapa de Módulos (`app/modules/`)
+## 🏛️ Estructura del Proyecto (`backend/`)
 
-Aquí están los dominios exclusivos de la plataforma. 
-**Regla de Oro para evitar referencias circulares:** Un módulo nunca debe hacer consultas directas a la tabla de otro módulo en SQL. Si `works` necesita datos de `users`, debe llamar a las funciones del archivo `services.py` de `users`.
-
-* 🔐 **`auth`**: Seguridad, login, registro, tokens JWT y encriptado de contraseñas.
-* 👤 **`users`**: Registro de usuarios y configuraciones globales.
-  * `profile/`: Edición de biografía, avatar y privacidad.
-  * `followers/`: Sistema para seguir/dejar de seguir a otros usuarios.
-  * `settings/`: Configuraciones del lector (modo oscuro, paginado).
-* 👥 **`scans`**: Gestión de grupos scan.
-  * `core/`: Crear/editar la info principal del grupo (banner, nombre).
-  * `members/`: Administrar permisos, ascender/expulsar administradores.
-  * `invitations/`: Aceptar o rechazar invitaciones al grupo.
-* 📚 **`works`**: Gestión principal de obras.
-  * `metadata/`: Portadas, actualización de estados (emisión, finalizado), etc.
-* 📄 **`chapters`**: Gestión de capítulos.
-  * `images/`: Lógica para subir, censurar o aislar el orden de páginas.
-* ❤️ **`library`**: Todo lo personal del usuario en un solo lugar.
-  * `bookmarks/`: Listas del usuario (favoritos, leyendo, completados).
-  * `history/`: Historial para guardar y consultar la última página leída.
-* 💬 **`comments`**: Comentarios de obras y capítulos.
-  * `reactions/`: Sistema de likes/dislikes a comentarios y control de spoilers.
-* 📢 **`boards`**: Tablones de anuncios.
-  * `general/`: Avisos globales de Yumezone.
-  * `scans/`: Tablones internos y reclutamientos de cada grupo.
-* 💬 **`chat`**: El chat global en tiempo real para la comunidad.
-* 🔔 **`notifications`**: El sistema de alertas (invitaciones a grupos, nuevos capítulos de favoritos).
-* 🏷️ **`taxonomies`**: Para gestionar y filtrar géneros, demografías, formatos y etiquetas.
-* 📊 **`statistics`**: Para inyectar vistas (view_logs) de forma asíncrona, llevar contadores y armar Rankings.
-
----
-
-## ⚙️ La Anatomía Interna de un Módulo
-
-Dentro de cada carpeta de módulo, siempre encontrarás los mismos 4 pilares:
-
-1. 🛡️ **`schemas.py` (La Aduana):** Usa *Pydantic*. Valida los datos JSON que envía el frontend. Si falta un campo o el tipo de dato es incorrecto, bloquea la petición automáticamente.
-2. 🛣️ **`router.py` (El Recepcionista):** Define las rutas de la API (Ej. `GET /works`). Recibe la petición de internet y se la pasa al Servicio.
-3. 🧠 **`services.py` (El Cerebro):** Aquí vive la **lógica de negocio**. Valida permisos de usuario, formatea datos, procesa lógica antes de guardar.
-4. 💾 **`repository.py` (El Obrero):** El único archivo que sabe de Base de Datos. Contiene **SQL puro** asíncrono para ejecutar los `INSERT`, `SELECT`, `UPDATE` o `DELETE`.
-
----
-
-## 🚀 Análisis Experto: Prevención de Cuellos de Botella
-
-Para asegurar que Yumezone soporte miles de usuarios simultáneos sin caerse, el código debe seguir estas normas estrictas:
-
-1. **Cero Dependencias Circulares:** Mantén la lógica aislada. Las dependencias transversales se resuelven a nivel de *Servicios*, nunca a nivel de Repositorios (SQL) ni Modelos.
-2. **Cero Bloqueos (Non-Blocking):** Al usar `aiomysql`, absolutamente todas las llamadas al repositorio deben usar la palabra clave `await`. Nunca uses librerías síncronas que detengan el "Event Loop" de FastAPI.
-3. **Escalabilidad de Vistas (View Logs):** Nunca hagas un `UPDATE works SET views = views + 1` en vivo cada que alguien entra. Eso bloquearía la base de datos entera. Las vistas se insertan crudas en `view_logs` (módulo `statistics`) y un proceso secundario actualiza los totales.
-4. **Almacenamiento Físico:** Las imágenes nunca tocan la base de datos. Se guardan en la carpeta física `/uploads` (o un bucket como S3), y la DB solo almacena la URL en modo texto.
+```text
+backend/
+├── requirements.txt             # Dependencias (FastAPI, SQLAlchemy 2.0 Async, asyncpg, Redis)
+├── sql/
+│   ├── schema.sql               # Esquema nativo PostgreSQL 15+ (40 tablas, índices y seeds base)
+│   └── mock.sql                 # Datos de prueba para desarrollo local
+└── app/
+    ├── main.py                  # Punto de entrada FastAPI, middlewares y registro de rutas (/api/v1)
+    ├── core/                    # Configuración del servidor y seguridad transversal
+    │   ├── config.py            # Variables de entorno y construcción de DATABASE_URL
+    │   ├── dependencies.py      # Autenticación JWT, verificación de sesiones y permisos RBAC
+    │   └── security.py          # Hashing bcrypt y firma/validación JWT
+    ├── db/                      # Capa de almacenamiento y persistencia (PostgreSQL + Redis)
+    │   ├── base.py              # DeclarativeBase central con serialización .to_dict()
+    │   ├── models.py            # Registro centralizado de metadatos ORM de todos los módulos
+    │   ├── redis.py             # Conexión Redis, decorador @cached_query y rate-limiting
+    │   └── session.py           # AsyncEngine, get_db_session, resolve_session y transaction_scope
+    ├── modules/                 # Módulos verticales autocontenidos (Vertical Slices)
+    │   ├── admin/               # Panel de control, auditoría, configuración y métricas de lectura
+    │   │   ├── models.py        # Tablas: view_logs, audit_logs, platform_settings, content_reports
+    │   │   ├── repository.py
+    │   │   ├── router.py        # Endpoints /api/v1/admin y /api/v1/metrics
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── auth/                # Login, registro, recuperación y tokens JWT
+    │   │   ├── repository.py
+    │   │   ├── router.py
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── chapters/            # Capítulos, páginas y entregas de traducción
+    │   │   ├── models.py        # Tablas: chapters, chapter_images, chapter_submissions
+    │   │   ├── repository.py
+    │   │   ├── router.py
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── comments/            # Comentarios y reacciones en series y capítulos
+    │   │   ├── models.py        # Tablas: comments, comment_reactions
+    │   │   ├── repository.py
+    │   │   ├── router.py
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── home/                # Portada, Hero carrusel, rankings, avisos y misiones
+    │   │   ├── models.py        # Tablas: hero_queue, announcements
+    │   │   ├── repository.py
+    │   │   ├── router.py        # Endpoints /api/v1/home, /api/v1/hero y /api/v1/announcements
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── notifications/       # Alertas de nuevos capítulos, respuestas y clanes
+    │   │   ├── models.py        # Tabla: notifications
+    │   │   ├── repository.py
+    │   │   ├── router.py
+    │   │   └── services.py
+    │   ├── scans/               # Clanes Scanlator, miembros, roles, bóveda y metas
+    │   │   ├── models.py        # Tablas: scan_groups, scan_roles, scan_group_members, etc.
+    │   │   ├── repository.py
+    │   │   ├── router.py
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── series/              # Mangas/Manhwas/Webtoons, géneros, formatos y estadísticas
+    │   │   ├── models.py        # Tablas: works, statuses, formats, demographics, genres, tags, etc.
+    │   │   ├── repository.py
+    │   │   ├── router.py        # Endpoints /api/v1/works y alias /api/v1/series
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── shop/                # Tienda de cosméticos, inventario y misiones diarias
+    │   │   ├── models.py        # Tablas: shop_items, user_inventory, daily_missions, etc.
+    │   │   ├── repository.py
+    │   │   ├── router.py
+    │   │   ├── schemas.py
+    │   │   └── services.py
+    │   ├── uploads/             # Subida y validación física de imágenes
+    │   │   ├── router.py
+    │   │   └── services.py
+    │   └── users/               # Perfiles, roles, rangos de cultivo y biblioteca personal
+    │       ├── models.py        # Tablas: users, roles, user_library, reading_history, etc.
+    │       ├── repository.py
+    │       ├── router.py        # Endpoints /api/v1/users y /api/v1/library
+    │       ├── schemas.py
+    │       └── services.py
+    └── utils/                   # Utilidades puras
+        ├── formatters.py        # Slugs, formato de vistas, números de capítulo y tiempo relativo
+        └── network.py           # Extracción segura de IP del cliente
+```

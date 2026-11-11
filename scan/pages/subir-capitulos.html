@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Subida de Capítulos .WEBP - YumeZone Studio</title>
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    
+    <!-- Estilos Internos Modulares (100% Puros, Cero CDNs) -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/header.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/components/toast.css">
+    <link rel="stylesheet" href="../css/components/skeletons.css">
+    <link rel="stylesheet" href="../css/pages/obras-canvas.css">
+    <link rel="stylesheet" href="../css/pages/subir-capitulos.css">
+</head>
+<body data-page="subir-capitulos">
+
+    <!-- Header y Sidebar Reutilizable (Montado por components-loader.js) -->
+    <header id="header"></header>
+
+    <!-- Main Content -->
+    <main class="page-main-container">
+        <div class="ambient-glow-wrapper">
+            <!-- Orbes de luz ambiental -->
+            <div class="ambient-orb-primary"></div>
+            <div class="ambient-orb-secondary"></div>
+
+            <!-- Cabecera de Sección -->
+            <div class="upload-header-block">
+                <div class="upload-badge-row">
+                    <span class="badge-tag-coral">Subida Técnica Exclusiva</span>
+                    <span class="badge-tag-gold">Formato .WEBP Obligatorio</span>
+                </div>
+                <h1 class="upload-main-title">Subida de Capítulos & Flujo "Próximamente"</h1>
+                <p class="upload-subtitle-desc">
+                    Puedes registrar primero un capítulo en estado <strong>Próximamente (En Traducción)</strong> para avisar a los lectores, y cuando tengas listas las páginas <code>.webp</code>, cargárselas para pasarlo a <strong>Publicado</strong>.
+                </p>
+            </div>
+
+            <!-- Formulario Principal de Subida Express -->
+            <div class="express-upload-card" id="quick-upload-card">
+                <div class="upload-card-head">
+                    <div>
+                        <h3 class="upload-card-title" id="upload-mode-heading">Publicación o Programación de Entrega</h3>
+                        <p class="upload-card-sub" id="upload-mode-sub">Selecciona la obra, el número de capítulo y el estado editorial.</p>
+                    </div>
+                    <span class="status-flow-badge al-dia" id="upload-badge-indicator">
+                        <span class="pulse-dot"></span> Pipeline Activo
+                    </span>
+                </div>
+
+                <form id="express-upload-form" class="upload-form-grid">
+                    <input type="hidden" id="editing-chapter-id" value="">
+
+                    <div class="control-field-block">
+                        <label for="select-upload-work">Seleccionar Serie del Clan *</label>
+                        <select id="select-upload-work" class="control-input" required>
+                            <option value="">Cargando obras del clan...</option>
+                        </select>
+                    </div>
+
+                    <div class="control-grid-cols-2">
+                        <div class="control-field-block">
+                            <label for="input-upload-number">Número de Capítulo *</label>
+                            <input class="control-input" id="input-upload-number" type="number" step="0.1" min="0" value="1" required>
+                        </div>
+                        <div class="control-field-block">
+                            <label for="input-upload-title">Título del Capítulo (Opcional)</label>
+                            <input class="control-input" id="input-upload-title" type="text" placeholder="Ej: El Despertar del Monarca">
+                        </div>
+                    </div>
+
+                    <div class="control-grid-cols-2">
+                        <!-- Selector de Flujo / Estado Real en MySQL (PUBLISHED, SCHEDULED, DRAFT) -->
+                        <div class="control-field-block">
+                            <label for="select-chapter-status">Estado Editorial en Base de Datos *</label>
+                            <select id="select-chapter-status" class="control-input">
+                                <option value="PUBLISHED" selected>Publicar Ahora (PUBLISHED — Requiere páginas .WEBP)</option>
+                                <option value="SCHEDULED">Próximamente / En Traducción (SCHEDULED — Sin páginas aún)</option>
+                                <option value="DRAFT">Borrador Interno / QC (DRAFT — Oculto al público)</option>
+                            </select>
+                        </div>
+
+                        <div class="control-field-block">
+                            <label for="input-reward-coins">Recompensa de Traducción (YumeCoins)</label>
+                            <input class="control-input" id="input-reward-coins" type="number" min="0" max="200" step="5" value="20">
+                        </div>
+                    </div>
+
+                    <span class="status-callout-hint" id="status-callout-text">
+                        * Si el capítulo ya estaba registrado como "Próximamente (En Traducción)", al subir sus páginas .WEBP se actualizará automáticamente a "Publicado".
+                    </span>
+
+                    <!-- Dropzone de Páginas WebP o Carpeta Completa -->
+                    <div class="control-field-block" id="dropzone-field-block">
+                        <label>Páginas o Carpeta del Capítulo (.WEBP)</label>
+                        <div class="express-dropzone" id="dropzone-webp">
+                            <input type="file" id="webp-files-input" class="hidden" style="display: none;" hidden accept=".webp,image/webp" multiple>
+                            <input type="file" id="webp-folder-input" class="hidden" style="display: none;" hidden webkitdirectory directory multiple>
+                            <div class="dropzone-icon-circle">
+                                <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-lg" alt="">
+                            </div>
+                            <p class="dropzone-main-text">Arrastra tu carpeta (ej. <code>📁 capitulo-10</code>) o tus páginas .WEBP aquí</p>
+                            <p class="dropzone-sub-text">
+                                O haz clic para <span class="dropzone-browse-btn" id="btn-browse-files">seleccionar archivos .webp</span>
+                                • <span class="dropzone-browse-btn" id="btn-browse-folder" style="text-decoration: underline;">seleccionar carpeta completa</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Previsualización en Vivo de Páginas -->
+                    <div class="preview-container hidden" id="preview-container">
+                        <div class="preview-head-bar">
+                            <span class="preview-head-title" id="preview-count-label">0 páginas seleccionadas</span>
+                            <button type="button" class="preview-clear-btn" id="btn-clear-pages">Limpiar páginas</button>
+                        </div>
+                        <div class="preview-thumbnails-grid" id="preview-grid"></div>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" class="btn-submit-upload" id="btn-upload-submit">
+                        <img src="../assets/icons/svg/check.svg" class="icon-svg icon-md icon-dark" alt="">
+                        <span id="btn-submit-text">Confirmar y Publicar Entrega WebP</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Panel Inferior: Capítulos en Traducción (SCHEDULED / DRAFT) de la Obra Seleccionada -->
+            <section class="catalog-panel-card" style="max-width: 860px; margin: 1.75rem auto 0;">
+                <div class="catalog-head-block">
+                    <div class="catalog-top-row">
+                        <div>
+                            <div class="section-title-wrap">
+                                <div class="accent-pill-indicator"></div>
+                                <h2 class="section-main-heading">Capítulos de la Serie Seleccionada</h2>
+                            </div>
+                            <p class="section-sub-desc">Haz clic en "Cargar Páginas y Publicar" sobre cualquier capítulo en estado "Próximamente" para completar su publicación.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chapters-list-wrap" id="work-chapters-pipeline-list" style="margin-top: 1rem;">
+                    <!-- Poblado dinámicamente -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer Reutilizable (Montado por components-loader.js) -->
+    <footer id="site-footer" class="site-footer"></footer>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="../js/components/components-loader.js"></script>
+    <script type="module" src="../js/pages/subir-capitulos.js"></script>
+</body>
+</html>

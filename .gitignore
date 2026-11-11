@@ -8,6 +8,8 @@ venv/
 .ruff_cache/
 .coverage
 htmlcov/
+test
+scripts
 
 # Frontend
 frontend/assets/images/others

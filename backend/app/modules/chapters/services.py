@@ -1,10 +1,14 @@
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
-import aiomysql
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import is_platform_admin, verify_upload_permission
-from app.modules.chapters.models import Chapter, ChapterImage
+from app.core.dependencies import (
+    is_platform_admin,
+    verify_scan_member_permission,
+    verify_upload_permission,
+)
+from app.modules.chapters.schemas import Chapter, ChapterImage
 from app.modules.chapters.repository import (
     ChapterImageRepository,
     ChapterRepository,
@@ -16,13 +20,13 @@ from app.modules.chapters.schemas import (
     ChapterSubmissionReview,
 )
 from app.modules.scans.repository import ScanGroupRepository
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
-from app.utils import generate_slug
+from app.utils.formatters import generate_slug
 
 
 class ChapterService:
-    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+    def __init__(self, conn: Optional[AsyncSession] = None):
         self.chapter_repository = ChapterRepository(conn)
         self.chapter_image_repository = ChapterImageRepository(conn)
         self.scan_repo = ScanGroupRepository(conn)
@@ -131,9 +135,9 @@ class ChapterService:
         if not chapter:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capítulo no encontrado")
 
-        # Verificar permisos de pertenencia al scan group
+        # Verificar permisos de pertenencia al scan group (cualquier rol del scan puede enviar borrador)
         if chapter.scan_group_id:
-            await verify_upload_permission(user, chapter.scan_group_id)
+            await verify_scan_member_permission(user, chapter.scan_group_id, conn=self.chapter_repository.conn)
 
         # Regla estricta: validar que se envíe la totalidad de páginas del capítulo
         existing_images = await self.chapter_image_repository.get_chapter_images(chapter_id)
@@ -167,15 +171,15 @@ class ChapterService:
         if not chapter:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capítulo no encontrado")
 
-        # Solo líderes/colíderes o miembros con permisos de gestión pueden auditar los borradores
+        # Cualquier miembro del scan puede consultar las entregas de su capítulo (pero solo líderes aprueban/rechazan)
         if not is_platform_admin(user):
             if not chapter.scan_group_id:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos de revisión")
             member = await self.scan_repo.get_member(chapter.scan_group_id, user.id)
-            if not member or not member.can_manage:
+            if not member:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Solo el líder o miembros con permisos de gestión del scan pueden revisar borradores.",
+                    detail="No perteneces al scan de esta obra.",
                 )
 
         return await self.chapter_repository.list_submissions(chapter_id, status_filter)

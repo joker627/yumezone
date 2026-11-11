@@ -1,18 +1,18 @@
 from typing import Annotated
-import aiomysql
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db_connection
+from app.core.database import get_db_session
 from app.core.dependencies import get_current_active_user
 from app.modules.notifications.repository import NotificationRepository
 from app.modules.notifications.services import NotificationService
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
 router = APIRouter(prefix="/notifications", tags=["Notificaciones"])
 
 
 def get_notification_service(
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    conn: AsyncSession = Depends(get_db_session),
 ) -> NotificationService:
     repository = NotificationRepository(conn)
     return NotificationService(repository)

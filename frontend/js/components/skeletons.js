@@ -8,6 +8,7 @@ export function renderHeroSkeleton() {
         <div class="hero-badges">
           <span class="hero-badge is-skeleton"><span class="is-loading is-loading--md"></span></span>
           <span class="hero-rating is-skeleton"><span class="is-loading is-loading--sm"></span></span>
+          <span class="hero-scan is-skeleton"><span class="is-loading is-loading--md"></span></span>
         </div>
         <div class="hero-eyebrow is-skeleton">
           <span class="is-loading is-loading--sm"></span>
@@ -22,14 +23,14 @@ export function renderHeroSkeleton() {
           <span class="is-loading is-loading--block is-loading--w80"></span>
         </p>
         <div class="hero-genres">
-          <span class="is-loading is-loading--pill" style="width: 75px; height: 26px;"></span>
-          <span class="is-loading is-loading--pill" style="width: 75px; height: 26px;"></span>
-          <span class="is-loading is-loading--pill" style="width: 85px; height: 26px;"></span>
+          <span class="hero-genre is-skeleton"><span class="is-loading is-loading--sm"></span></span>
+          <span class="hero-genre is-skeleton"><span class="is-loading is-loading--sm"></span></span>
+          <span class="hero-genre is-skeleton"><span class="is-loading is-loading--sm"></span></span>
+          <span class="hero-update is-skeleton"><span class="is-loading is-loading--md"></span></span>
         </div>
         <div class="hero-actions">
-          <span class="is-loading" style="width: 110px; height: 42px; border-radius: 8px;"></span>
-          <span class="is-loading" style="width: 110px; height: 42px; border-radius: 8px;"></span>
-          <span class="is-loading" style="width: 100px; height: 42px; border-radius: 8px;"></span>
+          <span class="is-loading" style="width: 120px; height: 42px; border-radius: 8px;"></span>
+          <span class="is-loading" style="width: 120px; height: 42px; border-radius: 8px;"></span>
         </div>
       </div>
       <aside class="hero-next is-skeleton" aria-label="Próximo capítulo">
@@ -47,14 +48,16 @@ export function renderHeroSkeleton() {
   `;
 }
 
-// esqueletos del home (nuevos lanzamientos, ranking, populares, anuncios, chat, misiones)
+// esqueletos del home (nuevos lanzamientos, ranking, populares, anuncios, misiones)
 export function renderHomeSkeletons(type, count = 4) {
   let html = '';
   for (let i = 0; i < count; i++) {
     if (type === 'launch') {
       html += `
       <article class="launch-item is-skeleton" aria-hidden="true">
-        <div class="launch-item--cover-wrap yz-skeleton"></div>
+        <div class="launch-item--cover-wrap yz-skeleton">
+          <span class="launch-item--chapter-badge is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+        </div>
         <div class="launch-item--info">
           <div class="launch-item--head">
             <span class="is-loading is-loading--sm"></span>
@@ -92,17 +95,18 @@ export function renderHomeSkeletons(type, count = 4) {
     } else if (type === 'popular') {
       html += `
       <article class="popular-card is-skeleton" aria-hidden="true">
-        <div class="popular-card--cover-wrap yz-skeleton"></div>
-        <div class="popular-card--info">
-          <h3 class="popular-card--title"><span class="is-loading is-loading--block is-loading--w90"></span></h3>
-          <p class="popular-card--studio"><span class="is-loading is-loading--sm"></span></p>
-          <div class="popular-card--tags">
-            <span class="is-loading is-loading--sm"></span>
-            <span class="is-loading is-loading--xs"></span>
+        <div class="popular-card--cover-wrap yz-skeleton">
+          <span class="popular-card--format-badge is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+          <div class="popular-card--cover-bottom">
+            <span class="popular-card--rating is-skeleton"><span class="is-loading is-loading--xs"></span></span>
           </div>
+        </div>
+        <div class="popular-card--info">
+          <h3 class="popular-card--title"><span class="is-loading is-loading--block is-loading--w85"></span></h3>
+          <p class="popular-card--genres"><span class="is-loading is-loading--w60"></span></p>
           <div class="popular-card--footer">
-            <span class="popular-card--chapter-info"><span class="is-loading is-loading--sm"></span></span>
-            <span class="popular-card--hearts"><span class="is-loading is-loading--xs"></span></span>
+            <span class="popular-card--chapter"><span class="is-loading is-loading--sm"></span></span>
+            <span class="popular-card--author"><span class="is-loading is-loading--xs"></span></span>
           </div>
         </div>
       </article>`;
@@ -223,7 +227,7 @@ export function renderCoinTxSkeletons(count = 5) {
   `).join('');
 }
 
-// obras del modal de clan (.clan-work-card)
+// obras del perfil de clan / scan (.clan-work-card)
 export function renderClanWorksSkeletons(count = 6) {
   return Array.from({ length: count }, () => `
     <div class="clan-work-card is-skeleton" aria-hidden="true">
@@ -240,14 +244,16 @@ export function renderClanWorksSkeletons(count = 6) {
   `).join('');
 }
 
-// miembros del modal de clan (.clan-member-card)
+// miembros del clan / scan (.clan-member-card)
 export function renderClanMembersSkeletons(count = 4) {
   return Array.from({ length: count }, () => `
     <div class="clan-member-card is-skeleton" aria-hidden="true">
-      <span class="clan-member-avatar yz-skeleton"></span>
-      <div class="clan-member-details">
-        <div class="clan-member-name"><span class="is-loading is-loading--md"></span></div>
-        <span class="is-loading is-loading--pill"></span>
+      <div class="clan-member-card__left">
+        <div class="clan-member-avatar-wrap yz-skeleton" style="width: 44px; height: 44px; border-radius: 50%;"></div>
+        <div class="clan-member-details">
+          <div class="clan-member-name"><span class="is-loading is-loading--md"></span></div>
+          <span class="clan-member-role is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+        </div>
       </div>
     </div>
   `).join('');
@@ -292,54 +298,85 @@ export function renderNovedadesSkeletons(count = 8) {
   `).join('');
 }
 
-// tarjetas de biblioteca
+// tarjetas de biblioteca (.library-card dentro de .library-grid)
 export function renderLibrarySkeletons(count = 6) {
   const cards = Array.from({ length: count }, () => `
-    <div class="yz-skeleton-library-card" aria-hidden="true">
-      <div class="yz-skeleton yz-skeleton-cover"></div>
-      <div class="yz-skeleton-info">
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-        <div class="yz-skeleton yz-skeleton-progress"></div>
-        <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full yz-skeleton-line--auto"></div>
+    <article class="library-card is-skeleton" aria-hidden="true">
+      <div class="library-card-cover yz-skeleton"></div>
+      <div class="library-card-body">
+        <div class="library-card-topline">
+          <span class="is-loading is-loading--xs"></span>
+          <span class="is-loading is-loading--xs" style="width: 20px; height: 20px; border-radius: 50%;"></span>
+        </div>
+        <h2 class="library-card-title"><span class="is-loading is-loading--block is-loading--w80"></span></h2>
+        <p class="library-card-meta"><span class="is-loading is-loading--sm"></span></p>
+        <div class="library-progress">
+          <div class="library-progress-bar yz-skeleton"></div>
+          <p class="library-progress-copy"><span class="is-loading is-loading--xs"></span></p>
+        </div>
+        <div class="library-card-footer">
+          <span class="is-loading is-loading--xs"></span>
+          <span class="is-loading" style="width: 80px; height: 32px; border-radius: 8px;"></span>
+        </div>
       </div>
-    </div>
+    </article>
   `).join('');
 
-  return `<div class="yz-skeleton-grid yz-skeleton-grid--library" role="status" aria-label="Cargando biblioteca">${cards}</div>`;
+  return `<div class="library-grid" role="status" aria-label="Cargando biblioteca">${cards}</div>`;
 }
 
 // tarjetas de la tienda de cosméticos (.shop-card)
 export function renderShopSkeletons(count = 8) {
   return Array.from({ length: count }, () => `
-    <div class="yz-skeleton-shop-card" aria-hidden="true">
-      <div class="yz-skeleton yz-skeleton-shop-preview"></div>
-      <div class="yz-skeleton-shop-info">
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--short"></div>
-        <div class="yz-skeleton yz-skeleton-shop-btn"></div>
+    <article class="shop-card is-skeleton" aria-hidden="true">
+      <div class="shop-card-preview shop-card-preview--banner yz-skeleton">
+        <div class="shop-card-scrim"></div>
+        <div class="shop-card-badges">
+          <span class="shop-card-cat-badge is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+          <span class="shop-card-rarity is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+        </div>
+        <span class="shop-card-level-req is-skeleton"><span class="is-loading is-loading--xs"></span></span>
       </div>
-    </div>
+      <div class="shop-card-info">
+        <div class="shop-card-name-row">
+          <h3 class="shop-card-name"><span class="is-loading is-loading--block is-loading--w60"></span></h3>
+          <span class="shop-card-price"><span class="is-loading is-loading--xs"></span></span>
+        </div>
+        <p class="shop-card-desc"><span class="is-loading is-loading--block"></span><span class="is-loading is-loading--block is-loading--w80"></span></p>
+        <div class="shop-card-footer">
+          <span class="is-loading is-loading--block" style="height: 38px; border-radius: 8px;"></span>
+        </div>
+      </div>
+    </article>
   `).join('');
 }
 
-// comentarios de obra (.comment-main)
+// comentarios de obra (.comment-thread + .comment-main)
 export function renderCommentSkeletons(count = 3) {
   return Array.from({ length: count }, () => `
-    <div class="yz-skeleton-comment" aria-hidden="true">
-      <div class="yz-skeleton yz-skeleton-comment-avatar"></div>
-      <div class="yz-skeleton-comment-body">
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--sub"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w70"></div>
-        <div class="yz-skeleton-actions-row">
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
+    <article class="comment-thread is-skeleton" aria-hidden="true">
+      <div class="comment-main">
+        <div class="comment-avatar-col">
+          <div class="comment-avatar-wrap">
+            <div class="comment-avatar-inner yz-skeleton" style="width: 38px; height: 38px; border-radius: 50%;"></div>
+          </div>
+        </div>
+        <div class="comment-body-col">
+          <div class="comment-meta-row">
+            <span class="comment-author-name"><span class="is-loading is-loading--sm"></span></span>
+            <span class="comment-time"><span class="is-loading is-loading--xs"></span></span>
+          </div>
+          <p class="comment-text">
+            <span class="is-loading is-loading--block"></span>
+            <span class="is-loading is-loading--block is-loading--w70"></span>
+          </p>
+          <div class="comment-actions-row">
+            <span class="is-loading is-loading--xs" style="width: 45px; height: 22px; border-radius: 4px;"></span>
+            <span class="is-loading is-loading--xs" style="width: 60px; height: 22px; border-radius: 4px;"></span>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   `).join('');
 }
 
@@ -361,22 +398,33 @@ export function renderSkeletonRows(count = 4) {
 // tarjetas de clanes y scans de traducción (.scan-card)
 export function renderScanSkeletons(count = 6) {
   return Array.from({ length: count }, () => `
-    <div class="yz-skeleton-scan-card" aria-hidden="true">
-      <div class="yz-skeleton yz-skeleton-scan-banner"></div>
-      <div class="yz-skeleton-scan-body">
-        <div class="yz-skeleton yz-skeleton-scan-avatar"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--sub"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-        <div class="yz-skeleton-actions-row">
-          <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--full"></div>
+    <article class="scan-card is-skeleton" aria-hidden="true">
+      <div class="scan-card-banner-wrap yz-skeleton">
+        <span class="scan-card-rank-tag is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+      </div>
+      <div class="scan-card-logo-wrap yz-skeleton"></div>
+      <div class="scan-card-content">
+        <div class="scan-card-header-row">
+          <div class="scan-card-title-group">
+            <h3 class="scan-card-title"><span class="is-loading is-loading--block is-loading--w60"></span></h3>
+          </div>
+          <span class="scan-card-status-pill is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+        </div>
+        <p class="scan-card-desc"><span class="is-loading is-loading--block"></span><span class="is-loading is-loading--block is-loading--w80"></span></p>
+        <div class="scan-metrics-grid">
+          <div class="scan-metric-item"><span class="is-loading is-loading--sm"></span><span class="is-loading is-loading--xs"></span></div>
+          <div class="scan-metric-item"><span class="is-loading is-loading--sm"></span><span class="is-loading is-loading--xs"></span></div>
+          <div class="scan-metric-item"><span class="is-loading is-loading--sm"></span><span class="is-loading is-loading--xs"></span></div>
+        </div>
+        <div class="scan-card-footer">
+          <span class="is-loading is-loading--block" style="height: 34px; border-radius: 8px;"></span>
         </div>
       </div>
-    </div>
+    </article>
   `).join('');
 }
 
-// detalle completo de obra
+// detalle completo de obra (.work-hero-card + .work-grid-container)
 export function renderWorkDetailSkeleton(chaptersCount = 4) {
   const chapters = Array.from({ length: chaptersCount }, () => `
     <div class="yz-skeleton-chapter">
@@ -387,49 +435,63 @@ export function renderWorkDetailSkeleton(chaptersCount = 4) {
   `).join('');
 
   return `
-    <section class="work-detail-hero">
-      <div class="work-detail-hero-shade"></div>
-      <div class="work-detail-main">
-        <div class="work-detail-cover-wrap yz-skeleton"></div>
-        <div class="work-detail-copy">
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--hero-title"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--sub"></div>
-          <div class="work-detail-genres">
-            <div class="yz-skeleton yz-skeleton-pill"></div>
-            <div class="yz-skeleton yz-skeleton-pill"></div>
-            <div class="yz-skeleton yz-skeleton-pill"></div>
+    <section class="work-hero-card is-skeleton" aria-hidden="true">
+      <div class="work-hero-backdrop"></div>
+      <div class="work-hero-inner">
+        <div class="work-hero-cover-wrap yz-skeleton">
+          <span class="work-hero-format-pill is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+          <span class="work-hero-status-pill is-skeleton"><span class="is-loading is-loading--xs"></span></span>
+        </div>
+        <div class="work-hero-meta">
+          <h1 class="work-hero-title"><span class="is-loading is-loading--block is-loading--w60" style="height: 2.2rem; border-radius: 6px;"></span></h1>
+          <div class="work-hero-author-row">
+            <span class="is-loading is-loading--sm"></span>
+            <span class="is-loading is-loading--md"></span>
           </div>
-          <div class="work-detail-taxonomy">
-            <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w50"></div>
+          <div class="work-hero-stats-row">
+            <span class="is-loading is-loading--pill" style="width: 100px; height: 28px;"></span>
+            <span class="is-loading is-loading--sm"></span>
           </div>
-          <div class="work-detail-actions">
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--w50"></div>
-            <div class="yz-skeleton yz-skeleton-btn yz-skeleton-line--w50"></div>
+          <div class="work-hero-genres">
+            <span class="is-loading is-loading--pill" style="width: 65px; height: 24px;"></span>
+            <span class="is-loading is-loading--pill" style="width: 75px; height: 24px;"></span>
+            <span class="is-loading is-loading--pill" style="width: 70px; height: 24px;"></span>
+          </div>
+          <div class="work-hero-synopsis-box">
+            <h3 class="work-hero-synopsis-heading"><span class="is-loading is-loading--xs"></span></h3>
+            <p class="work-hero-synopsis-text">
+              <span class="is-loading is-loading--block"></span>
+              <span class="is-loading is-loading--block"></span>
+              <span class="is-loading is-loading--block is-loading--w70"></span>
+            </p>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="work-detail-columns">
-      <section class="work-detail-panel">
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-        <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-        <div class="work-skeleton-lines">
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--full"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--w80"></div>
+    <div class="work-grid-container is-skeleton" aria-hidden="true" style="margin-top: 1.5rem;">
+      <div class="work-col-left">
+        <section class="work-chapters-box">
+          <div class="work-chapters-box-head">
+            <h2 class="work-chapters-main-title"><span class="is-loading is-loading--sm"></span></h2>
+            <span class="is-loading is-loading--xs"></span>
+          </div>
+          <div class="work-chapters-box-toolbar">
+            <span class="is-loading is-loading--block" style="height: 38px; border-radius: 8px;"></span>
+          </div>
+          <div class="work-chapters-list">
+            ${chapters}
+          </div>
+        </section>
+      </div>
+      <aside class="work-col-right">
+        <div class="work-sidebar-card">
+          <div class="work-sidebar-head"><span class="is-loading is-loading--sm"></span></div>
+          <div class="work-sidebar-row" style="display:flex; justify-content:space-between; margin-bottom:8px;"><span class="is-loading is-loading--xs"></span><span class="is-loading is-loading--sm"></span></div>
+          <div class="work-sidebar-row" style="display:flex; justify-content:space-between; margin-bottom:8px;"><span class="is-loading is-loading--xs"></span><span class="is-loading is-loading--sm"></span></div>
+          <div class="work-sidebar-row" style="display:flex; justify-content:space-between;"><span class="is-loading is-loading--xs"></span><span class="is-loading is-loading--sm"></span></div>
         </div>
-      </section>
-      <section class="work-detail-panel">
-        <div class="work-detail-chapters-heading">
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--title"></div>
-          <div class="yz-skeleton yz-skeleton-line yz-skeleton-line--tag"></div>
-        </div>
-        <div class="yz-skeleton-rows">
-          ${chapters}
-        </div>
-      </section>
+      </aside>
     </div>
   `;
 }
@@ -453,6 +515,7 @@ const SKELETON_RENDERERS = {
   'home-popular': (count, cols) => renderHomeSkeletons('popular', count || 4, cols || 4),
   'home-anuncio': (count, cols) => renderHomeSkeletons('anuncio', count || 1, cols || 1),
   'home-mision': (count, cols) => renderHomeSkeletons('mision', count || 1, cols || 1),
+  catalog: (count) => renderSkeletonCards(count || 14),
   cards: (count) => renderSkeletonCards(count || 6),
   'profile-works': (count) => renderProfileWorkSkeletons(count || 6),
   'profile-inventory': (count) => renderProfileInventorySkeletons(count || 3),
@@ -464,6 +527,8 @@ const SKELETON_RENDERERS = {
   comments: (count) => renderCommentSkeletons(count || 3),
   rows: (count) => renderSkeletonRows(count || 4),
   scans: (count) => renderScanSkeletons(count || 6),
+  'clan-works': (count) => renderClanWorksSkeletons(count || 6),
+  'clan-members': (count) => renderClanMembersSkeletons(count || 4),
   'work-detail': (count) => renderWorkDetailSkeleton(count || 4),
   'reader-pages': () => renderReaderPagesSkeleton(),
 };

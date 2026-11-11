@@ -111,4 +111,3 @@ async def enforce_rate_limit(key: str, max_requests: int, window_seconds: int) -
             detail=f"Demasiadas peticiones. Intenta de nuevo en {max(remaining, 1)} segundos.",
         )
 
-

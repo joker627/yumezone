@@ -554,7 +554,8 @@ async function renderWork(work, chapters, userState = null, libraryStats = null)
     const scanEl = document.getElementById('work-scan-group');
     const scanDot = document.getElementById('work-scan-dot');
     if (scanEl && work.scan_group_name) {
-        scanEl.textContent = work.scan_group_name;
+        const scanSlug = work.scan_group_slug || work.scan_group_name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+        scanEl.innerHTML = `<a href="/pages/scans.html?slug=${encodeURIComponent(scanSlug)}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;" title="Ver perfil del Scan ${escapeHtml(work.scan_group_name)}">${escapeHtml(work.scan_group_name)}</a>`;
         scanEl.hidden = false;
         if (scanDot) scanDot.hidden = false;
     } else if (scanEl) {
@@ -1208,12 +1209,24 @@ function attachCommentItemListeners(containerEl, commentObj) {
         });
     }
 
-    // botón eliminar comentario
+    // botón eliminar comentario (con confirmación inline sin window.confirm nativo)
     const deleteBtn = containerEl.querySelector('.comment-action-btn.delete-btn');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async () => {
-            const confirmed = window.confirm('¿Seguro que deseas eliminar este comentario?');
-            if (!confirmed) return;
+            if (deleteBtn.dataset.confirming !== 'true') {
+                deleteBtn.dataset.confirming = 'true';
+                const originalHtml = deleteBtn.innerHTML;
+                deleteBtn.textContent = '¿Confirmar borrar?';
+                deleteBtn.style.color = '#fb7185';
+                setTimeout(() => {
+                    if (deleteBtn.isConnected && deleteBtn.dataset.confirming === 'true') {
+                        deleteBtn.dataset.confirming = 'false';
+                        deleteBtn.innerHTML = originalHtml;
+                        deleteBtn.style.color = '';
+                    }
+                }, 4000);
+                return;
+            }
 
             deleteBtn.disabled = true;
             try {
@@ -1224,6 +1237,7 @@ function attachCommentItemListeners(containerEl, commentObj) {
             } catch (err) {
                 showToast(err.message || 'Error al eliminar comentario', 'error');
                 deleteBtn.disabled = false;
+                deleteBtn.dataset.confirming = 'false';
             }
         });
     }
@@ -1521,7 +1535,7 @@ async function loadRecommendedWorks() {
     if (!recGrid) return;
 
     try {
-        const res = await apiRequest('/works?per_page=6&sort=popular');
+        const res = await apiRequest('/works/?per_page=6&sort=popular');
         const works = Array.isArray(res) ? res : (res?.items || []);
         const filtered = works.filter(w => w.id !== currentWork?.id).slice(0, 5);
 

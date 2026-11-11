@@ -1,0 +1,254 @@
+/* Layout, Contenedores y Efectos Visuales para Scan Studio */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scan-gold);
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Patrón de Rejilla Editorial */
+.scan-grid-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  z-index: 0;
+}
+
+/* Luces Ambientales Sutiles */
+.ambient-glow-top {
+  position: fixed;
+  top: -140px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 680px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+}
+
+.ambient-glow-bottom {
+  position: fixed;
+  bottom: -160px;
+  right: -60px;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.07) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+/* Superficie de Tarjeta Sólida */
+.glass-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-light);
+  box-shadow: 0 14px 32px -10px rgba(0, 0, 0, 0.72);
+}
+
+.page-main-container {
+  padding-top: 64px;
+  width: 100%;
+  min-height: calc(100vh - 64px);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Modales Universales para Scan Studio (Reemplazo 100% de alert/confirm/prompt) */
+.scan-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 9, 15, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.scan-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scan-modal-dialog {
+  background: #111724;
+  border: 1px solid #222d42;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.8);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.scan-modal-backdrop.open .scan-modal-dialog {
+  transform: translateY(0) scale(1);
+}
+
+.scan-modal-header {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0d121d;
+  flex-shrink: 0;
+}
+
+.scan-modal-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.scan-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #1a2335;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.scan-modal-close:hover {
+  background: #243047;
+  color: #ffffff;
+}
+
+.scan-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.scan-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #0d121d;
+  flex-shrink: 0;
+}
+
+.modal-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modal-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .modal-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.modal-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.modal-input,
+.modal-textarea {
+  width: 100%;
+  background: #0a0e17;
+  border: 1px solid #222d42;
+  border-radius: 8px;
+  color: #f8fafc;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.modal-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.modal-input:focus,
+.modal-textarea:focus {
+  outline: none;
+  border-color: #14b8a6;
+}
+
+.btn-danger-solid {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  background: #93000a;
+  color: #ffdad6;
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 180, 171, 0.3);
+  transition: all 0.15s ease;
+}
+
+.btn-danger-solid:hover {
+  background: #b51822;
+}
+

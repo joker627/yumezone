@@ -1,8 +1,8 @@
 from typing import List, Optional
-import aiomysql
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db_connection
+from app.core.database import get_db_session
 from app.core.dependencies import get_current_user, get_optional_current_user, CurrentUser
 from app.modules.shop.repository import ShopRepository
 from app.modules.shop.schemas import (
@@ -16,7 +16,7 @@ from app.modules.shop.services import ShopService
 router = APIRouter(prefix="/shop", tags=["Tienda"])
 
 
-def get_shop_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> ShopService:
+def get_shop_service(conn: AsyncSession = Depends(get_db_session)) -> ShopService:
     repository = ShopRepository(conn)
     return ShopService(repository)
 

@@ -1,175 +1,192 @@
 <!DOCTYPE html>
-<html class="dark" lang="es">
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>YumeScan Studio | Plataforma de Scanlation & Producción</title>
-    <link rel="icon" type="image/png" href="assets/icons/logo.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "primary": "#39c6a5",
-              "tertiary": "#f0c75e",
-              "surface": "#090c12",
-              "surface-card": "#10141d",
-              "surface-card-hover": "#151b26",
-              "surface-border": "#1f2736",
-              "outline": "#828f9f",
-              "on-surface": "#e1e7ef"
-            },
-            fontFamily: {
-              sans: ["Plus Jakarta Sans", "sans-serif"],
-              mono: ["JetBrains Mono", "monospace"]
-            }
-          }
-        }
-      };
-    </script>
-    <style>
-      .grid-pattern {
-        background-size: 40px 40px;
-        background-image: 
-          linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      }
-      .cloudflare-card {
-        background: linear-gradient(180deg, rgba(16, 20, 29, 0.85) 0%, rgba(11, 14, 21, 0.95) 100%);
-        backdrop-filter: blur(20px);
-      }
-      .badge-glow-gold {
-        box-shadow: 0 0 15px -3px rgba(240, 199, 94, 0.25);
-      }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080a0f">
+  <meta name="description" content="YumeScan Studio - Taller de Scanlation para Grupos de Traducción y Editores de Cómic en YumeZone.">
+  <title>YumeScan Studio | Taller de Scanlation & Cómic</title>
+  
+  <link rel="icon" type="image/png" href="assets/icons/logo.png">
+  
+  <!-- Estilos Internos Modulares (Sin Frameworks Externos) -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages/index.css">
 </head>
-<body class="bg-[#090c12] text-[#e1e7ef] font-sans min-h-screen flex flex-col justify-between selection:bg-[#f0c75e] selection:text-[#090c12] relative overflow-x-hidden">
-    <!-- Ambient Grid & Radial Glow (Estilo Cloudflare Edge Dorado) -->
-    <div class="fixed inset-0 grid-pattern pointer-events-none"></div>
-    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[#f0c75e]/10 rounded-full blur-[140px] pointer-events-none"></div>
-    <div class="fixed -bottom-40 right-10 w-[400px] h-[400px] bg-amber-950/20 rounded-full blur-[120px] pointer-events-none"></div>
+<body>
 
-    <!-- Minimal Edge Topbar -->
-    <header class="relative z-20 border-b border-surface-border/60 bg-[#090c12]/80 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-[#392e10] border border-[#f0c75e]/30 flex items-center justify-center text-[#f0c75e] shadow-sm">
-                    <span class="material-symbols-outlined text-lg">draw</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="font-extrabold text-base tracking-tight text-white">Yume<span class="text-tertiary">Scan</span></span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-surface-border/80 text-outline font-mono">Studio Hub</span>
-                </div>
-            </div>
+  <!-- Trama Manga y Halftone de Fondo -->
+  <div class="manga-bg"></div>
+  <div class="manga-ambient-glow"></div>
 
-            <div class="flex items-center gap-4 text-xs">
-                <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-card border border-surface-border">
-                  <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-                  <span class="text-outline">CDN Upload:</span>
-                  <span class="text-white font-mono font-semibold">Ghost Tokyo #04</span>
-                </div>
-                <a href="http://192.168.1.43:5500/" class="text-outline hover:text-white transition-colors flex items-center gap-1">
-                    <span>Portal Público</span>
-                    <span class="material-symbols-outlined text-sm">north_east</span>
-                </a>
-                <a href="login.html" class="px-3.5 py-1.5 rounded-lg bg-surface-border/80 hover:bg-surface-border text-white font-semibold transition-colors flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-sm">login</span>
-                    <span>Iniciar Sesión</span>
-                </a>
-            </div>
+  <!-- Header Superior Cómic -->
+  <header class="comic-header">
+    <div class="container comic-header-inner">
+      <a href="index.html" class="comic-brand">
+        <div class="comic-logo-badge">
+          <img src="assets/icons/logo.png" alt="Logo">
         </div>
-    </header>
+        <span class="comic-brand-title">
+          Yume<span>Scan</span>
+          <span class="comic-tag">Studio</span>
+        </span>
+      </a>
 
-    <!-- Main Hero Container -->
-    <main class="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div class="max-w-4xl w-full mx-auto text-center space-y-10">
-            <!-- Badge Superior -->
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-card border border-surface-border badge-glow-gold">
-                <span class="material-symbols-outlined text-sm text-tertiary">workspace_premium</span>
-                <span class="text-xs font-semibold text-white tracking-wide uppercase">Taller de Scanlation & Producción Editorial</span>
-                <span class="text-outline">·</span>
-                <span class="text-xs text-tertiary font-mono font-medium">Pipeline v2.0</span>
-            </div>
+      <div class="comic-header-actions">
+        <a href="../index.html" class="btn-comic-portal" title="Volver al lector público">
+          <span>Portal Público</span>
+          <img src="assets/icons/svg/arrow-right.svg" class="icon-svg icon-xs" alt="">
+        </a>
 
-            <!-- Título Principal & Descripción -->
-            <div class="space-y-4 max-w-2xl mx-auto">
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                    El Espacio de Trabajo Definitivo para <span class="text-transparent bg-clip-text bg-gradient-to-r from-tertiary to-amber-300">Grupos de Traducción</span>
-                </h1>
-                <p class="text-sm sm:text-base text-outline leading-relaxed">
-                    Gestiona tu catálogo de obras, coordina el pipeline de capítulos (Raw Hunter ➔ Cleaner ➔ Traductor ➔ Typesetter ➔ QC), sube archivos .ZIP con optimización WebP y retira fondos de lecturas VIP.
-                </p>
-            </div>
+        <a href="pages/login.html" id="topbar-comic-login" class="btn-comic-login">
+          <img src="assets/icons/svg/login.svg" class="icon-svg icon-sm icon-dark" alt="">
+          <span>Acceso Scan</span>
+        </a>
+      </div>
+    </div>
+  </header>
 
-            <!-- Botones de Acción Destacados -->
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                <a href="login.html" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-tertiary text-black font-extrabold text-sm hover:bg-yellow-400 active:scale-[0.98] transition-all shadow-xl shadow-tertiary/20 flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-xl">login</span>
-                    <span>Ingresar al Taller de Scan</span>
-                </a>
-                <a href="http://192.168.1.43:4000/" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-surface-card hover:bg-surface-card-hover border border-surface-border text-white font-semibold text-sm transition-all flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-lg text-primary">admin_panel_settings</span>
-                    <span>Admin Web & Hosting</span>
-                </a>
-            </div>
-
-            <!-- 3 Tarjetas de Características -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-8 text-left">
-                <!-- Tarjeta 1 -->
-                <div class="p-6 rounded-2xl cloudflare-card border border-surface-border hover:border-tertiary/40 transition-colors space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary">
-                        <span class="material-symbols-outlined text-xl">published_with_changes</span>
-                    </div>
-                    <h3 class="text-base font-bold text-white">Pipeline de Tareas por Turno</h3>
-                    <p class="text-xs text-outline leading-relaxed">
-                        Seguimiento visual del estado de cada capítulo por roles, asignación de dibujantes redrawers e inspección directa de capas PSD.
-                    </p>
-                </div>
-
-                <!-- Tarjeta 2 -->
-                <div class="p-6 rounded-2xl cloudflare-card border border-surface-border hover:border-tertiary/40 transition-colors space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary">
-                        <span class="material-symbols-outlined text-xl">cloud_upload</span>
-                    </div>
-                    <h3 class="text-base font-bold text-white">Subida Rápida de Capítulos (.ZIP)</h3>
-                    <p class="text-xs text-outline leading-relaxed">
-                        Compresión y conversión automática a WebP ultraligero con publicación programada y acceso anticipado con monedas para miembros VIP.
-                    </p>
-                </div>
-
-                <!-- Tarjeta 3 -->
-                <div class="p-6 rounded-2xl cloudflare-card border border-surface-border hover:border-tertiary/40 transition-colors space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary">
-                        <span class="material-symbols-outlined text-xl">payments</span>
-                    </div>
-                    <h3 class="text-base font-bold text-white">Monetización & Fondo del Scan</h3>
-                    <p class="text-xs text-outline leading-relaxed">
-                        Balance mensual de ingresos por lecturas de la comunidad, enlaces de donación Ko-fi/Patreon y solicitud de retiros en 1 clic.
-                    </p>
-                </div>
-            </div>
+  <main>
+    <!-- 1. Hero Cómic & Scanlation -->
+    <section class="comic-hero">
+      <div class="container">
+        <div class="comic-hero-sticker">
+          <img src="assets/icons/svg/bolt.svg" class="icon-svg icon-sm" alt="">
+          <span>Taller Editorial de Scanlation</span>
         </div>
-    </main>
 
-    <!-- Footer Edge Minimal -->
-    <footer class="relative z-20 border-t border-surface-border/60 bg-[#090c12]/90 py-6 px-6 text-xs text-outline">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <span class="text-white font-semibold">YumeScan Studio Platform</span>
-                <span class="text-surface-border">|</span>
-                <span>Módulo de producción editorial aislado en puerto 4400</span>
-            </div>
-            <div class="flex items-center gap-6">
-                <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Red Editorial Activa</span>
-                <a href="login.html" class="text-tertiary hover:underline font-semibold">Iniciar Sesión de Scan →</a>
-            </div>
+        <h1 class="comic-main-title">
+          Panel de Publicación & Gestión de <span>Clanes de Cómic</span>
+        </h1>
+
+        <!-- Bocadillo de Diálogo Cómic -->
+        <div class="comic-speech-bubble">
+          "Espacio exclusivo para líderes, editores, subidores y traductores autorizados. Administra las obras de tu clan, programa capítulos en estado Próximamente, sube páginas en WebP y audita borradores con recompensas en Ghost Monedas."
         </div>
-    </footer>
+
+        <div class="comic-cta-row">
+          <a href="pages/login.html" id="hero-comic-btn" class="btn-comic-hero">
+            <img src="assets/icons/svg/login.svg" class="icon-svg icon-md icon-dark" alt="">
+            <span>Ingresar al Taller de Scan</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Normas de Publicación & Estándar Técnico -->
+    <section class="comic-section">
+      <div class="container">
+        <div class="comic-section-header">
+          <span class="comic-section-tag">// Requisitos de Publicación</span>
+          <h2 class="comic-section-title">Estándar Técnico para Scanlators</h2>
+        </div>
+
+        <div class="comic-panels-grid">
+          <div class="comic-panel-box">
+            <div>
+              <span class="comic-panel-badge">Norma 01</span>
+              <h3 class="comic-panel-title">Obligatorio Formato .WEBP</h3>
+              <p class="comic-panel-desc">
+                Las páginas de cada capítulo se almacenan en <code>chapter_images</code> exclusivamente en formato <strong>.webp</strong> para optimizar ancho de banda y velocidad de lectura.
+              </p>
+            </div>
+            <span class="comic-code-badge">Solo .WEBP</span>
+          </div>
+
+          <div class="comic-panel-box">
+            <div>
+              <span class="comic-panel-badge">Norma 02</span>
+              <h3 class="comic-panel-title">Flujo Próximamente (SCHEDULED)</h3>
+              <p class="comic-panel-desc">
+                Puedes registrar primero un capítulo en estado <strong>SCHEDULED</strong> mientras está en traducción y luego subirle las páginas WebP para pasarlo a <strong>PUBLISHED</strong>.
+              </p>
+            </div>
+            <span class="comic-code-badge">SCHEDULED → PUBLISHED</span>
+          </div>
+
+          <div class="comic-panel-box">
+            <div>
+              <span class="comic-panel-badge">Norma 03</span>
+              <h3 class="comic-panel-title">Auditoría de Borradores</h3>
+              <p class="comic-panel-desc">
+                Los traductores pueden registrar sus entregas en <code>chapter_submissions</code> y recibir automáticamente sus Ghost Monedas (<code>reward_coins</code>) y XP al ser aprobadas.
+              </p>
+            </div>
+            <span class="comic-code-badge">TRANSLATION_REWARD</span>
+          </div>
+
+          <div class="comic-panel-box">
+            <div>
+              <span class="comic-panel-badge">Norma 04</span>
+              <h3 class="comic-panel-title">Permisos del Clan</h3>
+              <p class="comic-panel-desc">
+                Control granular por miembro mediante <code>scan_group_members</code>: permisos independientes para subir capítulos, administrar el equipo o editar el perfil del clan.
+              </p>
+            </div>
+            <span class="comic-code-badge">RBAC + JSON Perms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Roles Oficiales en Base de Datos (scan_roles) -->
+    <section class="comic-section" style="padding-bottom: 4rem;">
+      <div class="container">
+        <div class="comic-section-header">
+          <span class="comic-section-tag">// Tabla scan_roles</span>
+          <h2 class="comic-section-title">Roles Oficiales dentro del Clan</h2>
+        </div>
+
+        <div class="roles-grid">
+          <div class="role-comic-card">
+            <span class="role-badge-pill" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3);">LEADER</span>
+            <h4 class="role-name">Líder de Scan</h4>
+            <p class="role-duty">Propietario del grupo con control total sobre el perfil del clan, obras, miembros y aprobación de borradores.</p>
+          </div>
+
+          <div class="role-comic-card">
+            <span class="role-badge-pill" style="background: rgba(240, 199, 94, 0.15); color: #f0c75e; border: 1px solid rgba(240, 199, 94, 0.3);">CO_LEADER</span>
+            <h4 class="role-name">Colíder</h4>
+            <p class="role-duty">Administrador secundario con permisos para gestionar miembros, revisar entregas y publicar capítulos.</p>
+          </div>
+
+          <div class="role-comic-card">
+            <span class="role-badge-pill" style="background: rgba(57, 198, 165, 0.15); color: #39c6a5; border: 1px solid rgba(57, 198, 165, 0.3);">UPLOADER</span>
+            <h4 class="role-name">Subidor de Capítulos</h4>
+            <p class="role-duty">Encargado de programar entregas y cargar lotes de páginas optimizadas en formato .WEBP.</p>
+          </div>
+
+          <div class="role-comic-card">
+            <span class="role-badge-pill" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);">EDITOR</span>
+            <h4 class="role-name">Editor / Typesetter</h4>
+            <p class="role-duty">Responsable de limpieza (cleaning/redraw), maquetación tipográfica y control de calidad de imágenes.</p>
+          </div>
+
+          <div class="role-comic-card">
+            <span class="role-badge-pill" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3);">TRANSLATOR</span>
+            <h4 class="role-name">Traductor</h4>
+            <p class="role-duty">Envía borradores de traducción por capítulo y recibe Ghost Monedas + XP tras la aprobación del líder.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer Cómic -->
+  <footer class="comic-footer">
+    <div class="container comic-footer-inner">
+      <div>
+        <strong style="color: #ffffff;">YumeScan Studio</strong>
+        <span style="color: #242c3d; margin: 0 0.5rem;">|</span>
+        <span>Plataforma de Producción Editorial para Clanes de Cómic</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 1.25rem;">
+        <a href="pages/login.html" style="color: var(--scan-gold, #f0c75e); font-weight: 700;">Ingreso Colaboradores →</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

@@ -1,13 +1,15 @@
 from decimal import Decimal
 from types import SimpleNamespace
 from typing import List, Optional
-import aiomysql
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db_connection
+from app.core.database import get_db_session
 from app.core.dependencies import (
     get_current_active_user,
     get_optional_current_user,
+    verify_scan_manage_permission,
+    verify_scan_member_permission,
     verify_upload_permission,
 )
 from app.modules.chapters.schemas import (
@@ -22,22 +24,22 @@ from app.modules.chapters.schemas import (
     ChapterUpdate,
 )
 from app.modules.chapters.services import ChapterService
-from app.modules.users.models import CurrentUser
-from app.modules.works.repository import WorkRepository
-from app.modules.works.services import WorkService
+from app.modules.users.schemas import CurrentUser
+from app.modules.series.repository import WorkRepository
+from app.modules.series.services import WorkService
 
 
 router = APIRouter(prefix="/chapters", tags=["Capítulos"])
 
 
 def get_chapter_service(
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    conn: AsyncSession = Depends(get_db_session),
 ) -> ChapterService:
     return ChapterService(conn)
 
 
 def get_work_service(
-    conn: aiomysql.Connection = Depends(get_db_connection),
+    conn: AsyncSession = Depends(get_db_session),
 ) -> WorkService:
     return WorkService(WorkRepository(conn))
 
@@ -45,7 +47,7 @@ def get_work_service(
 async def _assert_can_read_chapter(
     chapter,
     current_user: Optional[CurrentUser],
-    conn: Optional[aiomysql.Connection] = None,
+    conn: Optional[AsyncSession] = None,
 ):
     if chapter.status.upper() == "PUBLISHED":
         return
@@ -54,7 +56,7 @@ async def _assert_can_read_chapter(
             return
         if chapter.scan_group_id:
             try:
-                await verify_upload_permission(current_user, chapter.scan_group_id, conn=conn)
+                await verify_scan_member_permission(current_user, chapter.scan_group_id, conn=conn)
                 return
             except HTTPException:
                 pass
@@ -91,7 +93,7 @@ async def get_chapters(
         elif current_user.platform_role.upper() not in ["ADMIN", "SUPERADMIN"]:
             try:
                 work = await work_service.get_work_by_id(actual_work_id)
-                await verify_upload_permission(current_user, work.scan_group_id, conn=work_service.repository.conn)
+                await verify_scan_member_permission(current_user, work.scan_group_id, conn=work_service.repository.conn)
             except HTTPException:
                 published_only = True
 
@@ -224,7 +226,7 @@ async def delete_chapter(
             detail="Capítulo no encontrado",
         )
 
-    await verify_upload_permission(current_user, chapter.scan_group_id, conn=service.chapter_repository.conn)
+    await verify_scan_manage_permission(current_user, chapter.scan_group_id, conn=service.chapter_repository.conn)
     await service.delete_chapter(chapter_id)
     return None
 

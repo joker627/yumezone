@@ -455,7 +455,7 @@ async function loadResults() {
   results.innerHTML = renderSkeletonCards(14);
 
   try {
-    const response = await apiRequest(`/works?${buildApiQuery().toString()}`, {
+    const response = await apiRequest(`/works/?${buildApiQuery().toString()}`, {
       signal: controller.signal,
     });
     if (requestId !== resultsRequestId) return;

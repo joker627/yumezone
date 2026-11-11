@@ -25,6 +25,7 @@ class UserBase(BaseModel):
     status: str
     xp: int = 0
     coins: int = 0
+    clan_tokens: int = 0
     streak_days: int = 0
     last_streak_date: Optional[date] = None
     streak_event: Optional[str] = None
