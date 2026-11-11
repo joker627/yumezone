@@ -28,6 +28,7 @@ Allow: /js/
 Disallow: /pages/login.html
 Disallow: /pages/registro.html
 Disallow: /pages/biblioteca.html
+Disallow: /pages/usuario.html
 Disallow: /pages/historial.html
 Disallow: /*?*edit=*
 
