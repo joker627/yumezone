@@ -41,10 +41,15 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
     description="API para mangas, manhwas y manhuas",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url= None,
+    redoc_url= None,
+    openapi_url= None,
 )
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"name": settings.api_title, "status": "ok", "docs": "/docs"}
 
 cors_origins = settings.cors_allow_origins or ["*"]
 
