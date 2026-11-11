@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from dotenv import load_dotenv
 
-load_dotenv(".env.local")
+load_dotenv(".env")
 load_dotenv()
 
 

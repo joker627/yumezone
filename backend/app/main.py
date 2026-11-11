@@ -41,9 +41,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
     description="API para mangas, manhwas y manhuas",
-    docs_url= None,
-    redoc_url= None,
-    openapi_url= None,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 
