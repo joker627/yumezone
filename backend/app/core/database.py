@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Optional
 
 from sqlalchemy import text
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -24,19 +25,33 @@ engine: Optional[AsyncEngine] = None
 AsyncSessionLocal: Optional[async_sessionmaker[AsyncSession]] = None
 
 
+def _prepare_database_url(database_url: str, db_ssl: bool) -> tuple[URL, dict[str, Any]]:
+    url = make_url(database_url)
+    query = dict(url.query)
+    sslmode = query.pop("sslmode", None)
+    connect_args: dict[str, Any] = {}
+
+    ssl_required = sslmode and sslmode.lower() not in {"disable", "allow", "prefer"}
+    if db_ssl or ssl_required:
+        connect_args["ssl"] = "require"
+
+    return url.set(query=query), connect_args
+
+
 def get_engine() -> AsyncEngine:
     global engine, AsyncSessionLocal
     if engine is None:
         settings = get_settings()
-        connect_args = {}
-        if settings.db_ssl:
-            connect_args["ssl"] = "require"
+        database_url, connect_args = _prepare_database_url(
+            settings.database_url,
+            settings.db_ssl,
+        )
 
         pool_size = max(1, min(settings.db_pool_max, 20))
         max_overflow = max(5, settings.db_pool_max - pool_size)
 
         engine = create_async_engine(
-            settings.database_url,
+            database_url,
             pool_size=pool_size,
             max_overflow=max_overflow,
             pool_pre_ping=True,
