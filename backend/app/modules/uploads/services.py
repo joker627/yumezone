@@ -13,12 +13,12 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 MAX_FILES_PER_REQUEST = 60
 WEBP_MAGIC_RIFF = b"RIFF"
 WEBP_MAGIC_WEBP = b"WEBP"
-CONTAINER_NAME = "images"
 
 
 class UploadService:
     def __init__(self, connection_string: str | None = None):
         self.connection_string = connection_string or os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+        self.container_name = os.environ.get("AZURE_STORAGE_CONTAINER")
 
     # validar formato y cabeceras binarias webp
     async def validate_and_read_image(self, file: UploadFile) -> tuple[str, bytes]:
@@ -78,9 +78,15 @@ class UploadService:
             urls = await asyncio.gather(*(save_local_single(f) for f in files))
             return list(urls)
 
+        if not self.container_name:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Falta configurar AZURE_STORAGE_CONTAINER.",
+            )
+
         try:
             async with BlobServiceClient.from_connection_string(self.connection_string) as blob_service_client:
-                container_client = blob_service_client.get_container_client(CONTAINER_NAME)
+                container_client = blob_service_client.get_container_client(self.container_name)
                 if not await container_client.exists():
                     await container_client.create_container()
 
