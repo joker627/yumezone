@@ -23,10 +23,6 @@
   <header id="header"></header>
 
   <main class="profile-main">
-
-    <!-- =========================================================
-         1. HERO DE PANTALLA COMPLETA (BANNER DE FONDO SIN TARJETA)
-         ========================================================= -->
     <section class="profile-hero" id="profile-hero">
       <!-- Banner de Fondo a Pantalla Completa con Degradado Elegante -->
       <div class="profile-banner" id="profile-banner-bg">
@@ -137,10 +133,6 @@
     </section>
 
     <div class="container profile-container">
-
-      <!-- =========================================================
-           2. TIRA DE 5 ESTADÍSTICAS CLAVE (SIN RELLENO DE COMENTARIOS)
-           ========================================================= -->
       <section class="profile-metrics-bar" id="stats-strip-section">
         <div class="profile-metric">
           <div class="profile-metric__icon profile-metric__icon--teal">
@@ -201,10 +193,6 @@
           </div>
         </div>
       </section>
-
-      <!-- =========================================================
-           3. AVISO DE PERFIL PRIVADO (Solo si está oculto para visitantes)
-           ========================================================= -->
       <div id="private-notice" class="profile-private-card" style="display: none;">
         <div class="profile-private-card__icon">
           <img src="/assets/icons/svg/user/lock.svg" class="icon-svg icon-lg" alt="Privado" />
@@ -212,10 +200,6 @@
         <h3 class="profile-private-card__title">Esta cuenta es privada</h3>
         <p class="profile-private-card__desc">El propietario de este perfil ha restringido la visibilidad pública de su biblioteca, estadísticas y colección.</p>
       </div>
-
-      <!-- =========================================================
-           4. CONTENIDO EN 2 COLUMNAS (VITRINA DE BIBLIOTECA + WIDGETS ÚTILES)
-           ========================================================= -->
       <div id="profile-public-content" class="profile-grid">
 
         <!-- COLUMNA PRINCIPAL: Vitrina por Pestañas de Biblioteca (Me gusta, Completadas, Pendientes) -->
@@ -297,10 +281,6 @@
 
     </div>
   </main>
-
-  <!-- =========================================================
-       MODAL COMPLETO DE PERSONALIZACIÓN PARA EL DUEÑO
-       ========================================================= -->
   <div id="edit-profile-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal-content profile-edit-modal">
       <header class="modal-header">
@@ -374,17 +354,6 @@
                 <option value="KR">🇰🇷 Corea del Sur</option>
               </select>
             </div>
-          </div>
-
-          <div class="form-group">
-            <div class="form-label-row">
-              <label for="edit-active-title">Título / Rango Visible junto a tu nombre</label>
-              <a href="/pages/tienda.html" class="text-action-btn">Desbloquear más en Tienda →</a>
-            </div>
-            <select id="edit-active-title" class="form-input">
-              <option value="">Usar título de nivel automático</option>
-            </select>
-            <span class="form-hint">Solo puedes equipar títulos adquiridos en tu inventario o el título automático de tu nivel.</span>
           </div>
 
           <div class="form-group">

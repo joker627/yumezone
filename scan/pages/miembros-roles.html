@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Equipo & Roles del Scan - YumeZone Studio</title>
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    
+    <!-- Estilos Internos Modulares (100% Puros, Cero CDNs) -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/header.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/components/toast.css">
+    <link rel="stylesheet" href="../css/components/skeletons.css">
+    <link rel="stylesheet" href="../css/pages/miembros-roles.css">
+</head>
+<body data-page="miembros-roles">
+
+    <!-- Header y Sidebar Reutilizable (Montado por components-loader.js) -->
+    <header id="header"></header>
+
+    <!-- Main Content -->
+    <main class="page-main-container">
+        <div class="ambient-glow-wrapper">
+            <!-- Orbes de luz ambiental -->
+            <div class="ambient-orb-primary"></div>
+            <div class="ambient-orb-secondary"></div>
+
+            <!-- Cabecera de Sección -->
+            <div class="page-header-row">
+                <div>
+                    <div class="page-header-title-wrap">
+                        <span class="badge-tag-teal">Plantilla Editorial</span>
+                        <h1 class="page-main-heading">Equipo del Clan, Roles & Permisos</h1>
+                    </div>
+                    <p class="page-sub-desc">
+                        Administra los integrantes reales de tu grupo en MySQL (<code>scan_group_members</code>), asigna roles oficiales (<code>scan_roles</code>) y configura permisos de subida o administración.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+                    <button class="btn-hero-dark" id="btn-open-leave-clan" type="button" style="display: none; color: #ffb4ab;">
+                        <img src="../assets/icons/svg/logout.svg" class="icon-svg icon-sm" alt="">
+                        <span>Abandonar Clan</span>
+                    </button>
+                    <button class="btn-hero-primary" id="btn-open-invite-modal" type="button">
+                        <img src="../assets/icons/svg/community.svg" class="icon-svg icon-sm icon-dark" alt="">
+                        <span>+ Incorporar Miembro al Clan</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rejilla de Miembros del Equipo (Poblada con Skeletons / Datos Reales) -->
+            <section class="squad-section-card" id="section-squad">
+                <div class="squad-members-bento" id="squad-members-grid"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL 1: Incorporar Colaborador al Clan (POST /scan-groups/{id}/members) -->
+    <div class="scan-modal-backdrop" id="invite-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="invite-modal-title">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="invite-modal-title">Incorporar Miembro al Clan</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-invite-modal" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="invite-form">
+                <div class="scan-modal-body">
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="invite-identifier">Buscar o Ingresar Usuario (@username, código o correo) *</label>
+                        <input class="modal-input" id="invite-identifier" type="text" placeholder="Ej: @lector123, #YZ1024 o correo@..." autocomplete="off" required>
+                        <div id="user-search-suggestions" style="display: none; background: #10131a; border: 1px solid rgba(92,226,192,0.3); border-radius: 8px; margin-top: 4px; max-height: 150px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="invite-role">Rol Oficial en el Clan (scan_roles) *</label>
+                        <select class="modal-input" id="invite-role" required>
+                            <option value="UPLOADER" selected>Subidor de Capítulos (UPLOADER)</option>
+                            <option value="TRANSLATOR">Traductor (TRANSLATOR)</option>
+                            <option value="EDITOR">Editor / Typesetter (EDITOR)</option>
+                            <option value="CO_LEADER">Colíder (CO_LEADER)</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label">Permisos Editoriales (JSON permissions)</label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #e0e2ec; cursor: pointer; margin-top: 4px;">
+                            <input type="checkbox" id="invite-perm-upload" checked>
+                            <span>Permitir subir y actualizar capítulos (<code>can_upload</code>)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #e0e2ec; cursor: pointer; margin-top: 4px;">
+                            <input type="checkbox" id="invite-perm-manage">
+                            <span>Permitir gestionar miembros y editar perfil del clan (<code>can_manage_members</code>)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-invite-modal">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-submit-invite">Incorporar al Clan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Editar Rol y Permisos de un Miembro (PUT /scan-groups/{id}/members/{user_id}) -->
+    <div class="scan-modal-backdrop" id="edit-member-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="edit-member-modal-title" style="max-width: 480px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="edit-member-modal-title">Editar Rol y Permisos</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-edit-member" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="edit-member-form">
+                <input type="hidden" id="edit-member-userid">
+                <div class="scan-modal-body">
+                    <p id="edit-member-username-label" style="font-size: 0.85rem; color: #5ce2c0; font-weight: 700; margin: 0;"></p>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="edit-member-role">Rol Asignado *</label>
+                        <select class="modal-input" id="edit-member-role" required>
+                            <option value="UPLOADER">Subidor de Capítulos (UPLOADER)</option>
+                            <option value="TRANSLATOR">Traductor (TRANSLATOR)</option>
+                            <option value="EDITOR">Editor / Typesetter (EDITOR)</option>
+                            <option value="CO_LEADER">Colíder (CO_LEADER)</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label">Permisos Específicos</label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #e0e2ec; cursor: pointer; margin-top: 4px;">
+                            <input type="checkbox" id="edit-perm-upload">
+                            <span>Subir capítulos y páginas WebP (<code>can_upload</code>)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #e0e2ec; cursor: pointer; margin-top: 4px;">
+                            <input type="checkbox" id="edit-perm-manage">
+                            <span>Administrar miembros y revisar borradores (<code>can_manage_members</code>)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #e0e2ec; cursor: pointer; margin-top: 4px;">
+                            <input type="checkbox" id="edit-perm-edit-group">
+                            <span>Editar perfil del clan (<code>can_edit_group</code>)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-edit-member">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-submit-edit-member">Guardar Permisos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Confirmar Expulsión / Abandono del Clan (Cero window.confirm) -->
+    <div class="scan-modal-backdrop" id="confirm-member-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="confirm-member-title" style="max-width: 440px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="confirm-member-title">Confirmar Acción</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-confirm-member" aria-label="Cerrar">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <div class="scan-modal-body">
+                <p id="confirm-member-message" style="font-size: 0.85rem; color: #bbcac3; line-height: 1.5; margin: 0;"></p>
+            </div>
+            <div class="scan-modal-footer">
+                <button type="button" class="btn-hero-dark" id="btn-cancel-confirm-member">Cancelar</button>
+                <button type="button" class="btn-danger-solid" id="btn-execute-confirm-member">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Premiar Miembro en YumeCoins convirtiendo desde la Bóveda del Clan (POST /scan-groups/{id}/reward-member) -->
+    <div class="scan-modal-backdrop" id="reward-member-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="reward-member-title" style="max-width: 460px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="reward-member-title">Premiar Miembro en Monedas (YumeCoins)</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-reward-member" aria-label="Cerrar">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="reward-member-form">
+                <input type="hidden" id="reward-member-userid">
+                <div class="scan-modal-body">
+                    <p id="reward-member-target-label" style="font-size: 0.85rem; color: #f0c75e; font-weight: 700; margin: 0 0 0.5rem 0;"></p>
+                    <p style="font-size: 0.78rem; color: #8c90a0; margin: 0 0 0.85rem 0;">
+                        El Scan premia a su staff <strong>exclusivamente en YumeCoins (monedas)</strong> convirtiendo Cristales desde la <strong>Bóveda del Clan</strong> a tasa oficial: <strong>1 Cristal de Bóveda = +40 YumeCoins</strong> para el miembro.
+                    </p>
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="reward-member-amount">Cristales de la Bóveda a Convertir en Monedas *</label>
+                        <input class="modal-input" id="reward-member-amount" type="number" min="1" max="100" value="1" required>
+                        <span id="reward-member-coins-preview" style="display:block;margin-top:0.35rem;font-size:0.78rem;color:#5ce2c0;font-weight:700;">
+                            El colaborador recibirá: +40 YumeCoins en su cartera
+                        </span>
+                    </div>
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="reward-member-reason">Concepto / Motivo del Premio</label>
+                        <input class="modal-input" id="reward-member-reason" type="text" maxlength="140" placeholder="Ej: Traducción y limpieza de capítulos de la semana">
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-reward-member">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-submit-reward-member">Enviar Monedas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Reutilizable (Montado por components-loader.js) -->
+    <footer id="site-footer" class="site-footer"></footer>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="../js/components/components-loader.js"></script>
+    <script type="module" src="../js/pages/miembros-roles.js"></script>
+</body>
+</html>

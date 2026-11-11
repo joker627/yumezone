@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 from app.modules.comments.repository import CommentRepository
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
 
 class CommentService:

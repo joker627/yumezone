@@ -145,8 +145,25 @@ img.yz-skeleton {
 
 .is-skeleton .launch-item--cover,
 .is-skeleton .rank-card--cover,
-.is-skeleton .popular-card--cover {
+.is-skeleton .popular-card--cover,
+.is-skeleton .scan-card-banner,
+.is-skeleton .shop-card-preview-img,
+.is-skeleton .library-card-cover img {
   transform: none !important;
+}
+
+.is-skeleton .popular-card--format-badge,
+.is-skeleton .popular-card--rating,
+.is-skeleton .scan-card-rank-tag,
+.is-skeleton .scan-card-status-pill,
+.is-skeleton .shop-card-cat-badge,
+.is-skeleton .shop-card-rarity,
+.is-skeleton .shop-card-level-req,
+.is-skeleton .work-hero-format-pill,
+.is-skeleton .work-hero-status-pill {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
 }
 
 .is-skeleton.chat-gif-item {

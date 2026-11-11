@@ -62,7 +62,7 @@ export async function apiRequest(path, options = {}) {
 
     // evento mutacion api
     const method = (requestOptions.method || 'GET').toUpperCase();
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !path.includes('/notifications') && !path.includes('/chat/heartbeat')) {
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !path.includes('/notifications')) {
         try {
             window.dispatchEvent(new CustomEvent('yume:mutation', { detail: { path, method, payload } }));
         } catch {}

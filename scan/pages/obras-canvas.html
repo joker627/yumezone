@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Catálogo de Obras & Banners - YumeZone Studio</title>
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    
+    <!-- Estilos Internos Modulares (100% Puros, Cero CDNs) -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/header.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/components/toast.css">
+    <link rel="stylesheet" href="../css/components/skeletons.css">
+    <link rel="stylesheet" href="../css/pages/obras-canvas.css">
+</head>
+<body data-page="obras-canvas">
+
+    <!-- Header y Sidebar Reutilizable (Montado por components-loader.js) -->
+    <header id="header"></header>
+
+    <!-- Main Content -->
+    <main class="page-main-container">
+        <div class="ambient-glow-wrapper">
+            <!-- Orbes de luz ambiental -->
+            <div class="ambient-orb-primary"></div>
+            <div class="ambient-orb-secondary"></div>
+
+            <!-- Cabecera de Sección -->
+            <div class="page-header-row">
+                <div>
+                    <div class="page-header-title-wrap">
+                        <span class="badge-tag-teal">Catálogo Editorial</span>
+                        <h1 class="page-main-heading">Obras del Clan, Portadas & Flujo de Capítulos</h1>
+                    </div>
+                    <p class="page-sub-desc">
+                        Administra las series traducidas por tu grupo, actualiza sus portadas y banners panorámicos, y controla el estado de cada capítulo ("Próximamente" en traducción vs "Publicado").
+                    </p>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn-hero-primary" id="btn-open-create-work" type="button">
+                        <img src="../assets/icons/svg/book.svg" class="icon-svg icon-sm icon-dark" alt="">
+                        <span>+ Registrar Nueva Obra</span>
+                    </button>
+                    <a href="subir-capitulos.html" class="btn-hero-coral">
+                        <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-sm" alt="">
+                        <span>Subir Capítulo .WEBP</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- SECCIÓN PRINCIPAL: Catálogo de Obras del Scan -->
+            <section class="catalog-panel-card" id="section-obras">
+                <div class="catalog-head-block">
+                    <div class="catalog-top-row">
+                        <div>
+                            <div class="section-title-wrap">
+                                <div class="accent-pill-indicator"></div>
+                                <h2 class="section-main-heading">Series Asignadas al Clan</h2>
+                            </div>
+                            <p class="section-sub-desc">Haz clic en el icono de capítulos de cualquier obra para alternar entregas entre "Próximamente (En Traducción)" y "Publicado".</p>
+                        </div>
+
+                        <!-- Filtros de Formato y Flujo -->
+                        <div class="catalog-filter-tabs">
+                            <button class="filter-pill-btn active" type="button" data-filter="all">Todas (<span id="count-filter-all">0</span>)</button>
+                            <button class="filter-pill-btn" type="button" data-filter="proximamente">Próximamente (<span id="count-filter-upcoming">0</span>)</button>
+                            <button class="filter-pill-btn" type="button" data-filter="manhwa">Manhwa</button>
+                            <button class="filter-pill-btn" type="button" data-filter="manhua">Manhua</button>
+                            <button class="filter-pill-btn" type="button" data-filter="manga">Manga</button>
+                        </div>
+                    </div>
+
+                    <!-- Buscador -->
+                    <div class="catalog-search-bar">
+                        <div class="search-input-field">
+                            <img src="../assets/icons/svg/search.svg" class="icon-svg icon-sm" alt="" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);">
+                            <input id="catalog-filter-input" placeholder="Buscar obra por título, título alternativo o demografía..." type="text">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Filas de Obras (Poblada por JS con Skeletons / Datos Reales) -->
+                <div class="series-rows-container" id="series-catalog-rows"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL 1: Registrar / Editar Obra + Portada y Banner (POST /works/, PUT /works/{id}) -->
+    <div class="scan-modal-backdrop" id="work-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="work-modal-title">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="work-modal-title">Registrar Nueva Obra</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-work-modal" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="work-form">
+                <div class="scan-modal-body">
+                    <input type="hidden" id="work-form-id">
+                    
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="work-form-title">Título Principal de la Obra *</label>
+                        <input class="modal-input" id="work-form-title" type="text" placeholder="Ej: Solo Leveling: Ragnarok" required>
+                    </div>
+
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="work-form-alt-title">Título Alternativo / Nativo</label>
+                            <input class="modal-input" id="work-form-alt-title" type="text" placeholder="Ej: 나 혼자만 레벨업">
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="work-form-author">Autor / Artista</label>
+                            <input class="modal-input" id="work-form-author" type="text" placeholder="Ej: Chugong, Daul">
+                        </div>
+                    </div>
+
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="work-form-format">Formato Editorial *</label>
+                            <select class="modal-input" id="work-form-format" required>
+                                <option value="1">Manga</option>
+                                <option value="2" selected>Manhwa</option>
+                                <option value="3">Manhua</option>
+                                <option value="4">Webtoon</option>
+                            </select>
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="work-form-status">Estado de Publicación *</label>
+                            <select class="modal-input" id="work-form-status" required>
+                                <option value="1" selected>En emisión</option>
+                                <option value="2">Finalizado</option>
+                                <option value="3">En pausa</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="work-form-demographic">Demografía *</label>
+                        <select class="modal-input" id="work-form-demographic">
+                            <option value="1" selected>Shonen</option>
+                            <option value="2">Seinen</option>
+                            <option value="3">Shojo</option>
+                            <option value="4">Josei</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label">Géneros de la Obra (Selecciona uno o varios)</label>
+                        <div id="work-form-genres-container" style="display: flex; flex-wrap: wrap; gap: 0.45rem; padding: 0.65rem; border-radius: 0.65rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); max-height: 120px; overflow-y: auto;">
+                            <span style="font-size: 0.75rem; color: #8c90a0;">Cargando géneros...</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="work-form-synopsis">Sinopsis Editorial</label>
+                        <textarea class="modal-textarea" id="work-form-synopsis" placeholder="Describe la trama principal de la obra..."></textarea>
+                    </div>
+
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="work-form-cover">Portada Vertical 2:3 (URL o Subir .WEBP)</label>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <input class="modal-input" id="work-form-cover" type="text" placeholder="https://... o /static/...">
+                                <input type="file" id="work-cover-file" class="hidden" accept="image/*,.webp">
+                                <button type="button" class="btn-hero-dark" id="btn-upload-work-cover" title="Subir archivo de portada" style="padding: 0 0.75rem; flex-shrink: 0;">
+                                    <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-sm" alt="Subir">
+                                </button>
+                            </div>
+                            <div id="work-cover-preview-wrap" style="margin-top: 0.5rem; display: none; align-items: center; gap: 0.6rem;">
+                                <img id="work-cover-preview-img" src="" alt="Vista previa portada" style="width: 48px; height: 72px; object-fit: cover; border-radius: 0.4rem; border: 1px solid rgba(92,226,192,0.3);">
+                                <span style="font-size: 0.72rem; color: #5ce2c0;">Portada 2:3 lista</span>
+                            </div>
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="work-form-banner">Banner Panorámico 16:9 (URL o Subir .WEBP)</label>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <input class="modal-input" id="work-form-banner" type="text" placeholder="https://... o /static/...">
+                                <input type="file" id="work-banner-file" class="hidden" accept="image/*,.webp">
+                                <button type="button" class="btn-hero-dark" id="btn-upload-work-banner" title="Subir archivo de banner" style="padding: 0 0.75rem; flex-shrink: 0;">
+                                    <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-sm" alt="Subir">
+                                </button>
+                            </div>
+                            <div id="work-banner-preview-wrap" style="margin-top: 0.5rem; display: none; align-items: center; gap: 0.6rem;">
+                                <img id="work-banner-preview-img" src="" alt="Vista previa banner" style="width: 112px; height: 63px; object-fit: cover; border-radius: 0.4rem; border: 1px solid rgba(92,226,192,0.3);">
+                                <span style="font-size: 0.72rem; color: #5ce2c0;">Banner 16:9 listo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-work-modal">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-save-work-submit">Guardar Obra</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Gestión de Capítulos & Flujo "Próximamente (SCHEDULED)" vs "Publicado (PUBLISHED)" -->
+    <div class="scan-modal-backdrop" id="chapters-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="chapters-modal-title" style="max-width: 720px;">
+            <div class="scan-modal-header">
+                <div>
+                    <h3 class="scan-modal-title" id="chapters-modal-title">Capítulos de la Obra</h3>
+                    <span id="chapters-count-badge" style="font-size: 0.75rem; color: #5ce2c0; font-weight: 700;">Cargando...</span>
+                </div>
+                <button type="button" class="scan-modal-close" id="btn-close-chapters-modal" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <div class="scan-modal-body">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                    <p style="font-size: 0.78rem; color: #86948e; margin: 0;">
+                        Cambia el estado de cualquier entrega entre <strong>Próximamente (SCHEDULED)</strong>, <strong>Borrador (DRAFT)</strong> o <strong>Publicado (PUBLISHED)</strong>.
+                    </p>
+                    <a href="subir-capitulos.html" class="btn-action-primary-sm" id="btn-modal-add-chapter">
+                        <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-xs icon-dark" alt="">
+                        <span>+ Nuevo Capítulo</span>
+                    </a>
+                </div>
+                <div class="chapters-list-wrap" id="chapters-list-container"></div>
+            </div>
+            <div class="scan-modal-footer">
+                <button type="button" class="btn-hero-dark" id="btn-close-chapters-modal-foot">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Confirmación Nativa de Eliminación (Cero window.confirm) -->
+    <div class="scan-modal-backdrop" id="confirm-delete-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="confirm-delete-title" style="max-width: 440px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="confirm-delete-title">Confirmar Eliminación</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-confirm-delete" aria-label="Cerrar">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <div class="scan-modal-body">
+                <p id="confirm-delete-message" style="font-size: 0.85rem; color: #bbcac3; line-height: 1.5; margin: 0;">
+                    ¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.
+                </p>
+            </div>
+            <div class="scan-modal-footer">
+                <button type="button" class="btn-hero-dark" id="btn-cancel-confirm-delete">Cancelar</button>
+                <button type="button" class="btn-danger-solid" id="btn-execute-confirm-delete">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Reutilizable (Montado por components-loader.js) -->
+    <footer id="site-footer" class="site-footer"></footer>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="../js/components/components-loader.js"></script>
+    <script type="module" src="../js/pages/obras-canvas.js"></script>
+</body>
+</html>

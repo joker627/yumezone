@@ -1,0 +1,452 @@
+
+.ambient-glow-wrapper {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3.5rem;
+}
+
+.ambient-orb-primary,
+.ambient-orb-secondary {
+  display: none;
+}
+
+.page-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-main-heading {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.page-sub-desc {
+  font-size: 0.825rem;
+  color: #cbd5e1;
+  margin: 4px 0 0;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* Panel Dividido de Finanzas */
+.treasury-section-card {
+  background: #111724;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.treasury-split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .treasury-split-grid {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.treasury-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.treasury-widget-box {
+  background: #0d121d;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.balance-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.balance-head-label {
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.balance-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.balance-big-amount {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.balance-currency {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.balance-coins-equiv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+/* Metas Comunitarias */
+.goals-widget-card {
+  background: #0d121d;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goals-widget-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.goal-item-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.goal-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.775rem;
+}
+
+.goal-name {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.goal-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #161f30;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.goal-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.goal-progress-fill.teal { background: #2dd4bf; }
+.goal-progress-fill.coral { background: #f43f5e; }
+
+.goal-hint-text {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Columna Derecha: Ranking de Donadores & Medallas */
+.fans-medals-box {
+  background: #0d121d;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fans-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fans-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.fans-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.fan-medal-row {
+  background: #161f30;
+  border: 1px solid #28354b;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+}
+
+.fan-medal-row:hover {
+  background: #1b263b;
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.fan-identity-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fan-avatar-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid #fbbf24;
+  flex-shrink: 0;
+}
+
+.fan-avatar-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fan-meta {
+  min-width: 0;
+}
+
+.fan-name {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.fan-badge-level {
+  font-size: 0.675rem;
+  color: #fbbf24;
+}
+
+.fan-contribution-val {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #2dd4bf;
+}
+
+/* Badges y Botones */
+.badge-tag-teal {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(20, 184, 166, 0.14);
+  color: #2dd4bf;
+  font-size: 0.675rem;
+  font-weight: 700;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.badge-tag-gold {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  font-size: 0.675rem;
+  font-weight: 700;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.btn-hero-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  background: #161f30;
+  color: #f8fafc;
+  font-size: 0.825rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid #28354b;
+  transition: all 0.15s ease;
+}
+
+.btn-hero-dark:hover {
+  background: #1b263b;
+}
+
+/* Modales de Retiro de Fondos y Metas */
+.scan-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 20, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.scan-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scan-modal-dialog {
+  background: #111724;
+  border: 1px solid #28354b;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.scan-modal-backdrop.open .scan-modal-dialog {
+  transform: translateY(0) scale(1);
+}
+
+.scan-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0d121d;
+  flex-shrink: 0;
+}
+
+.scan-modal-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.scan-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #161f30;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.scan-modal-close:hover {
+  background: #1b263b;
+  color: #ffffff;
+}
+
+.scan-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.scan-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #0d121d;
+  flex-shrink: 0;
+}
+
+.modal-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modal-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.modal-input {
+  width: 100%;
+  background: #0d121d;
+  border: 1px solid #28354b;
+  border-radius: 8px;
+  color: #f8fafc;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #2dd4bf;
+}
+

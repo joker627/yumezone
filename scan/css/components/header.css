@@ -1,0 +1,554 @@
+
+/* 1. Backdrop del Sidebar */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 14, 21, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 190;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+body.sidebar-open .sidebar-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 2. Sidebar Lateral Colapsible */
+.dash-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 290px;
+  max-width: 85vw;
+  background: #111724;
+  border-right: 1px solid #1e293b;
+  z-index: 200;
+  box-shadow: 12px 0 35px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.sidebar-open .dash-sidebar {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  height: 64px;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1e293b;
+  background: #0d121d;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.sidebar-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
+.sidebar-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.15;
+}
+
+.sidebar-subtitle {
+  display: block;
+  font-size: 0.675rem;
+  color: #2dd4bf;
+  font-weight: 700;
+}
+
+.btn-sidebar-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #161f30;
+  color: #cbd5e1;
+  border: 1px solid #28354b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-sidebar-close:hover {
+  color: #ffffff;
+  background: #1b263b;
+}
+
+/* Clan Card dentro del Sidebar */
+.sidebar-clan-card {
+  padding: 1rem 1.25rem;
+  background: #161f30;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sidebar-clan-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0d121d;
+  border: 1.5px solid rgba(45, 212, 191, 0.35);
+  flex-shrink: 0;
+}
+
+.sidebar-clan-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-clan-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-clan-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-clan-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+/* Navegación del Sidebar */
+.sidebar-scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sidebar-group-label {
+  font-size: 0.675rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  padding: 0 0.5rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.825rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.sidebar-nav-link:hover {
+  background: #161f30;
+  color: #f8fafc;
+}
+
+.sidebar-nav-link.active {
+  background: rgba(20, 184, 166, 0.14);
+  color: #2dd4bf;
+  font-weight: 700;
+  border-left: 3px solid #2dd4bf;
+}
+
+.sidebar-pill-badge {
+  margin-left: auto;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(244, 63, 94, 0.18);
+  color: #fda4af;
+}
+
+/* Accesos Directos */
+.sidebar-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sidebar-shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background: #161f30;
+  border: 1px dashed #28354b;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.sidebar-shortcut-btn:hover {
+  background: #1b263b;
+  color: #2dd4bf;
+  border-color: rgba(45, 212, 191, 0.4);
+}
+
+/* Footer del Sidebar */
+.sidebar-footer {
+  padding: 0.85rem 1rem;
+  background: #0d121d;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.sidebar-user-block {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.sidebar-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #161f30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #2dd4bf;
+  flex-shrink: 0;
+}
+
+.sidebar-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-user-details {
+  min-width: 0;
+}
+
+.sidebar-username {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.sidebar-user-role {
+  font-size: 0.675rem;
+  color: #94a3b8;
+}
+
+.sidebar-logout-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+/* 3. Header Superior Fijo */
+.dash-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #0d121d;
+  border-bottom: 1px solid #1e293b;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.dash-header-inner {
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dash-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.btn-sidebar-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #161f30;
+  border: 1px solid #28354b;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-sidebar-toggle:hover {
+  background: #1b263b;
+  color: #2dd4bf;
+  border-color: rgba(45, 212, 191, 0.4);
+}
+
+.dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.dash-brand-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.dash-brand-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.dash-brand-badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #161f30;
+  border: 1px solid #28354b;
+  color: #2dd4bf;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1280px) {
+  .dash-brand-badge { display: inline-flex; }
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow: 0 0 8px #2dd4bf;
+}
+
+/* Header Acciones Derecha */
+.dash-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.header-coins-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  background: #161f30;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.btn-icon-header {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-icon-header:hover {
+  color: #f8fafc;
+  background: #161f30;
+}
+
+/* User Menu & Dropdown */
+.dash-user-group {
+  position: relative;
+}
+
+.dash-user-avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #161f30;
+  border: 1.5px solid rgba(45, 212, 191, 0.45);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.dash-user-avatar-btn:hover {
+  transform: scale(1.05);
+  border-color: #2dd4bf;
+}
+
+.dash-user-avatar-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dash-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: #111724;
+  border: 1px solid #28354b;
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 150;
+}
+
+.dash-user-group.open .dash-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dash-dropdown-header {
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dash-dropdown-name {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.dash-dropdown-role {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.btn-dropdown-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: #fda4af;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-dropdown-logout:hover {
+  background: rgba(244, 63, 94, 0.15);
+}

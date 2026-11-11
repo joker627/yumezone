@@ -82,18 +82,4 @@ def parse_json_safe(value: Any, default: Any = None) -> Any:
     try:
         return json.loads(value)
     except Exception:
-        return default
-
-
-# serializar a json de forma segura
-def to_json_safe(value: Any, default: str = "{}") -> str:
-    if value is None:
-        return default
-
-    if isinstance(value, str):
-        return value
-
-    try:
-        return json.dumps(value, ensure_ascii=False)
-    except Exception:
         return default

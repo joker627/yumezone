@@ -1,6 +1,3 @@
-/* ==========================================================================
-   PÁGINA DE DETALLE DE OBRA (REDISENO EXACTO ESTILO MOCKUP)
-   ========================================================================== */
 
 .work-detail {
   width: min(100% - 2rem, 1380px);
@@ -30,7 +27,7 @@
 }
 
 .work-detail-back:hover {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
 }
 
 .work-detail-back:hover::before {
@@ -40,8 +37,8 @@
 .work-detail-message {
   padding: 2.5rem 1.5rem;
   text-align: center;
-  background: #0d1320;
-  border: 1px solid #1e293b;
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-xl, 16px);
   color: #94a3b8;
 }
@@ -55,11 +52,11 @@
 .work-detail-message button {
   margin-top: 1rem;
   padding: 0.6rem 1.25rem;
-  background: #f97316;
-  color: #ffffff;
+  background: var(--teal-500, #14b8a6);
+  color: #042f2e;
   border: none;
   border-radius: 8px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.85rem;
   cursor: pointer;
 }
@@ -70,18 +67,14 @@
   color: #64748b;
   font-size: 0.88rem;
 }
-
-/* ==========================================================================
-   1. HERO SUPERIOR (PORTADA + TÍTULO + SINOPSIS INTEGRADA)
-   ========================================================================== */
 .work-hero-card {
   position: relative;
   overflow: hidden;
   padding: clamp(1.2rem, 3vw, 2.25rem);
-  background: #0b111c;
-  border: 1px solid #182233;
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-xl, 18px);
-  box-shadow: 0 8px 32px rgb(0 0 0 / 35%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 45%);
 }
 
 .work-hero-banner-bg,
@@ -95,14 +88,14 @@
 
 .work-hero-banner-bg {
   object-fit: cover;
-  opacity: 0.12;
+  opacity: 0.14;
   filter: blur(8px);
   transform: scale(1.05);
 }
 
 .work-hero-backdrop {
-  background: radial-gradient(circle at top right, rgb(249 115 22 / 6%), transparent 60%),
-              linear-gradient(135deg, rgb(11 17 28 / 98%), rgb(11 17 28 / 90%));
+  background: radial-gradient(circle at top right, rgb(20 184 166 / 7%), transparent 60%),
+              linear-gradient(135deg, rgb(17 23 36 / 98%), rgb(17 23 36 / 92%));
 }
 
 .work-hero-inner {
@@ -226,7 +219,7 @@
 }
 
 .work-copy-btn:hover {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
 }
 
 /* Fila Autor & Scan */
@@ -244,7 +237,7 @@
 }
 
 .work-hero-scan {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
 }
 
 /* Géneros */
@@ -367,14 +360,14 @@
 }
 
 .work-hero-rate-text {
-  color: #f97316;
+  color: var(--amber-400, #fbbf24);
   font-size: 0.78rem;
   font-weight: 700;
   transition: color 140ms ease;
 }
 
 .work-hero-rating-pill:hover .work-hero-rate-text {
-  color: #fb923c;
+  color: var(--amber-300, #fde68a);
 }
 
 .work-hero-rating-pill.has-voted {
@@ -401,10 +394,6 @@
 .work-hero-views-wrap svg {
   color: #64748b;
 }
-
-/* ==========================================================================
-   2. LAYOUT PARTIDO (COLUMNA IZQUIERDA + COLUMNA DERECHA)
-   ========================================================================== */
 .work-grid-container {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(340px, 420px);
@@ -419,10 +408,6 @@
     gap: 1.25rem;
   }
 }
-
-/* ==========================================================================
-   COLUMNA IZQUIERDA: CAPÍTULOS DIRECTOS (SIN BLOQUES INNECESARIOS)
-   ========================================================================== */
 .work-col-left {
   display: flex;
   flex-direction: column;
@@ -433,10 +418,10 @@
 /* Capítulos Box */
 .work-chapters-box {
   padding: 1.35rem 1.45rem;
-  background: #0b111c;
-  border: 1px solid #182233;
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-xl, 16px);
-  box-shadow: 0 4px 20px rgb(0 0 0 / 25%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
 }
 
 .work-chapters-box-head {
@@ -464,7 +449,7 @@
   left: 0;
   width: 50px;
   height: 3px;
-  background: #f97316;
+  background: var(--teal-400, #2dd4bf);
   border-radius: 2px;
 }
 
@@ -599,7 +584,7 @@
 }
 
 .work-chapters-rows::-webkit-scrollbar-thumb:hover {
-  background: #f97316;
+  background: var(--teal-400, #2dd4bf);
 }
 
 .work-chapter-row {
@@ -613,13 +598,13 @@
 }
 
 .work-chapter-row:hover {
-  background: #0f1726;
-  border-left-color: #f97316;
+  background: #161f30;
+  border-left-color: var(--teal-400, #2dd4bf);
 }
 
 .work-chapter-row.is-current {
-  border-left-color: #f97316;
-  background: rgb(249 115 22 / 6%);
+  border-left-color: var(--teal-400, #2dd4bf);
+  background: rgb(20 184 166 / 8%);
 }
 
 .work-chapter-row.is-read .work-chapter-link {
@@ -635,7 +620,7 @@
 }
 
 .work-chapter-link:hover {
-  color: #f97316;
+  color: var(--teal-300, #5eead4);
 }
 
 .work-chapter-actions {
@@ -662,12 +647,12 @@
 }
 
 .work-chapter-circle-btn:hover {
-  border-color: #f97316;
+  border-color: var(--teal-400, #2dd4bf);
 }
 
 .work-chapter-circle-btn.is-read {
-  background: #f97316;
-  border-color: #f97316;
+  background: var(--teal-500, #14b8a6);
+  border-color: var(--teal-500, #14b8a6);
   position: relative;
 }
 
@@ -676,17 +661,13 @@
   display: block;
   width: 4px;
   height: 8px;
-  border: solid #ffffff;
+  border: solid #042f2e;
   border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
   position: absolute;
   top: 2px;
   left: 5px;
 }
-
-/* ==========================================================================
-   COLUMNA DERECHA: BOTONES DE ACCIÓN + DATOS + COMENTARIOS
-   ========================================================================== */
 .work-col-right {
   display: flex;
   flex-direction: column;
@@ -707,7 +688,7 @@
   gap: 0.55rem;
 }
 
-/* Botón Naranja: Leer capítulo */
+/* Botón Primario Brillante: Leer capítulo */
 .work-btn-cta-read {
   display: inline-flex;
   align-items: center;
@@ -715,29 +696,29 @@
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0 1rem;
-  background: linear-gradient(135deg, #f97316, #ea580c);
-  color: #ffffff;
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  color: #042f2e;
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.01em;
   border-radius: 10px;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgb(249 115 22 / 30%);
+  box-shadow: 0 4px 14px rgb(20 184 166 / 28%);
   transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
   white-space: nowrap;
 }
 
 .work-btn-cta-read:hover {
   transform: translateY(-1px);
-  filter: brightness(1.08);
-  box-shadow: 0 6px 20px rgb(249 115 22 / 40%);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 20px rgb(20 184 166 / 38%);
 }
 
 .work-cta-icon {
   font-size: 0.75rem;
 }
 
-/* Botón Azul: Dropdown Biblioteca */
+/* Botón Sólido Secundario: Dropdown Biblioteca */
 .work-library-dropdown-wrap {
   position: relative;
 }
@@ -750,21 +731,22 @@
   width: 100%;
   min-height: 2.75rem;
   padding: 0 0.85rem;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
+  background: #161f30;
+  color: #f8fafc;
+  border: 1px solid #28354b;
   border-radius: 10px;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgb(37 99 235 / 30%);
-  transition: transform 140ms ease, filter 140ms ease;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 35%);
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
   white-space: nowrap;
 }
 
 .work-btn-library-dropdown:hover {
   transform: translateY(-1px);
-  filter: brightness(1.08);
+  background: #1b263b;
+  border-color: var(--teal-400, #2dd4bf);
 }
 
 .work-icon-btn {
@@ -773,7 +755,7 @@
   justify-content: center;
   width: 2.75rem;
   min-height: 2.75rem;
-  background: #0d1320;
+  background: #111724;
   border: 1px solid #1e293b;
   border-radius: 10px;
   color: #94a3b8;
@@ -782,9 +764,9 @@
 }
 
 .work-icon-btn:hover {
-  background: #151e30;
+  background: #161f30;
   color: #ffffff;
-  border-color: #334155;
+  border-color: #2d3d56;
 }
 
 /* Menú flotante del Dropdown */
@@ -795,10 +777,10 @@
   z-index: 100;
   width: 13.5rem;
   padding: 0.5rem;
-  background: #0b111c;
-  border: 1px solid #1e293b;
+  background: #111724;
+  border: 1px solid #222d42;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 60%);
+  box-shadow: 0 14px 36px rgb(0 0 0 / 70%);
 }
 
 .work-library-menu-label {
@@ -826,13 +808,13 @@
 }
 
 .work-library-option:hover {
-  background: #131d2e;
+  background: #161f30;
   color: #ffffff;
 }
 
 .work-library-option.is-current {
-  background: rgb(249 115 22 / 12%);
-  color: #f97316;
+  background: rgb(20 184 166 / 14%);
+  color: var(--teal-300, #5eead4);
 }
 
 .work-status-indicator {
@@ -859,10 +841,10 @@
 /* 2. Tarjetas del Panel Lateral (DATOS & Comentarios) */
 .work-side-card {
   padding: 1.25rem 1.35rem;
-  background: #0b111c;
-  border: 1px solid #182233;
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: var(--radius-xl, 16px);
-  box-shadow: 0 4px 20px rgb(0 0 0 / 25%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
 }
 
 .work-side-card-head {
@@ -1002,8 +984,8 @@
 }
 
 .work-comment-card:focus-within {
-  border-color: #f97316;
-  box-shadow: 0 0 0 2px rgb(249 115 22 / 15%);
+  border-color: var(--teal-400, #2dd4bf);
+  box-shadow: 0 0 0 2px rgb(45 212 191 / 15%);
 }
 
 .work-comment-textarea {
@@ -1049,18 +1031,18 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.85rem;
-  background: #f97316;
+  background: var(--teal-500, #14b8a6);
   border: none;
   border-radius: 6px;
-  color: #ffffff;
+  color: #042f2e;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   transition: filter 140ms ease, transform 100ms ease;
 }
 
 .work-comment-send-btn:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
 }
 
 .work-comment-send-btn:disabled {
@@ -1095,7 +1077,7 @@
 }
 
 .work-comments-threads::-webkit-scrollbar-thumb:hover {
-  background: #f97316;
+  background: var(--teal-400, #2dd4bf);
 }
 
 .comment-item {
@@ -1185,12 +1167,12 @@
 }
 
 .comment-reply-arrow {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
   font-weight: 700;
 }
 
 .comment-replying-tag {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
   font-weight: 700;
 }
 
@@ -1251,7 +1233,7 @@
 }
 
 .comment-action-btn:hover {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
 }
 
 .comment-action-btn.like-btn.is-active {
@@ -1298,7 +1280,7 @@
   background: transparent;
   border: none;
   padding: 0.25rem 0;
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
   font-size: 0.73rem;
   font-weight: 700;
   cursor: pointer;
@@ -1307,7 +1289,7 @@
 }
 
 .comment-toggle-replies-btn:hover {
-  color: #fb923c;
+  color: var(--teal-300, #5eead4);
   text-decoration: underline;
 }
 
@@ -1372,7 +1354,7 @@
 }
 
 .comment-inline-reply-box:focus-within {
-  border-color: #f97316;
+  border-color: var(--teal-400, #2dd4bf);
 }
 
 .comment-inline-reply-box textarea {
@@ -1440,9 +1422,9 @@
 }
 
 .comment-inline-reply-send {
-  background: #f97316;
+  background: var(--teal-500, #14b8a6);
   border: none;
-  color: #ffffff;
+  color: #042f2e;
 }
 
 .comment-inline-reply-send:hover {
@@ -1507,13 +1489,13 @@
 }
 
 .comment-edit-save-btn {
-  background: #f97316;
+  background: var(--teal-500, #14b8a6);
   border: none;
-  color: #ffffff;
+  color: #042f2e;
 }
 
 .comment-edit-save-btn:hover {
-  background: #ea580c;
+  background: var(--teal-400, #2dd4bf);
 }
 
 .comment-edit-save-btn:disabled {
@@ -1533,10 +1515,6 @@
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
-
-/* ==========================================================================
-   3. SECCIÓN INFERIOR: TE PODRÍAN INTERESAR
-   ========================================================================== */
 .work-recommended-section {
   margin-top: 3rem;
   padding-top: 2rem;
@@ -1571,8 +1549,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: #0b111c;
-  border: 1px solid #182233;
+  background: var(--bg-card, #111724);
+  border: 1px solid var(--border-card, #1e293b);
   border-radius: 12px;
   overflow: hidden;
   text-decoration: none;
@@ -1581,7 +1559,7 @@
 
 .work-rec-card:hover {
   transform: translateY(-3px);
-  border-color: #f97316;
+  border-color: var(--teal-400, #2dd4bf);
 }
 
 .work-rec-cover-wrap {
@@ -1601,8 +1579,8 @@
   top: 6px;
   left: 6px;
   padding: 0.15rem 0.45rem;
-  background: #f97316;
-  color: #ffffff;
+  background: var(--amber-500, #f59e0b);
+  color: #0a0e17;
   font-size: 0.65rem;
   font-weight: 800;
   border-radius: 4px;
@@ -1626,15 +1604,11 @@
 }
 
 .work-rec-card-format {
-  color: #f97316;
+  color: var(--teal-400, #2dd4bf);
   font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
 }
-
-/* ==========================================================================
-   RESPONSIVE DESIGN
-   ========================================================================== */
 @media (max-width: 768px) {
   .work-hero-inner {
     grid-template-columns: 1fr;

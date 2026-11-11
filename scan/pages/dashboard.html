@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>YumeZone Admin - Panel General de Scan</title>
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    
+    <!-- Estilos Internos Modulares (100% Puros, Cero CDNs) -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/header.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/components/toast.css">
+    <link rel="stylesheet" href="../css/components/skeletons.css">
+    <link rel="stylesheet" href="../css/pages/dashboard.css">
+    <link rel="stylesheet" href="../css/pages/obras-canvas.css">
+</head>
+<body data-page="dashboard">
+
+    <!-- Header y Sidebar Reutilizable (Montado por components-loader.js) -->
+    <header id="header"></header>
+
+    <!-- Main Content -->
+    <main class="page-main-container">
+        <div class="ambient-glow-wrapper">
+            <!-- Orbes de luz ambiental -->
+            <div class="ambient-orb-primary"></div>
+            <div class="ambient-orb-secondary"></div>
+
+            <!-- Group Profile Banner / Hero Header -->
+            <div class="clan-hero-banner" id="clan-header-section">
+                <div class="clan-hero-backdrop" id="clan-banner-bg"></div>
+                <div class="clan-hero-gradient"></div>
+
+                <div class="clan-hero-content">
+                    <div class="clan-hero-identity">
+                        <div class="clan-avatar-box">
+                            <img id="clan-logo-img" src="../assets/icons/logo.png" alt="Logo Clan" onerror="this.src='../assets/icons/logo.png'">
+                            <div class="clan-avatar-status"></div>
+                        </div>
+
+                        <div class="clan-meta-block">
+                            <div class="clan-headline-row">
+                                <h1 class="clan-title-text" id="clan-name-text">
+                                    <span class="is-loading is-loading--md is-loading--w60"></span>
+                                </h1>
+                                <span class="badge-verified" id="badge-verified-wrap">
+                                    <img src="../assets/icons/svg/verified.svg" class="icon-svg icon-xs" alt="">
+                                    <span id="clan-verified-code">Cargando...</span>
+                                </span>
+                                <span class="badge-tier" id="badge-tier-wrap">
+                                    <img src="../assets/icons/svg/star.svg" class="icon-svg icon-xs" alt="">
+                                    <span id="clan-tier-name">Activo</span>
+                                </span>
+                            </div>
+                            <p class="clan-desc-para" id="clan-desc-text">
+                                <span class="is-loading is-loading--block is-loading--w80" style="margin-bottom: 4px;"></span>
+                                <span class="is-loading is-loading--block is-loading--w60"></span>
+                            </p>
+                            <div class="clan-micro-meta">
+                                <span>
+                                    <img src="../assets/icons/svg/community.svg" class="icon-svg icon-xs" alt="">
+                                    <strong id="hero-members-count"><span class="is-loading is-loading--xs"></span></strong> Miembros
+                                </span>
+                                <span>
+                                    <img src="../assets/icons/svg/eye.svg" class="icon-svg icon-xs" alt="">
+                                    <strong id="hero-views-count"><span class="is-loading is-loading--xs"></span></strong> Lecturas Totales
+                                </span>
+                                <span id="hero-discord-badge" style="display: none;">
+                                    <img src="../assets/icons/svg/chat.svg" class="icon-svg icon-xs" alt="">
+                                    <a id="hero-discord-link" href="#" target="_blank" rel="noopener" style="color: #5ce2c0; text-decoration: underline;">Discord del Clan</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div class="clan-hero-actions">
+                        <button type="button" class="btn-hero-dark" id="btn-open-edit-clan" style="display: none;">
+                            <img src="../assets/icons/svg/settings.svg" class="icon-svg icon-sm" alt="">
+                            <span>Editar Perfil del Clan</span>
+                        </button>
+                        <a href="obras-canvas.html" class="btn-hero-dark">
+                            <img src="../assets/icons/svg/book.svg" class="icon-svg icon-sm" alt="">
+                            <span>Catálogo de Obras</span>
+                        </a>
+                        <a href="subir-capitulos.html" class="btn-hero-primary">
+                            <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-sm icon-dark" alt="">
+                            <span>Subir Capítulo .WEBP</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Bento KPIs Grid (100% Datos Reales de MySQL) -->
+            <div class="kpi-grid">
+                <!-- Card 1: Series Asignadas -->
+                <a href="obras-canvas.html" class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title-label">Obras del Clan</span>
+                        <div class="kpi-icon-box teal">
+                            <img src="../assets/icons/svg/book.svg" class="icon-svg icon-md" alt="">
+                        </div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-big-number" id="kpi-works-count"><span class="is-loading is-loading--xs"></span></span>
+                        <span class="kpi-tag-teal" id="kpi-works-tag">En Catálogo</span>
+                    </div>
+                    <div class="kpi-progress-bar">
+                        <div class="kpi-progress-fill teal" style="width: 100%;"></div>
+                    </div>
+                    <p class="kpi-foot-text" id="kpi-works-foot">Gestionar obras y portadas →</p>
+                </a>
+
+                <!-- Card 2: Capítulos y Flujo Próximamente -->
+                <a href="subir-capitulos.html" class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title-label">Entregas Registradas</span>
+                        <div class="kpi-icon-box coral">
+                            <img src="../assets/icons/svg/library.svg" class="icon-svg icon-md" alt="">
+                        </div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-big-number" id="kpi-chapters-count"><span class="is-loading is-loading--xs"></span></span>
+                        <span class="kpi-tag-coral" id="kpi-scheduled-tag">Total Histórico</span>
+                    </div>
+                    <div class="kpi-progress-bar">
+                        <div class="kpi-progress-fill coral" style="width: 100%;"></div>
+                    </div>
+                    <p class="kpi-foot-text" id="kpi-chapters-foot">Subir o programar entregas →</p>
+                </a>
+
+                <!-- Card 3: Lecturas Reales (work_statistics) -->
+                <a href="obras-canvas.html" class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title-label">Lecturas Acumuladas</span>
+                        <div class="kpi-icon-box gold">
+                            <img src="../assets/icons/svg/trending.svg" class="icon-svg icon-md" alt="">
+                        </div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-big-number" id="kpi-views-count"><span class="is-loading is-loading--xs"></span></span>
+                        <span class="kpi-tag-gold" id="kpi-views-24h">+0 hoy</span>
+                    </div>
+                    <div class="kpi-progress-bar">
+                        <div class="kpi-progress-fill gold" style="width: 100%;"></div>
+                    </div>
+                    <p class="kpi-foot-text" id="kpi-favorites-foot">Métricas reales de lectura →</p>
+                </a>
+
+                <!-- Card 4: Bóveda de Cristales y Nivel del Clan -->
+                <a href="donaciones-monedas.html" class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title-label">Bóveda del Clan</span>
+                        <div class="kpi-icon-box teal">
+                            <img src="../assets/icons/svg/coin.svg" class="icon-svg icon-md" alt="">
+                        </div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-big-number" id="kpi-vault-tokens" style="color: #5ce2c0;">
+                            <span class="is-loading is-loading--sm"></span>
+                        </span>
+                        <span class="badge-tag-teal" id="kpi-clan-level-badge">Nv. 1</span>
+                    </div>
+                    <div class="kpi-progress-bar">
+                        <div class="kpi-progress-fill teal" style="width: 100%;"></div>
+                    </div>
+                    <p class="kpi-foot-text" id="kpi-role-permission">Cristales independientes del Clan →</p>
+                </a>
+            </div>
+
+            <!-- Avisos y Reclutamiento del Clan (announcements) -->
+            <section class="catalog-panel-card" style="margin-bottom: 1.75rem;">
+                <div class="catalog-head-block">
+                    <div class="catalog-top-row">
+                        <div>
+                            <div class="section-title-wrap">
+                                <div class="accent-pill-indicator"></div>
+                                <h2 class="section-main-heading">Avisos Oficiales & Reclutamiento del Clan</h2>
+                            </div>
+                            <p class="section-sub-desc">Publica comunicados de tu scan (reclutamiento, avisos de estrenos o maratones) visibles en la comunidad.</p>
+                        </div>
+                        <button type="button" class="btn-hero-primary" id="btn-open-announcement-modal" style="display: none;">
+                            <img src="../assets/icons/svg/bell.svg" class="icon-svg icon-sm icon-dark" alt="">
+                            <span>+ Publicar Aviso del Clan</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="series-rows-container" id="dashboard-clan-announcements" style="padding: 1rem 1.25rem;">
+                    <span class="is-loading is-loading--block is-loading--w80"></span>
+                </div>
+            </section>
+
+            <!-- Resumen de Obras Activas del Clan -->
+            <section class="catalog-panel-card" style="margin-bottom: 1.75rem;">
+                <div class="catalog-head-block">
+                    <div class="catalog-top-row">
+                        <div>
+                            <div class="section-title-wrap">
+                                <div class="accent-pill-indicator"></div>
+                                <h2 class="section-main-heading">Obras Recientes & Estado de Traducción</h2>
+                            </div>
+                            <p class="section-sub-desc">Resumen en vivo de las obras de tu clan y sus capítulos en estado "Próximamente" o "Al Día".</p>
+                        </div>
+                        <a href="obras-canvas.html" class="btn-hero-dark">
+                            <span>Ver Catálogo Completo</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="series-rows-container" id="dashboard-recent-works">
+                    <!-- Skeletons al cargar -->
+                </div>
+            </section>
+
+            <!-- Accesos Directos a los Módulos Reales -->
+            <div class="modules-showcase-grid">
+                <a href="obras-canvas.html" class="module-card">
+                    <div>
+                        <div class="module-card-icon" style="background: rgba(92, 226, 192, 0.12);">
+                            <img src="../assets/icons/svg/book.svg" class="icon-svg icon-lg" alt="">
+                        </div>
+                        <h3 class="module-card-title" style="margin-top: 0.75rem;">Catálogo de Obras & Banners</h3>
+                        <p class="module-card-desc">Crea y edita fichas de obras, portadas, banners panorámicos, géneros y administra la lista de capítulos.</p>
+                    </div>
+                    <div class="module-card-foot">
+                        <span>Administrar Obras</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <a href="subir-capitulos.html" class="module-card">
+                    <div>
+                        <div class="module-card-icon" style="background: rgba(255, 179, 177, 0.12);">
+                            <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-lg" alt="">
+                        </div>
+                        <h3 class="module-card-title" style="margin-top: 0.75rem;">Subir Capítulos (.WEBP)</h3>
+                        <p class="module-card-desc">Publica páginas ordenadas en formato WebP o registra capítulos como "Próximamente (En Traducción)".</p>
+                    </div>
+                    <div class="module-card-foot" style="color: #ffb3b1;">
+                        <span>Subir o Programar</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <a href="miembros-roles.html" class="module-card">
+                    <div>
+                        <div class="module-card-icon" style="background: rgba(240, 199, 94, 0.12);">
+                            <img src="../assets/icons/svg/community.svg" class="icon-svg icon-lg" alt="">
+                        </div>
+                        <h3 class="module-card-title" style="margin-top: 0.75rem;">Equipo & Roles del Scan</h3>
+                        <p class="module-card-desc">Incorpora usuarios por @username o código, asigna roles reales (Colíder, Subidor, Editor, Traductor) y permisos.</p>
+                    </div>
+                    <div class="module-card-foot" style="color: #f0c75e;">
+                        <span>Gestionar Equipo</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <a href="donaciones-monedas.html" class="module-card">
+                    <div>
+                        <div class="module-card-icon" style="background: rgba(92, 226, 192, 0.12);">
+                            <img src="../assets/icons/svg/coin.svg" class="icon-svg icon-lg" alt="">
+                        </div>
+                        <h3 class="module-card-title" style="margin-top: 0.75rem;">Recompensas & Borradores</h3>
+                        <p class="module-card-desc">Revisa y aprueba entregas de traducción de tu equipo para abonar Ghost Monedas (+XP) y consulta tu historial.</p>
+                    </div>
+                    <div class="module-card-foot">
+                        <span>Ver Recompensas</span>
+                        <span>→</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL 1: Configurar Perfil del Clan (PUT /scan-groups/{id}) -->
+    <div class="scan-modal-backdrop" id="edit-clan-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="edit-clan-modal-title">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="edit-clan-modal-title">Editar Perfil del Clan</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-edit-clan" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="edit-clan-form">
+                <div class="scan-modal-body">
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="clan-form-name">Nombre Oficial del Clan *</label>
+                        <input class="modal-input" id="clan-form-name" type="text" required placeholder="Ej: YumeScans">
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="clan-form-desc">Descripción / Presentación Pública</label>
+                        <textarea class="modal-textarea" id="clan-form-desc" placeholder="Describe las especialidades y proyectos de tu grupo de scan..."></textarea>
+                    </div>
+
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="clan-form-logo">Logo del Clan (URL o Subir .WEBP)</label>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <input class="modal-input" id="clan-form-logo" type="text" placeholder="https://... o /static/...">
+                                <input type="file" id="clan-logo-file" class="hidden" accept="image/*,.webp">
+                                <button type="button" class="btn-hero-dark" id="btn-upload-clan-logo" title="Subir imagen" style="padding: 0 0.75rem; flex-shrink: 0;">
+                                    <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-sm" alt="Subir">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="clan-form-banner">Banner del Clan (URL o Subir .WEBP)</label>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <input class="modal-input" id="clan-form-banner" type="text" placeholder="https://... o /static/...">
+                                <input type="file" id="clan-banner-file" class="hidden" accept="image/*,.webp">
+                                <button type="button" class="btn-hero-dark" id="btn-upload-clan-banner" title="Subir banner" style="padding: 0 0.75rem; flex-shrink: 0;">
+                                    <img src="../assets/icons/svg/arrow-up.svg" class="icon-svg icon-sm" alt="Subir">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="clan-form-discord">Enlace de Discord (social_links)</label>
+                            <input class="modal-input" id="clan-form-discord" type="url" placeholder="https://discord.gg/...">
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="clan-form-website">Sitio Web / Red Social</label>
+                            <input class="modal-input" id="clan-form-website" type="url" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-edit-clan">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-save-clan-submit">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Crear Nuevo Clan (POST /scan-groups/) -->
+    <div class="scan-modal-backdrop" id="create-clan-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="create-clan-modal-title">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="create-clan-modal-title">Registrar Nuevo Clan de Scan</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-create-clan" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="create-clan-form">
+                <div class="scan-modal-body">
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="new-clan-name">Nombre del Clan *</label>
+                        <input class="modal-input" id="new-clan-name" type="text" required placeholder="Ej: Celestial Scans">
+                    </div>
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="new-clan-desc">Descripción Editorial</label>
+                        <textarea class="modal-textarea" id="new-clan-desc" placeholder="Describe brevemente tu grupo de scanlation..."></textarea>
+                    </div>
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="new-clan-logo">URL de Logo (Opcional)</label>
+                            <input class="modal-input" id="new-clan-logo" type="text" placeholder="https://...">
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="new-clan-banner">URL de Banner (Opcional)</label>
+                            <input class="modal-input" id="new-clan-banner" type="text" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-create-clan">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-submit-create-clan">Crear Clan Oficial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Publicar Aviso del Clan (POST /scan-groups/{id}/announcements) -->
+    <div class="scan-modal-backdrop" id="create-announcement-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="create-announcement-title">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="create-announcement-title">Publicar Aviso del Clan</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-announcement-modal" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="create-announcement-form">
+                <div class="scan-modal-body">
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="ann-form-title">Título del Comunicado *</label>
+                            <input class="modal-input" id="ann-form-title" type="text" required maxlength="150" placeholder="Ej: Reclutamiento abierto de Traductores y Cleaners">
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="ann-form-label">Etiqueta</label>
+                            <select class="modal-select" id="ann-form-label">
+                                <option value="Scans">Comunicado de Scan</option>
+                                <option value="Reclutamiento">Reclutamiento</option>
+                                <option value="Estreno">Estreno / Maratón</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="ann-form-desc">Mensaje / Detalles *</label>
+                        <textarea class="modal-textarea" id="ann-form-desc" required placeholder="Escribe los detalles del aviso para los lectores..."></textarea>
+                    </div>
+                    <div class="modal-field-group" style="padding: 0.75rem; border-radius: 0.65rem; background: rgba(92,226,192,0.06); border: 1px solid rgba(92,226,192,0.18);">
+                        <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.82rem; color: #dde2f2;">
+                            <input type="checkbox" id="ann-form-use-vault">
+                            <span><strong>Destacar aviso con 6 Cristales de la Bóveda</strong> (Se descuenta de la Bóveda del Clan)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-announcement-modal">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-submit-announcement">Publicar Aviso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Reutilizable (Montado por components-loader.js) -->
+    <footer id="site-footer" class="site-footer"></footer>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="../js/components/components-loader.js"></script>
+    <script type="module" src="../js/pages/dashboard.js"></script>
+</body>
+</html>

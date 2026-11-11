@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Bóveda del Clan, Metas & Borradores - YumeZone Studio</title>
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    
+    <!-- Estilos Internos Modulares (100% Puros, Cero CDNs) -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/header.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/components/toast.css">
+    <link rel="stylesheet" href="../css/components/skeletons.css">
+    <link rel="stylesheet" href="../css/pages/obras-canvas.css">
+    <link rel="stylesheet" href="../css/pages/donaciones-monedas.css">
+</head>
+<body data-page="donaciones-monedas">
+
+    <!-- Header y Sidebar Reutilizable (Montado por components-loader.js) -->
+    <header id="header"></header>
+
+    <!-- Main Content -->
+    <main class="page-main-container">
+        <div class="ambient-glow-wrapper">
+            <!-- Orbes de luz ambiental -->
+            <div class="ambient-orb-primary"></div>
+            <div class="ambient-orb-secondary"></div>
+
+            <!-- Cabecera de Sección -->
+            <div class="page-header-row">
+                <div>
+                    <div class="page-header-title-wrap">
+                        <span class="badge-tag-gold">Economía de Doble Moneda (Anti-Inflación)</span>
+                        <h1 class="page-main-heading">Bóveda de Cristales del Clan, Metas & Borradores</h1>
+                    </div>
+                    <p class="page-sub-desc">
+                        Gestiona la <strong>Bóveda Oficial de Cristales del Clan</strong>, las metas de capítulos patrocinados, el ascenso de nivel del Scan y la revisión de entregas de traducción.
+                    </p>
+                </div>
+                <div class="page-header-actions" style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+                    <button class="btn-hero-primary" type="button" id="btn-open-submit-draft">
+                        <img src="../assets/icons/svg/send.svg" class="icon-svg icon-sm icon-dark" alt="">
+                        <span>+ Enviar Borrador de Traducción</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel Dividido: Bóveda del Clan + Metas + Auditoría de Borradores -->
+            <section class="treasury-section-card" id="section-finances">
+                <div class="treasury-split-grid">
+                    <!-- Columna Izquierda: Bóveda del Clan, Mejoras, Metas y Libro Contable -->
+                    <div class="treasury-left-col">
+                        <!-- Tarjeta 1: Bóveda Independiente del Clan -->
+                        <div class="treasury-widget-box" id="treasury-balance-box">
+                            <div class="balance-head-row">
+                                <span class="balance-head-label">Bóveda Oficial del Clan (scan_groups.vault_tokens)</span>
+                                <span class="badge-tag-gold" id="clan-level-tag">Nivel 1</span>
+                            </div>
+                            <div class="balance-amount-row">
+                                <span class="balance-big-amount" id="clan-vault-amount">
+                                    <span class="is-loading is-loading--lg is-loading--w60"></span>
+                                </span>
+                                <span class="balance-currency">CRISTALES DE CLAN</span>
+                            </div>
+                            <div class="balance-coins-equiv" style="justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                                <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                    <img src="../assets/icons/svg/coin.svg" class="icon-svg icon-sm" alt="">
+                                    <span>Fondos exclusivos del Clan (recibidos desde la vitrina pública)</span>
+                                </span>
+                                <span id="clan-total-contributed-label" style="color: #5ce2c0; font-weight: 700;">Total histórico: 0 Cristales</span>
+                            </div>
+                            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                                <button type="button" class="btn-action-primary-sm" id="btn-upgrade-clan-level" style="display: none;">
+                                    <img src="../assets/icons/svg/star.svg" class="icon-svg icon-xs icon-dark" alt="">
+                                    <span id="btn-upgrade-clan-text">Subir a Nivel 2 (40 Cristales)</span>
+                                </button>
+                                <button type="button" class="btn-hero-dark" id="btn-open-create-goal" style="display: none; padding: 0.4rem 0.8rem; font-size: 0.76rem;">
+                                    <span>+ Crear Meta de Capítulos</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta 2: Metas de Capítulos Patrocinados (scan_funding_goals) -->
+                        <div class="goals-widget-card">
+                            <h4 class="goals-widget-title">
+                                <span>Metas de Capítulos Patrocinados (Cristales)</span>
+                                <img src="../assets/icons/svg/bolt.svg" class="icon-svg icon-sm" alt="">
+                            </h4>
+                            <div id="funding-goals-list" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                                <span class="is-loading is-loading--block is-loading--w80"></span>
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta 3: Libro Contable de la Bóveda del Clan (scan_treasury_transactions) -->
+                        <div class="goals-widget-card">
+                            <h4 class="goals-widget-title">
+                                <span>Libro Contable del Clan (scan_treasury_transactions)</span>
+                                <img src="../assets/icons/svg/history.svg" class="icon-svg icon-sm" alt="">
+                            </h4>
+                            <div id="clan-treasury-transactions-list" style="display: flex; flex-direction: column; gap: 0.55rem; max-height: 290px; overflow-y: auto;">
+                                <span class="is-loading is-loading--block is-loading--w80"></span>
+                                <span class="is-loading is-loading--block is-loading--w60"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Auditoría de Borradores + Ranking de Mecenas + Tu Historial Personal -->
+                    <div class="fans-medals-box" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <div>
+                            <div class="fans-head-row" style="flex-wrap: wrap; gap: 0.5rem;">
+                                <div>
+                                    <h4 class="fans-title">Revisión de Borradores de Traducción</h4>
+                                    <p style="font-size: 0.72rem; color: #86948e; margin: 2px 0 0;">Al aprobar una entrega: +20 YumeCoins al traductor y +1 Cristal a la Bóveda del Clan.</p>
+                                </div>
+                                <span class="badge-tag-gold">+20 Coins + 1 Cristal</span>
+                            </div>
+
+                            <div class="modal-grid-2" style="margin-bottom: 1rem;">
+                                <div class="modal-field-group">
+                                    <label class="modal-label" for="sub-select-work">Obra del Clan</label>
+                                    <select class="modal-input" id="sub-select-work">
+                                        <option value="">Cargando obras...</option>
+                                    </select>
+                                </div>
+                                <div class="modal-field-group">
+                                    <label class="modal-label" for="sub-select-chapter">Capítulo</label>
+                                    <select class="modal-input" id="sub-select-chapter">
+                                        <option value="">Selecciona una obra</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="fans-list-grid" id="submissions-list-container">
+                                <!-- Poblado dinámicamente desde GET /chapters/{id}/submissions -->
+                            </div>
+                        </div>
+
+                        <!-- Ranking de Mecenas del Clan -->
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
+                            <h4 class="fans-title" style="margin-bottom: 0.6rem;">Principales Mecenas del Clan</h4>
+                            <div id="top-supporters-list" style="display: flex; flex-direction: column; gap: 0.45rem;">
+                                <span class="is-loading is-loading--block is-loading--w60"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL 2: Crear Meta de Capítulos Patrocinados (POST /scan-groups/{id}/goals) -->
+    <div class="scan-modal-backdrop" id="create-goal-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="create-goal-title" style="max-width: 480px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="create-goal-title">Nueva Meta de Capítulos en Cristales</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-create-goal" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="create-goal-form">
+                <div class="scan-modal-body">
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="goal-title-input">Título de la Meta *</label>
+                        <input class="modal-input" id="goal-title-input" type="text" required maxlength="140" placeholder="Ej: Maratón de 3 Capítulos de Solo Leveling">
+                    </div>
+                    <div class="modal-grid-2">
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="goal-work-select">Obra Asociada (Opcional)</label>
+                            <select class="modal-input" id="goal-work-select">
+                                <option value="">General del Clan</option>
+                            </select>
+                        </div>
+                        <div class="modal-field-group">
+                            <label class="modal-label" for="goal-target-tokens">Meta de Cristales *</label>
+                            <input class="modal-input" id="goal-target-tokens" type="number" min="5" max="1000" value="25" required>
+                        </div>
+                    </div>
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="goal-desc-input">Descripción / Recompensa para los Lectores</label>
+                        <textarea class="modal-textarea" id="goal-desc-input" placeholder="Ej: Al llegar a 25 Cristales publicaremos 3 capítulos seguidos este fin de semana."></textarea>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-create-goal">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-submit-create-goal">Crear Meta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Enviar Borrador de Traducción (POST /chapters/{id}/submissions) -->
+    <div class="scan-modal-backdrop" id="submit-draft-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="submit-draft-title" style="max-width: 520px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="submit-draft-title">Enviar Borrador de Traducción</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-submit-draft" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="submit-draft-form">
+                <div class="scan-modal-body">
+                    <p style="font-size: 0.78rem; color: #86948e; margin: 0;">
+                        El borrador se enviará al capítulo actualmente seleccionado para que el líder o colíder lo revise y apruebe tu recompensa (+20 YumeCoins + 50 XP).
+                    </p>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="draft-content-url">Enlace del Paquete / Carpeta de Traducción (content_url) *</label>
+                        <input class="modal-input" id="draft-content-url" type="url" placeholder="https://drive.google.com/... o enlace de entrega" required>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="draft-page-count">Cantidad Total de Páginas Traducidas (page_count) *</label>
+                        <input class="modal-input" id="draft-page-count" type="number" min="1" value="15" required>
+                    </div>
+
+                    <div class="modal-field-group">
+                        <label class="modal-label" for="draft-notes">Notas para el Editor / Líder (Opcional)</label>
+                        <textarea class="modal-textarea" id="draft-notes" placeholder="Detalles sobre glosario, diálogos o páginas combinadas..."></textarea>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-submit-draft">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-confirm-submit-draft">Enviar para Revisión</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Aprobar o Rechazar Borrador (PATCH /chapters/{id}/submissions/{sub_id}) -->
+    <div class="scan-modal-backdrop" id="review-draft-modal" aria-hidden="true">
+        <div class="scan-modal-dialog" role="dialog" aria-labelledby="review-draft-title" style="max-width: 480px;">
+            <div class="scan-modal-header">
+                <h3 class="scan-modal-title" id="review-draft-title">Revisar Borrador de Traducción</h3>
+                <button type="button" class="scan-modal-close" id="btn-close-review-draft" aria-label="Cerrar modal">
+                    <img src="../assets/icons/svg/x.svg" class="icon-svg icon-sm" alt="">
+                </button>
+            </div>
+            <form id="review-draft-form">
+                <input type="hidden" id="review-submission-id">
+                <input type="hidden" id="review-decision-status">
+                <div class="scan-modal-body">
+                    <p id="review-draft-summary" style="font-size: 0.84rem; color: #e0e2ec; margin: 0;"></p>
+
+                    <div class="modal-field-group" id="review-coins-group">
+                        <label class="modal-label" for="review-reward-coins">YumeCoins a Otorgar al Traductor *</label>
+                        <input class="modal-input" id="review-reward-coins" type="number" min="0" max="200" value="20">
+                    </div>
+
+                    <div class="modal-field-group" id="review-reason-group" style="display: none;">
+                        <label class="modal-label" for="review-rejection-reason">Motivo de Rechazo / Correcciones Solicitadas *</label>
+                        <textarea class="modal-textarea" id="review-rejection-reason" placeholder="Explica qué ajustes debe realizar el traductor..."></textarea>
+                    </div>
+                </div>
+                <div class="scan-modal-footer">
+                    <button type="button" class="btn-hero-dark" id="btn-cancel-review-draft">Cancelar</button>
+                    <button type="submit" class="btn-hero-primary" id="btn-confirm-review-draft">Confirmar Decisión</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Reutilizable (Montado por components-loader.js) -->
+    <footer id="site-footer" class="site-footer"></footer>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="../js/components/components-loader.js"></script>
+    <script type="module" src="../js/pages/donaciones-monedas.js"></script>
+</body>
+</html>

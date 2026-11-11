@@ -224,7 +224,7 @@ function renderProfile(user) {
 
   const activeTitleEl = document.getElementById('user-active-title');
   if (activeTitleEl) {
-    const titleToShow = user.active_title || lvl.current_title;
+    const titleToShow = lvl.current_title;
     if (titleToShow) {
       activeTitleEl.textContent = titleToShow;
       activeTitleEl.style.display = 'inline-flex';
@@ -234,7 +234,7 @@ function renderProfile(user) {
   }
 
   const rankNameEl = document.getElementById('user-rank-name');
-  if (rankNameEl) rankNameEl.textContent = user.active_title || lvl.current_title;
+  if (rankNameEl) rankNameEl.textContent = lvl.current_title;
 
   const xpNumbersEl = document.getElementById('user-xp-numbers');
   if (xpNumbersEl) xpNumbersEl.textContent = `${lvl.current_level_xp.toLocaleString()} / 1,000 XP`;
@@ -268,7 +268,7 @@ function renderProfile(user) {
   const scanCard = document.getElementById('user-scan-card');
   const scanSidebarWidget = document.getElementById('scan-sidebar-widget');
   if (user.scan_group && user.scan_group.name) {
-    const scanUrl = `/pages/grupos.html?slug=${encodeURIComponent(user.scan_group.slug)}`;
+    const scanUrl = `/pages/scans.html?slug=${encodeURIComponent(user.scan_group.slug)}`;
     const scanLogoUrl = user.scan_group.logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.scan_group.name)}&background=6c5ce7&color=fff`;
     const scanRoleLabel = formatScanRole(user.scan_group.role);
 
@@ -596,22 +596,6 @@ function buildCosmeticPresets() {
   const frameGrid = document.getElementById('frame-presets-grid');
   const bannerInput = document.getElementById('edit-banner');
   const frameInput = document.getElementById('edit-anillo');
-  const activeTitleSelect = document.getElementById('edit-active-title');
-
-  // selector titulos
-  if (activeTitleSelect) {
-    const currentTitle = currentProfileData?.active_title || '';
-    const autoRankTitle = currentProfileData?.level_info?.current_title || 'Iniciado del Cultivo';
-    const invTitles = ownerInventory
-      .filter((i) => i.category === 'TITLE' && i.name)
-      .map((i) => i.name);
-
-    const uniqueTitles = [...new Set(invTitles)];
-    activeTitleSelect.innerHTML = [
-      `<option value="">Automático por nivel (${escapeHtml(autoRankTitle)})</option>`,
-      ...uniqueTitles.map((t) => `<option value="${escapeHtml(t)}" ${t === currentTitle ? 'selected' : ''}>${escapeHtml(t)}</option>`)
-    ].join('');
-  }
 
   // selector banners
   const invBanners = ownerInventory
@@ -690,7 +674,7 @@ function updateLivePreview() {
   const avatarUrl = document.getElementById('edit-avatar')?.value.trim() || getFallbackAvatar(username);
   const bannerUrl = document.getElementById('edit-banner')?.value.trim() || '';
   const frameUrl = document.getElementById('edit-anillo')?.value.trim() || '';
-  const activeTitle = document.getElementById('edit-active-title')?.value.trim() || currentProfileData?.level_info?.current_title || '';
+  const activeTitle = currentProfileData?.level_info?.current_title || '';
 
   const previewBanner = document.getElementById('preview-banner-box');
   if (previewBanner) {
@@ -811,7 +795,7 @@ function setupModalEvents() {
     });
   }
 
-  ['edit-username', 'edit-active-title', 'edit-avatar'].forEach((id) => {
+  ['edit-username', 'edit-avatar'].forEach((id) => {
     document.getElementById(id)?.addEventListener('input', updateLivePreview);
     document.getElementById(id)?.addEventListener('change', updateLivePreview);
   });
@@ -830,7 +814,6 @@ function setupModalEvents() {
       const payload = {
         username: document.getElementById('edit-username')?.value.trim(),
         country: document.getElementById('edit-country')?.value || 'CO',
-        active_title: document.getElementById('edit-active-title')?.value.trim() || null,
         bio: document.getElementById('edit-bio')?.value.trim() || '',
         avatar_url: document.getElementById('edit-avatar')?.value.trim() || null,
         banner_url: document.getElementById('edit-banner')?.value.trim() || null,

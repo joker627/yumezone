@@ -1,7 +1,6 @@
 import { authRequest, apiRequest, clearAccessToken, getAccessToken } from '../shared/auth.js';
 import { safeUrl, IMG_FALLBACK, escapeHTML, formatTimeAgo, applyDataProgress } from '../shared/ui-utils.js';
-import { flashToast } from '../shared/toast.js';
-import { initPresence, disconnectPresence } from '../shared/presence.js';
+import { showToast, flashToast } from '../shared/toast.js';
 import { renderSkeletonRows } from './skeletons.js';
 
 async function copyToClipboard(text) {
@@ -118,6 +117,82 @@ export function getHeaderTemplate() {
 
       <div id="user-actions" class="header-actions" data-auth-state="pending" hidden>
         <div class="header-user-stats" id="header-user-stats" hidden>
+          <div class="header-wallet-wrapper" id="header-wallet-wrapper">
+            <button id="header-wallet-toggle" class="header-wallet-pill" type="button"
+              title="Mi Cartera Dual y Casa de Cambio" aria-label="Abrir cartera y cambio de divisas"
+              aria-expanded="false" aria-controls="header-wallet-menu">
+              <span class="header-wallet-item header-wallet-item--coins" title="YumeCoins">
+                <img src="/assets/icons/svg/gamification/coin.svg" width="14" height="14" alt="" aria-hidden="true">
+                <span id="header-wallet-coins">0</span>
+              </span>
+              <span class="header-wallet-sep" aria-hidden="true"></span>
+              <span class="header-wallet-item header-wallet-item--tokens" title="Cristales de Clan">
+                <img src="/assets/icons/svg/gamification/star.svg" width="14" height="14" alt="" aria-hidden="true">
+                <span id="header-wallet-tokens">0</span>
+              </span>
+              <img src="/assets/icons/svg/actions/swap.svg" class="header-wallet-swap-hint" width="12" height="12" alt="" aria-hidden="true">
+            </button>
+
+            <div id="header-wallet-menu" class="header-wallet-menu" role="dialog" aria-label="Cartera Dual y Cambio de Divisas" hidden>
+              <div class="header-wallet-menu-head">
+                <div class="header-wallet-menu-title-row">
+                  <h3>Mi Cartera &amp; Cambio</h3>
+                  <span class="header-wallet-badge">Billetera Dual</span>
+                </div>
+                <p class="header-wallet-menu-sub">Usa YumeCoins en la tienda o intercámbialas por Cristales para apoyar Scans.</p>
+              </div>
+
+              <div class="header-wallet-balances">
+                <div class="header-wallet-bal-card header-wallet-bal-card--coins">
+                  <div class="header-wallet-bal-top">
+                    <img src="/assets/icons/svg/gamification/coin.svg" width="14" height="14" alt="">
+                    <span>YumeCoins</span>
+                  </div>
+                  <strong id="wallet-menu-coins-val">0 YC</strong>
+                  <small>Tienda &amp; Cosméticos</small>
+                </div>
+                <div class="header-wallet-bal-card header-wallet-bal-card--tokens">
+                  <div class="header-wallet-bal-top">
+                    <img src="/assets/icons/svg/gamification/star.svg" width="14" height="14" alt="">
+                    <span>Cristales</span>
+                  </div>
+                  <strong id="wallet-menu-tokens-val">0 💎</strong>
+                  <small>Mecenazgo de Scans</small>
+                </div>
+              </div>
+
+              <div class="header-wallet-exchange-box">
+                <div class="header-wallet-tabs" role="tablist" aria-label="Dirección de intercambio">
+                  <button type="button" class="header-wallet-tab is-active" data-exchange-dir="COINS_TO_TOKENS" role="tab" aria-selected="true">
+                    Monedas → Cristales
+                  </button>
+                  <button type="button" class="header-wallet-tab" data-exchange-dir="TOKENS_TO_COINS" role="tab" aria-selected="false">
+                    Cristales → Monedas
+                  </button>
+                </div>
+
+                <form id="header-wallet-exchange-form" class="header-wallet-form">
+                  <div class="header-wallet-input-row">
+                    <label for="wallet-exchange-amount" id="wallet-exchange-label">Cristales a obtener:</label>
+                    <input type="number" id="wallet-exchange-amount" class="header-wallet-input" min="1" max="1000" value="1" required>
+                  </div>
+                  <div class="header-wallet-preview" id="wallet-exchange-preview">
+                    Costo: <strong>50 YumeCoins</strong> → Recibes: <strong>+1 Cristal 💎</strong>
+                  </div>
+                  <button type="submit" id="wallet-exchange-submit" class="header-wallet-submit">
+                    <img src="/assets/icons/svg/actions/swap.svg" width="14" height="14" alt="" aria-hidden="true">
+                    <span>Intercambiar Ahora</span>
+                  </button>
+                </form>
+              </div>
+
+              <div class="header-wallet-footer">
+                <a href="/pages/tienda.html" class="header-wallet-footer-link">Ir a la Tienda →</a>
+                <a href="/pages/scans.html" class="header-wallet-footer-link">Apoyar un Scan →</a>
+              </div>
+            </div>
+          </div>
+
           <div class="header-bell-wrapper">
             <button id="header-bell" class="header-bell" aria-label="Notificaciones" aria-expanded="false" aria-controls="notifications-menu">
               <img src="/assets/icons/svg/user/bell.svg" alt="" aria-hidden="true">
@@ -204,7 +279,7 @@ export function getHeaderTemplate() {
                 <div class="header-stats-dd-bar-sub" id="stats-dd-xp-remaining"><span class="is-loading is-loading--lg"></span></div>
               </div>
 
-              <div class="header-stats-dd-grid">
+              <div class="header-stats-dd-grid header-stats-dd-grid--single">
                 <div class="header-stats-dd-card">
                   <div class="header-stats-dd-card-top">
                     <img src="/assets/icons/svg/gamification/fire.svg" alt="" width="14" height="14">
@@ -212,15 +287,6 @@ export function getHeaderTemplate() {
                   </div>
                   <div class="header-stats-dd-card-val" id="stats-dd-streak-val"><span class="is-loading is-loading--sm"></span></div>
                   <div class="header-stats-dd-card-hint" id="stats-dd-streak-hint">Lee diario para mantenerla</div>
-                </div>
-
-                <div class="header-stats-dd-card">
-                  <div class="header-stats-dd-card-top">
-                    <img src="/assets/icons/svg/gamification/coin.svg" alt="" width="14" height="14">
-                    <span class="header-stats-dd-card-label">Yume Coins</span>
-                  </div>
-                  <div class="header-stats-dd-card-val" id="stats-dd-coins-val"><span class="is-loading is-loading--sm"></span></div>
-                  <div class="header-stats-dd-card-hint">Canjeables en la tienda</div>
                 </div>
               </div>
             </div>
@@ -232,7 +298,7 @@ export function getHeaderTemplate() {
               </a>
               <a href="/pages/scans.html" class="header-profile-link" role="menuitem">
                 <img src="/assets/icons/svg/user/users.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
-                <span>Clanes & Scans</span>
+                <span>Scans de Traducción</span>
               </a>
               <a href="/pages/tienda.html" class="header-profile-link" role="menuitem">
                 <img src="/assets/icons/svg/navigation/shop.svg" class="header-profile-link-icon" alt="" aria-hidden="true">
@@ -293,18 +359,12 @@ export function renderSiteHeader(container) {
   const guestActions = document.getElementById('guest-actions');
   const userActions = document.getElementById('user-actions');
   const headerUserStats = document.getElementById('header-user-stats');
-  const headerStreak = document.getElementById('header-streak');
-  const headerLevel = document.getElementById('header-level');
-  const headerStatWrapper = document.getElementById('header-stat-wrapper');
-  const headerStatPill = document.getElementById('header-stat-pill');
-  const statsDropdownMenu = document.getElementById('stats-dropdown-menu');
   const statsDdLevelBadge = document.getElementById('stats-dd-level-badge');
   const statsDdLevelTitle = document.getElementById('stats-dd-level-title');
   const statsDdXpLabel = document.getElementById('stats-dd-xp-label');
   const statsDdBarFill = document.getElementById('stats-dd-bar-fill');
   const statsDdXpRemaining = document.getElementById('stats-dd-xp-remaining');
   const statsDdStreakVal = document.getElementById('stats-dd-streak-val');
-  const statsDdCoinsVal = document.getElementById('stats-dd-coins-val');
   const profileRoot = document.getElementById('header-profile');
   const profileToggle = document.getElementById('profile-toggle');
   const avatarRing = container.querySelector('.header-avatar-ring');
@@ -312,7 +372,6 @@ export function renderSiteHeader(container) {
   const profileInitials = document.getElementById('profile-initials');
   const profileAvatar = document.getElementById('profile-avatar');
   const profileName = document.getElementById('profile-menu-name');
-  const profileHandle = document.getElementById('profile-menu-handle');
   const profileEmail = document.getElementById('profile-menu-email');
   const profileRole = document.getElementById('profile-menu-role');
   const profileUserId = document.getElementById('profile-menu-id');
@@ -331,6 +390,22 @@ export function renderSiteHeader(container) {
   const notificationsReadAll = document.getElementById('notifications-read-all');
   const notificationsClearAll = document.getElementById('notifications-clear-all');
   const bellWrapper = container.querySelector('.header-bell-wrapper');
+
+  // cartera dual y cambio
+  const walletWrapper = document.getElementById('header-wallet-wrapper');
+  const walletToggle = document.getElementById('header-wallet-toggle');
+  const walletMenu = document.getElementById('header-wallet-menu');
+  const walletCoinsEl = document.getElementById('header-wallet-coins');
+  const walletTokensEl = document.getElementById('header-wallet-tokens');
+  const walletMenuCoinsVal = document.getElementById('wallet-menu-coins-val');
+  const walletMenuTokensVal = document.getElementById('wallet-menu-tokens-val');
+  const walletExchangeForm = document.getElementById('header-wallet-exchange-form');
+  const walletExchangeAmount = document.getElementById('wallet-exchange-amount');
+  const walletExchangeLabel = document.getElementById('wallet-exchange-label');
+  const walletExchangePreview = document.getElementById('wallet-exchange-preview');
+  const walletExchangeSubmit = document.getElementById('wallet-exchange-submit');
+  const walletTabs = container.querySelectorAll('.header-wallet-tab');
+  let activeExchangeDir = 'COINS_TO_TOKENS'; // 'COINS_TO_TOKENS' | 'TOKENS_TO_COINS'
 
   // marcos avatar
   const profileAvatarFrame = document.getElementById('profile-avatar-frame');
@@ -608,7 +683,7 @@ export function renderSiteHeader(container) {
     profileToggle.setAttribute('aria-expanded', String(!isOpen));
     if (!isOpen) {
       closeNotificationsMenu();
-      closeStatsDropdown();
+      closeWalletMenu();
     }
   }
 
@@ -642,9 +717,51 @@ export function renderSiteHeader(container) {
 
   // notificaciones
   let currentUnreadCount = 0;
+  let initialBadgeLoaded = false;
+  let notifAudio = null;
+
+  function initNotifAudio() {
+    if (!notifAudio) {
+      try {
+        notifAudio = new Audio('/assets/song/notificacion.mp3');
+        notifAudio.preload = 'auto';
+        notifAudio.volume = 0.6;
+        notifAudio.load();
+      } catch {}
+    }
+    return notifAudio;
+  }
+
+  // Precargar el audio en memoria y desbloquearlo con la primera interacción del usuario
+  initNotifAudio();
+  const unlockAudio = () => {
+    initNotifAudio();
+    window.removeEventListener('pointerdown', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+  };
+  window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
+  window.addEventListener('keydown', unlockAudio, { once: true, passive: true });
+
+  function playNotificationSound() {
+    try {
+      const audio = initNotifAudio();
+      if (!audio) return;
+      audio.pause();
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch {}
+  }
 
   function updateBellBadge(count) {
-    currentUnreadCount = Math.max(0, count);
+    const newCount = Math.max(0, count);
+    if (initialBadgeLoaded && newCount > currentUnreadCount) {
+      playNotificationSound();
+    }
+    initialBadgeLoaded = true;
+    currentUnreadCount = newCount;
     if (!bellDot) return;
     if (currentUnreadCount > 0) {
       bellDot.textContent = currentUnreadCount > 99 ? '99+' : String(currentUnreadCount);
@@ -819,7 +936,7 @@ export function renderSiteHeader(container) {
     }, 200);
 
     try {
-      await apiRequest('/notifications/read-all', { method: 'PATCH' });
+      await apiRequest('/notifications/read-all/', { method: 'PATCH' });
     } catch (error) {
       console.warn('Error al marcar todas las notificaciones como leídas:', error);
     }
@@ -838,7 +955,7 @@ export function renderSiteHeader(container) {
     try {
       await apiRequest('/notifications/', { method: 'DELETE' });
     } catch {
-      await apiRequest('/notifications/read-all', { method: 'PATCH' }).catch(() => { });
+      await apiRequest('/notifications/read-all/', { method: 'PATCH' }).catch(() => { });
     }
   }
 
@@ -872,9 +989,6 @@ export function renderSiteHeader(container) {
 
     const name = user.username || user.email || 'Lector';
     profileName.textContent = name;
-    if (profileHandle) {
-      profileHandle.textContent = user.username ? `@${user.username}` : (user.user_code ? `@${user.user_code}` : '');
-    }
     profileEmail.textContent = user.email || '';
     profileRole.textContent = user.platform_role || 'USER';
     profileToggle.setAttribute('aria-label', `Perfil de ${name}. Abrir menú`);
@@ -899,13 +1013,14 @@ export function renderSiteHeader(container) {
       current_title: user.level_title || 'Iniciado del Cultivo'
     };
     const streak = user.streak_days || 0;
-    const coins = user.coins || 0;
+    const coins = Number(user.coins) || 0;
+    const clanTokens = Number(user.clan_tokens) || 0;
 
-    if (headerStreak) headerStreak.textContent = `${streak}d`;
-    if (headerLevel) headerLevel.textContent = `Nv. ${lvl.level}`;
-    if (headerStatPill) {
-      headerStatPill.title = `Nivel ${lvl.level} · Racha: ${streak}d · Clic para ver estadísticas`;
-    }
+    if (walletCoinsEl) walletCoinsEl.textContent = coins.toLocaleString();
+    if (walletTokensEl) walletTokensEl.textContent = clanTokens.toLocaleString();
+    if (walletMenuCoinsVal) walletMenuCoinsVal.textContent = `${coins.toLocaleString()} YC`;
+    if (walletMenuTokensVal) walletMenuTokensVal.textContent = `${clanTokens.toLocaleString()} 💎`;
+    updateWalletExchangePreview();
 
     // anillo xp
     if (avatarRing) {
@@ -913,7 +1028,7 @@ export function renderSiteHeader(container) {
       avatarRing.title = `Nivel ${lvl.level} (${lvl.percentage}% XP) · ${lvl.current_level_xp}/1000 XP`;
     }
 
-    // dropdown progreso
+    // progreso en menú de perfil
     if (statsDdLevelBadge) statsDdLevelBadge.textContent = `Nv. ${lvl.level}`;
     if (statsDdLevelTitle) statsDdLevelTitle.textContent = lvl.current_title;
     if (statsDdXpLabel) statsDdXpLabel.textContent = `${lvl.current_level_xp} / 1000 XP`;
@@ -923,9 +1038,6 @@ export function renderSiteHeader(container) {
     }
     if (statsDdStreakVal) {
       statsDdStreakVal.textContent = `${streak} ${streak === 1 ? 'día' : 'días'}`;
-    }
-    if (statsDdCoinsVal) {
-      statsDdCoinsVal.textContent = `${coins.toLocaleString()} YC`;
     }
 
     const avatarUrl = safeUrl(user.avatar_url, '');
@@ -985,30 +1097,40 @@ export function renderSiteHeader(container) {
     window.dispatchEvent(new CustomEvent('auth:profile-updated', { detail: { user } }));
   }
 
-  // stats dropdown
-  function isStatsDropdownOpen() {
-    return statsDropdownMenu && !statsDropdownMenu.hidden;
+  function closeWalletMenu() {
+    if (!walletMenu || walletMenu.hidden) return;
+    walletMenu.hidden = true;
+    walletToggle?.setAttribute('aria-expanded', 'false');
   }
 
-  function closeStatsDropdown() {
-    if (!statsDropdownMenu || statsDropdownMenu.hidden) return;
-    statsDropdownMenu.hidden = true;
-    headerStatPill?.setAttribute('aria-expanded', 'false');
-  }
-
-  function openStatsDropdown() {
-    if (!statsDropdownMenu) return;
+  function openWalletMenu() {
+    if (!walletMenu) return;
     closeSearch();
     closeProfileMenu();
     closeNotificationsMenu();
     if (isMenuOpen()) closeMenu();
-
-    statsDropdownMenu.hidden = false;
-    headerStatPill?.setAttribute('aria-expanded', 'true');
+    walletMenu.hidden = false;
+    walletToggle?.setAttribute('aria-expanded', 'true');
+    updateWalletExchangePreview();
   }
 
-  function toggleStatsDropdown() {
-    isStatsDropdownOpen() ? closeStatsDropdown() : openStatsDropdown();
+  function toggleWalletMenu() {
+    if (!walletMenu) return;
+    walletMenu.hidden ? openWalletMenu() : closeWalletMenu();
+  }
+
+  function updateWalletExchangePreview() {
+    if (!walletExchangePreview || !walletExchangeAmount) return;
+    const rawVal = Math.max(1, Math.min(1000, parseInt(walletExchangeAmount.value, 10) || 1));
+    if (activeExchangeDir === 'COINS_TO_TOKENS') {
+      if (walletExchangeLabel) walletExchangeLabel.textContent = 'Cristales a obtener:';
+      const costCoins = rawVal * 50;
+      walletExchangePreview.innerHTML = `Costo: <strong>${costCoins.toLocaleString()} YumeCoins</strong> → Recibes: <strong>+${rawVal.toLocaleString()} ${rawVal === 1 ? 'Cristal' : 'Cristales'} 💎</strong>`;
+    } else {
+      if (walletExchangeLabel) walletExchangeLabel.textContent = 'Cristales a cambiar:';
+      const gainedCoins = rawVal * 40;
+      walletExchangePreview.innerHTML = `Entregas: <strong>${rawVal.toLocaleString()} ${rawVal === 1 ? 'Cristal' : 'Cristales'} 💎</strong> → Recibes: <strong>+${gainedCoins.toLocaleString()} YumeCoins 🪙</strong>`;
+    }
   }
 
   async function loadProfile() {
@@ -1033,6 +1155,18 @@ export function renderSiteHeader(container) {
         } catch { }
         showProfile(user);
         window.dispatchEvent(new CustomEvent('auth:user-synced', { detail: { user } }));
+
+        // Notificación emergente si la racha cambió hoy
+        if (user.streak_event === 'increased') {
+          showToast(user.streak_message || `¡Racha aumentada a ${user.streak_days} días! 🔥`, 'success');
+          playNotificationSound();
+        } else if (user.streak_event === 'started') {
+          showToast(user.streak_message || '¡Racha diaria activada! 🔥', 'success');
+          playNotificationSound();
+        } else if (user.streak_event === 'lost') {
+          showToast(user.streak_message || 'Tu racha diaria se ha reiniciado.', 'warning');
+        }
+
         // conteo notificaciones
         apiRequest('/notifications/?unread_only=true').then(res => {
           const count = res?.unread_count ?? (res?.data ? res.data.length : 0);
@@ -1187,7 +1321,6 @@ export function renderSiteHeader(container) {
   }
 
   function onLogoutClick() {
-    disconnectPresence();
     clearAccessToken();
     profileUser = null;
     showGuestActions();
@@ -1218,8 +1351,8 @@ export function renderSiteHeader(container) {
     if (!notificationsMenu.hidden && !bellWrapper.contains(e.target)) {
       closeNotificationsMenu();
     }
-    if (statsDropdownMenu && !statsDropdownMenu.hidden && (!headerStatWrapper || !headerStatWrapper.contains(e.target))) {
-      closeStatsDropdown();
+    if (walletMenu && !walletMenu.hidden && (!walletWrapper || !walletWrapper.contains(e.target))) {
+      closeWalletMenu();
     }
   }
 
@@ -1229,7 +1362,7 @@ export function renderSiteHeader(container) {
     if (!isTyping && ((e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'))) {
       e.preventDefault();
       if (!isSearchOpen()) {
-        closeStatsDropdown();
+        closeWalletMenu();
         closeProfileMenu();
         closeNotificationsMenu();
         openSearch();
@@ -1245,8 +1378,8 @@ export function renderSiteHeader(container) {
       closeSearch({ returnFocus: true });
       return;
     }
-    if (statsDropdownMenu && !statsDropdownMenu.hidden) {
-      closeStatsDropdown();
+    if (walletMenu && !walletMenu.hidden) {
+      closeWalletMenu();
       return;
     }
     if (!profileMenu.hidden) {
@@ -1275,7 +1408,7 @@ export function renderSiteHeader(container) {
   navigationLinks.forEach((link) => link.addEventListener('click', onLinkClick));
   menuBackdrop.addEventListener('click', onBackdropClick);
   searchToggle.addEventListener('click', () => {
-    closeStatsDropdown();
+    closeWalletMenu();
     onSearchToggleClick();
   });
   searchForm.addEventListener('submit', onSearchFormSubmit);
@@ -1284,7 +1417,7 @@ export function renderSiteHeader(container) {
   searchClear.addEventListener('click', onSearchClearClick);
   profileToggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    closeStatsDropdown();
+    closeWalletMenu();
     onProfileToggleClick();
   });
   if (toggleIdentMode) {
@@ -1295,28 +1428,81 @@ export function renderSiteHeader(container) {
   if (bellToggle) {
     bellToggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      closeStatsDropdown();
+      closeWalletMenu();
       toggleNotificationsMenu();
     });
     if (notificationsReadAll) notificationsReadAll.addEventListener('click', markAllNotificationsRead);
     if (notificationsClearAll) notificationsClearAll.addEventListener('click', clearAllNotifications);
   }
 
-  if (headerStatPill) {
-    headerStatPill.addEventListener('click', (e) => {
+  if (walletToggle) {
+    walletToggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleStatsDropdown();
+      toggleWalletMenu();
     });
   }
 
-  if (statsDropdownMenu) {
-    statsDropdownMenu.addEventListener('click', (e) => {
-      const link = e.target.closest('a');
-      if (link) {
-        closeStatsDropdown();
+  walletTabs.forEach((tab) => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dir = tab.dataset.exchangeDir || 'COINS_TO_TOKENS';
+      activeExchangeDir = dir;
+      walletTabs.forEach((t) => {
+        const isCurrent = t === tab;
+        t.classList.toggle('is-active', isCurrent);
+        t.setAttribute('aria-selected', String(isCurrent));
+      });
+      updateWalletExchangePreview();
+    });
+  });
+
+  if (walletExchangeAmount) {
+    walletExchangeAmount.addEventListener('input', updateWalletExchangePreview);
+  }
+
+  if (walletExchangeForm) {
+    walletExchangeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = Math.max(1, Math.min(1000, parseInt(walletExchangeAmount?.value, 10) || 1));
+      if (!profileUser) return;
+      if (walletExchangeSubmit) walletExchangeSubmit.disabled = true;
+      try {
+        const res = await apiRequest('/users/me/exchange', {
+          method: 'POST',
+          body: JSON.stringify({ direction: activeExchangeDir, amount }),
+        });
+        profileUser.coins = res.coins ?? profileUser.coins;
+        profileUser.clan_tokens = res.clan_tokens ?? profileUser.clan_tokens;
+        try {
+          localStorage.setItem('user', JSON.stringify(profileUser));
+        } catch { }
+        showProfile(profileUser);
+        showToast(res.message || 'Intercambio realizado con éxito.', 'success');
+        window.dispatchEvent(new CustomEvent('yume:wallet-updated', {
+          detail: { coins: profileUser.coins, clan_tokens: profileUser.clan_tokens }
+        }));
+      } catch (err) {
+        showToast(err.message || 'No se pudo completar el intercambio.', 'error');
+      } finally {
+        if (walletExchangeSubmit) walletExchangeSubmit.disabled = false;
       }
     });
   }
+
+  window.addEventListener('yume:wallet-updated', (e) => {
+    if (e.detail && profileUser) {
+      if (e.detail.coins !== undefined) profileUser.coins = e.detail.coins;
+      if (e.detail.clan_tokens !== undefined) profileUser.clan_tokens = e.detail.clan_tokens;
+      try {
+        localStorage.setItem('user', JSON.stringify(profileUser));
+      } catch { }
+      showProfile(profileUser);
+    }
+  });
+
+  window.addEventListener('yume:open-wallet', () => {
+    openWalletMenu();
+  });
 
   window.addEventListener('yume:xp-updated', (e) => {
     if (e.detail && profileUser) {
@@ -1330,6 +1516,7 @@ export function renderSiteHeader(container) {
 
   document.addEventListener('click', handleGlobalDrawerClick);
   window.addEventListener('yume:drawer', onGlobalDrawerEvent);
+  window.addEventListener('yume:play-sound', () => playNotificationSound());
   document.addEventListener('click', onOutsideClick);
   document.addEventListener('keydown', onGlobalKeyDown);
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -1374,7 +1561,6 @@ export function renderSiteHeader(container) {
   });
 
   loadProfile();
-  initPresence();
 
   return () => {
     window.removeEventListener('yume:mutation', onNotificationTrigger);

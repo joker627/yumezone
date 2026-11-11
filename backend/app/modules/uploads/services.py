@@ -59,10 +59,24 @@ class UploadService:
             )
 
         if not self.connection_string:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="AZURE_STORAGE_CONNECTION_STRING no configurado",
-            )
+            # Fallback local para desarrollo si Azure no está configurado
+            repo_root = Path(__file__).resolve().parents[4]
+            upload_dir = repo_root / "frontend" / "assets" / "comic" / "uploads"
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            async def save_local_single(file: UploadFile) -> str:
+                try:
+                    ext, content = await self.validate_and_read_image(file)
+                    unique_name = f"{uuid.uuid4()}{ext}"
+                    dest = upload_dir / unique_name
+                    with open(dest, "wb") as f:
+                        f.write(content)
+                    return f"/assets/comic/uploads/{unique_name}"
+                finally:
+                    await file.close()
+
+            urls = await asyncio.gather(*(save_local_single(f) for f in files))
+            return list(urls)
 
         try:
             async with BlobServiceClient.from_connection_string(self.connection_string) as blob_service_client:

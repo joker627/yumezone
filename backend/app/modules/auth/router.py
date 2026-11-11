@@ -1,17 +1,17 @@
 import os
 from typing import Optional
 
-import aiomysql
 from fastapi import APIRouter, Depends, Request, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db_connection
+from app.core.database import get_db_session
 from app.core.dependencies import (
     get_current_active_user,
     get_optional_current_user,
     invalidate_user_session,
 )
 from app.core.redis import enforce_rate_limit
-from app.utils import get_client_ip
+from app.utils.network import get_client_ip
 from app.modules.auth.repository import AuthRepository
 from app.modules.auth.schemas import (
     Token,
@@ -21,13 +21,13 @@ from app.modules.auth.schemas import (
     UserUpdate,
 )
 from app.modules.auth.services import AuthService
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 from app.modules.users.services import calculate_level_info
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
 # servicio de autenticacion con conexion inyectada
-def get_auth_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> AuthService:
+def get_auth_service(conn: AsyncSession = Depends(get_db_session)) -> AuthService:
     return AuthService(AuthRepository(conn))
 
 
@@ -111,6 +111,15 @@ async def get_me(
     current_user.streak_event = streak_info.get("event")
     current_user.streak_message = streak_info.get("message")
     current_user.previous_streak = streak_info.get("previous_streak")
+    if "coins" in streak_info:
+        current_user.coins = streak_info["coins"]
+    if "clan_tokens" in streak_info:
+        current_user.clan_tokens = streak_info["clan_tokens"]
+    if "xp" in streak_info:
+        current_user.xp = streak_info["xp"]
+
+    if streak_info.get("event") and streak_info.get("event") != "same_day" and current_user.email:
+        await invalidate_user_session(current_user.email)
 
     lvl = calculate_level_info(current_user.xp)
     current_user.level_info = lvl

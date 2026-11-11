@@ -1,8 +1,8 @@
 from typing import Annotated, Optional
-import aiomysql
 from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db_connection
+from app.core.database import get_db_session
 from app.core.dependencies import get_current_active_user, get_optional_current_user
 from app.core.redis import enforce_rate_limit
 from app.modules.comments.repository import CommentRepository
@@ -13,12 +13,12 @@ from app.modules.comments.schemas import (
     ReactionCreate,
 )
 from app.modules.comments.services import CommentService
-from app.modules.users.models import CurrentUser
+from app.modules.users.schemas import CurrentUser
 
 router = APIRouter(prefix="/comments", tags=["Comentarios"])
 
 
-def get_comment_service(conn: aiomysql.Connection = Depends(get_db_connection)) -> CommentService:
+def get_comment_service(conn: AsyncSession = Depends(get_db_session)) -> CommentService:
     repository = CommentRepository(conn)
     return CommentService(repository)
 

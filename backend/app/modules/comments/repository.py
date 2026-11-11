@@ -1,28 +1,47 @@
 from typing import Any, Dict, List, Optional
-import aiomysql
+from sqlalchemy import delete, func, select, text, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import resolve_session
+from app.modules.chapters.models import ChapterORM
+from app.modules.comments.models import (
+    CommentORM,
+    CommentReactionORM,
+)
+from app.modules.admin.models import ContentReportORM
 
-from app.core.database import resolve_connection
 
 
 class CommentRepository:
-    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+    def __init__(self, conn: Optional[AsyncSession] = None):
         self.conn = conn
 
-    # listar comentarios visibles con conteo de likes y dislikes
     async def list_comments(
-        self, work_id: int, chapter_id: Optional[int], limit: int, current_user_id: Optional[int] = None
+        self,
+        work_id: int,
+        chapter_id: Optional[int],
+        limit: int,
+        current_user_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        chapter_filter = "AND c.chapter_id = %s" if chapter_id else "AND c.chapter_id IS NULL"
-        user_select = ", MAX(CASE WHEN cr.user_id = %s AND cr.reaction = 'LIKE' THEN 1 ELSE 0 END) AS user_liked" if current_user_id else ", 0 AS user_liked"
-
+        chapter_filter = (
+            "AND c.chapter_id = :chapter_id"
+            if chapter_id
+            else "AND c.chapter_id IS NULL"
+        )
+        user_select = (
+            ", MAX(CASE WHEN cr.user_id = :uid AND cr.reaction = 'LIKE' THEN 1 ELSE 0 END) AS user_liked"
+            if current_user_id
+            else ", 0 AS user_liked"
+        )
+        params: Dict[str, Any] = {"work_id": work_id, "limit": limit}
+        if chapter_id:
+            params["chapter_id"] = chapter_id
         if current_user_id:
-            values = (current_user_id, work_id, chapter_id, limit) if chapter_id else (current_user_id, work_id, limit)
-        else:
-            values = (work_id, chapter_id, limit) if chapter_id else (work_id, limit)
+            params["uid"] = current_user_id
 
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                text(
                     f"""
                     SELECT c.id, c.work_id, c.chapter_id, c.parent_id, c.reply_to_username, c.content, c.contains_spoiler,
                            c.created_at, c.updated_at, u.id AS user_id, u.username, u.avatar_url,
@@ -33,47 +52,51 @@ class CommentRepository:
                     FROM comments c
                     JOIN users u ON u.id = c.user_id
                     LEFT JOIN comment_reactions cr ON cr.comment_id = c.id
-                    WHERE c.work_id = %s AND c.status = 'VISIBLE' {chapter_filter}
+                    WHERE c.work_id = :work_id AND c.status = 'VISIBLE' {chapter_filter}
                     GROUP BY c.id, u.id
-                    ORDER BY c.created_at DESC LIMIT %s
-                    """,
-                    values,
-                )
-                return await cur.fetchall()
+                    ORDER BY c.created_at DESC
+                    LIMIT :limit
+                    """
+                ),
+                params,
+            )
+            return [dict(r) for r in res.mappings().all()]
 
-    # obtener estado y dueno del comentario
     async def get_comment(self, comment_id: int) -> Optional[Dict[str, Any]]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(
-                    "SELECT id, user_id, status FROM comments WHERE id = %s",
-                    (comment_id,),
-                )
-                return await cur.fetchone()
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                select(
+                    CommentORM.id, CommentORM.user_id, CommentORM.status
+                ).where(CommentORM.id == comment_id)
+            )
+            row = res.mappings().first()
+            return dict(row) if row else None
 
-    # verificar si el capitulo publicado existe
     async def check_chapter_exists(self, chapter_id: int, work_id: int) -> bool:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    "SELECT 1 FROM chapters WHERE id = %s AND work_id = %s AND status = 'PUBLISHED'",
-                    (chapter_id, work_id),
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                select(ChapterORM.id).where(
+                    ChapterORM.id == chapter_id,
+                    ChapterORM.work_id == work_id,
+                    ChapterORM.status == "PUBLISHED",
                 )
-                return await cur.fetchone() is not None
+            )
+            return res.scalar_one_or_none() is not None
 
-    # verificar si el comentario padre existe
     async def check_parent_exists(
         self, parent_id: int, work_id: int, chapter_id: Optional[int]
     ) -> bool:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    "SELECT 1 FROM comments WHERE id = %s AND work_id = %s AND chapter_id <=> %s",
-                    (parent_id, work_id, chapter_id),
-                )
-                return await cur.fetchone() is not None
+        async with resolve_session(self.conn) as session:
+            stmt = select(CommentORM.id).where(
+                CommentORM.id == parent_id, CommentORM.work_id == work_id
+            )
+            if chapter_id is None:
+                stmt = stmt.where(CommentORM.chapter_id.is_(None))
+            else:
+                stmt = stmt.where(CommentORM.chapter_id == chapter_id)
+            res = await session.execute(stmt)
+            return res.scalar_one_or_none() is not None
 
-    # registrar nuevo comentario
     async def create_comment(
         self,
         work_id: int,
@@ -84,106 +107,130 @@ class CommentRepository:
         content: str,
         contains_spoiler: bool,
     ) -> int:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    """
-                    INSERT INTO comments (work_id, chapter_id, user_id, parent_id, reply_to_username, content, contains_spoiler)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (work_id, chapter_id, user_id, parent_id, reply_to_username, content, contains_spoiler),
-                )
-                return cur.lastrowid
+        async with resolve_session(self.conn) as session:
+            comment = CommentORM(
+                work_id=work_id,
+                chapter_id=chapter_id,
+                user_id=user_id,
+                parent_id=parent_id,
+                reply_to_username=reply_to_username,
+                content=content,
+                contains_spoiler=contains_spoiler,
+            )
+            session.add(comment)
+            await session.commit()
+            return comment.id
 
-    # actualizar contenido de comentario
     async def update_comment(
         self, comment_id: int, content: str, contains_spoiler: bool
     ) -> None:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    "UPDATE comments SET content = %s, contains_spoiler = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
-                    (content, contains_spoiler, comment_id),
+        async with resolve_session(self.conn) as session:
+            await session.execute(
+                update(CommentORM)
+                .where(CommentORM.id == comment_id)
+                .values(
+                    content=content,
+                    contains_spoiler=contains_spoiler,
+                    updated_at=func.current_timestamp(),
                 )
+            )
+            await session.commit()
 
-    # marcar comentario como eliminado
     async def delete_comment(self, comment_id: int) -> None:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    "UPDATE comments SET status = 'DELETED', content = '' WHERE id = %s",
-                    (comment_id,),
-                )
+        async with resolve_session(self.conn) as session:
+            await session.execute(
+                update(CommentORM)
+                .where(CommentORM.id == comment_id)
+                .values(status="DELETED", content="")
+            )
+            await session.commit()
 
-    # guardar o alternar reaccion (toggle like/dislike)
-    async def toggle_reaction(self, comment_id: int, user_id: int, reaction: str) -> Dict[str, Any]:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    "SELECT reaction FROM comment_reactions WHERE comment_id = %s AND user_id = %s",
-                    (comment_id, user_id),
+    async def toggle_reaction(
+        self, comment_id: int, user_id: int, reaction: str
+    ) -> Dict[str, Any]:
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                select(CommentReactionORM.reaction).where(
+                    CommentReactionORM.comment_id == comment_id,
+                    CommentReactionORM.user_id == user_id,
                 )
-                existing = await cur.fetchone()
-                if existing and existing[0] == reaction:
-                    # Se quita la reaccion (toggle off)
-                    await cur.execute(
-                        "DELETE FROM comment_reactions WHERE comment_id = %s AND user_id = %s",
-                        (comment_id, user_id),
+            )
+            existing = res.scalar_one_or_none()
+
+            if existing == reaction:
+                await session.execute(
+                    delete(CommentReactionORM).where(
+                        CommentReactionORM.comment_id == comment_id,
+                        CommentReactionORM.user_id == user_id,
                     )
-                    action = "REMOVED"
-                else:
-                    # Se inserta o actualiza
-                    await cur.execute(
-                        """
-                        INSERT INTO comment_reactions (comment_id, user_id, reaction)
-                        VALUES (%s, %s, %s)
-                        ON DUPLICATE KEY UPDATE reaction = VALUES(reaction)
-                        """,
-                        (comment_id, user_id, reaction),
-                    )
-                    action = "ADDED"
-
-                # Obtener conteo actualizado de likes
-                await cur.execute(
-                    "SELECT COUNT(*) FROM comment_reactions WHERE comment_id = %s AND reaction = 'LIKE'",
-                    (comment_id,),
                 )
-                likes_row = await cur.fetchone()
-                likes = likes_row[0] if likes_row else 0
+                action = "REMOVED"
+            else:
+                stmt = (
+                    pg_insert(CommentReactionORM)
+                    .values(
+                        comment_id=comment_id,
+                        user_id=user_id,
+                        reaction=reaction,
+                    )
+                    .on_conflict_do_update(
+                        index_elements=[
+                            CommentReactionORM.comment_id,
+                            CommentReactionORM.user_id,
+                        ],
+                        set_={"reaction": reaction},
+                    )
+                )
+                await session.execute(stmt)
+                action = "ADDED"
 
-                return {
-                    "comment_id": comment_id,
-                    "action": action,
-                    "likes": likes,
-                    "user_liked": 1 if action == "ADDED" and reaction == "LIKE" else 0,
-                }
+            likes_res = await session.execute(
+                select(func.count())
+                .select_from(CommentReactionORM)
+                .where(
+                    CommentReactionORM.comment_id == comment_id,
+                    CommentReactionORM.reaction == "LIKE",
+                )
+            )
+            likes = likes_res.scalar() or 0
+            await session.commit()
 
-    # verificar si ya existe reporte pendiente
+            return {
+                "comment_id": comment_id,
+                "action": action,
+                "likes": likes,
+                "user_liked": 1 if action == "ADDED" and reaction == "LIKE" else 0,
+            }
+
     async def has_pending_report(self, reporter_user_id: int, comment_id: int) -> bool:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    """
-                    SELECT id FROM content_reports
-                    WHERE reporter_user_id = %s AND entity_type = 'COMMENT' AND entity_id = %s
-                      AND status IN ('OPEN', 'REVIEWING')
-                    LIMIT 1
-                    """,
-                    (reporter_user_id, comment_id),
+        async with resolve_session(self.conn) as session:
+            res = await session.execute(
+                select(ContentReportORM.id)
+                .where(
+                    ContentReportORM.reporter_user_id == reporter_user_id,
+                    ContentReportORM.entity_type == "COMMENT",
+                    ContentReportORM.entity_id == comment_id,
+                    ContentReportORM.status.in_(("OPEN", "REVIEWING")),
                 )
-                return await cur.fetchone() is not None
+                .limit(1)
+            )
+            return res.scalar_one_or_none() is not None
 
-    # enviar reporte sobre un comentario
     async def create_report(
-        self, reporter_user_id: int, comment_id: int, reason: str, details: Optional[str]
+        self,
+        reporter_user_id: int,
+        comment_id: int,
+        reason: str,
+        details: Optional[str],
     ) -> int:
-        async with resolve_connection(self.conn) as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    """
-                    INSERT INTO content_reports (reporter_user_id, entity_type, entity_id, reason, details)
-                    VALUES (%s, 'COMMENT', %s, %s, %s)
-                    """,
-                    (reporter_user_id, comment_id, reason, details),
-                )
-                return cur.lastrowid
+        async with resolve_session(self.conn) as session:
+            report = ContentReportORM(
+                reporter_user_id=reporter_user_id,
+                entity_type="COMMENT",
+                entity_id=comment_id,
+                reason=reason,
+                details=details,
+            )
+            session.add(report)
+            await session.commit()
+            return report.id

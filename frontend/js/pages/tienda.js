@@ -33,7 +33,7 @@ async function initUser() {
       if (currentUser) {
         if (walletCoinsVal) walletCoinsVal.textContent = (currentUser.coins || 0).toLocaleString();
         if (walletUserTag) walletUserTag.textContent = currentUser.username || 'Lector';
-        if (walletSubHint) walletSubHint.textContent = `Nivel ${Math.floor((currentUser.xp || 0) / 1000) + 1} de Lector`;
+        if (walletSubHint) walletSubHint.textContent = `Nivel ${currentUser.level || 1} de Lector`;
         if (viewProfileBtn && currentUser.username) {
           viewProfileBtn.href = `/pages/usuario.html?id=${encodeURIComponent(currentUser.username)}`;
         }
@@ -86,8 +86,8 @@ function renderGrid() {
   const ownedItems = shopItemsCache.filter(item => item.is_owned);
   if (countBadge) countBadge.textContent = ownedItems.length;
 
-  const userLevel = currentUser ? (Math.floor((currentUser.xp || 0) / 1000) + 1) : 1;
-  const userCoins = currentUser ? (currentUser.coins || 0) : 0;
+  const userLevel = currentUser?.level || 1;
+  const userCoins = currentUser?.coins || 0;
 
   let itemsToDisplay = shopItemsCache;
   if (currentFilter === 'inventory') {
@@ -261,9 +261,8 @@ function initEventHandlers() {
           const walletCoinsVal = document.getElementById('wallet-coins-val');
           if (walletCoinsVal) walletCoinsVal.textContent = res.new_coins.toLocaleString();
 
-          window.dispatchEvent(new CustomEvent('yume:coins-updated', { detail: { new_coins: res.new_coins } }));
+          window.dispatchEvent(new CustomEvent('yume:wallet-updated', { detail: { coins: res.new_coins } }));
 
-          // recargar tienda
           await initUser();
           await loadShopItems();
         } catch (err) {
@@ -317,6 +316,15 @@ function initEventHandlers() {
       }
     });
   }
+
+  window.addEventListener('yume:wallet-updated', (e) => {
+    if (e.detail?.coins !== undefined && currentUser) {
+      currentUser.coins = e.detail.coins;
+      const walletCoinsVal = document.getElementById('wallet-coins-val');
+      if (walletCoinsVal) walletCoinsVal.textContent = Number(currentUser.coins || 0).toLocaleString();
+      renderGrid();
+    }
+  });
 }
 
 async function start() {

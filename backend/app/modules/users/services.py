@@ -1,5 +1,6 @@
+from fastapi import HTTPException
 from typing import Optional, List
-import aiomysql
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.users.repository import UserRepository
 from app.modules.users.schemas import (
     UserProfileResponse,
@@ -60,7 +61,7 @@ def calculate_level_info(xp: int = 0, ranks: Optional[List[dict]] = None) -> Lev
 
 
 class UserService:
-    def __init__(self, conn: Optional[aiomysql.Connection] = None):
+    def __init__(self, conn: Optional[AsyncSession] = None):
         self.repo = UserRepository(conn)
 
     async def get_profile(self, identifier: str, requester_id: Optional[int] = None) -> Optional[UserProfileResponse]:
@@ -103,6 +104,7 @@ class UserService:
             is_private=bool(user_data["is_private"]),
             platform_role=user_data["platform_role"],
             coins=user_data["coins"],
+            clan_tokens=int(user_data.get("clan_tokens") or 0),
             xp=user_data["xp"],
             streak_days=user_data["streak_days"],
             created_at=user_data["created_at"],
@@ -132,3 +134,95 @@ class UserService:
     async def get_coin_transactions(self, user_id: int, limit: int = 50, offset: int = 0) -> List[UserCoinTransactionResponse]:
         results = await self.repo.list_coin_transactions(user_id, limit, offset)
         return [UserCoinTransactionResponse(**r) for r in results]
+
+    async def exchange_currency(self, user_id: int, direction: str, amount: int) -> dict:
+        return await self.repo.exchange_currency(user_id, direction, amount)
+
+
+
+    async def list_for_user(self, user_id: int):
+        return await self.repo.list_for_user(user_id)
+
+    async def get_for_user(self, user_id: int, work_id: int):
+        return await self.repo.get_for_user(user_id, work_id)
+
+    async def add_work(self, user_id: int, work_id: int, status: str):
+        if not await self.repo.work_exists(work_id):
+            raise HTTPException(status_code=404, detail="Obra no encontrada")
+        await self.repo.add_work(user_id, work_id, status)
+        item = await self.repo.get_for_user(user_id, work_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail="Obra no encontrada")
+        return item
+
+    async def update_status(self, user_id: int, work_id: int, status: str) -> None:
+        if not await self.repo.update_status(user_id, work_id, status):
+            raise HTTPException(
+                status_code=404,
+                detail="La obra no pertenece a tu biblioteca",
+            )
+
+    async def remove_work(self, user_id: int, work_id: int) -> None:
+        if not await self.repo.remove_work(user_id, work_id):
+            raise HTTPException(
+                status_code=404,
+                detail="La obra no pertenece a tu biblioteca",
+            )
+
+    async def get_notification_preference(self, user_id: int, work_id: int) -> bool:
+        preference = await self.repo.get_notification_preference(user_id, work_id)
+        if preference is None:
+            raise HTTPException(
+                status_code=404,
+                detail="La obra no está en tu biblioteca",
+            )
+        return preference
+
+    async def update_notification_preference(
+        self, user_id: int, work_id: int, notify_new_chapters: bool
+    ) -> bool:
+        updated = await self.repo.update_notification_preference(
+            user_id, work_id, notify_new_chapters
+        )
+        if not updated:
+            if notify_new_chapters:
+                await self.repo.add_work(user_id, work_id, "READING")
+                await self.repo.update_notification_preference(user_id, work_id, True)
+                return True
+            raise HTTPException(
+                status_code=404,
+                detail="La obra no está en tu biblioteca",
+            )
+        return notify_new_chapters
+
+    async def save_reading_history(
+        self, user_id: int, work_id: int, chapter_id: int, page: int = 1, completed: bool = False
+    ) -> None:
+        await self.repo.save_reading_history(
+            user_id, work_id, chapter_id, page, completed=completed
+        )
+
+    async def set_work_rating(self, user_id: int, work_id: int, rating: float):
+        if rating < 0.5 or rating > 10.0:
+            raise HTTPException(status_code=422, detail="La calificación debe estar entre 0.5 y 10.0")
+        if not await self.repo.work_exists(work_id):
+            raise HTTPException(status_code=404, detail="Obra no encontrada")
+        return await self.repo.set_work_rating(user_id, work_id, rating)
+
+    async def get_user_work_rating(self, user_id: int, work_id: int):
+        return await self.repo.get_user_work_rating(user_id, work_id)
+
+    async def get_user_read_chapters(self, user_id: int, work_id: int) -> List[int]:
+        return await self.repo.get_user_read_chapters(user_id, work_id)
+
+    async def toggle_chapter_read(self, user_id: int, chapter_id: int) -> dict:
+        try:
+            return await self.repo.toggle_chapter_read(user_id, chapter_id)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+
+    async def mark_all_read(self, user_id: int, work_id: int, read: bool = True) -> dict:
+        affected = await self.repo.mark_all_chapters_read(user_id, work_id, read)
+        return {"work_id": work_id, "read": read, "affected": affected}
+
+LibraryService = UserService

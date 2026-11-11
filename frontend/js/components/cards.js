@@ -119,11 +119,8 @@ export function renderPopularCard(item) {
   const rating = item.rating ?? item.rating_average ?? work.stats?.rating_average ?? '';
   const ratingFmt = rating ? Number(rating).toFixed(1) : '';
   const ratingCount = item.rating_count ?? work.stats?.rating_count ?? '';
-  const favCount = item.favorites_count ?? work.stats?.favorites_count ?? item.favorites ?? '';
-  const hearts = item.favorites_formatted ?? (favCount !== '' ? `${favCount}` : '');
-  const tags = (work.genres ?? item.tags ?? []).slice(0, 2).map(g =>
-    `<span class="popular-card--tag">${esc(g.name ?? g)}</span>`
-  ).join('');
+  const rawGenres = (work.genres ?? item.tags ?? []);
+  const genresText = rawGenres.slice(0, 2).map(g => esc(g.name ?? g)).filter(Boolean).join(' · ');
   const coverUrl = esc(safeUrl(work.cover_url ?? work.cover, IMG_FALLBACK));
   const href = esc(item.href ?? makeWorkUrl(work.slug ?? item.slug));
   const formatBadge = esc(work.format_name ?? work.format?.name ?? item.format?.name ?? '');
@@ -139,11 +136,10 @@ export function renderPopularCard(item) {
     </div>
     <div class="popular-card--info">
       <h3 class="popular-card--title" title="${title}">${title}</h3>
-      ${author ? `<p class="popular-card--studio">${author}</p>` : ''}
-      ${tags ? `<div class="popular-card--tags">${tags}</div>` : ''}
+      ${genresText ? `<p class="popular-card--genres">${genresText}</p>` : ''}
       <div class="popular-card--footer">
-        <span class="popular-card--chapter-info">${chapter || 'Actualizado'}</span>
-        ${hearts !== '' ? `<span class="popular-card--hearts">♥ ${esc(hearts)}</span>` : ''}
+        <span class="popular-card--chapter">${chapter || 'Disponible'}</span>
+        ${author ? `<span class="popular-card--author" title="${author}">${author}</span>` : ''}
       </div>
     </div>
   </a>`;
