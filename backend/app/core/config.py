@@ -32,7 +32,7 @@ class Settings:
 @lru_cache()
 def get_settings() -> Settings:
     cors_origins = [
-        origin.strip()
+        origin.strip().rstrip("/")
         for origin in os.getenv("CORS_ALLOW_ORIGINS", "").split(",")
         if origin.strip()
     ]
